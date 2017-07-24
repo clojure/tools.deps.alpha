@@ -127,7 +127,7 @@
         ;;_ (println "deps" deps)
         libs (make-libs deps (newer-than deps-file libs-file) libs-file R)
         cp (make-cp deps libs cp-file C P)]
-    cp))
+    (println cp)))
 
 (comment
   ;; write libmap to ./cp/default.libs and classpath to ./cp/default/default.cp
