@@ -26,11 +26,7 @@ Also see:
 
 # Releases Information
 
-## Current Release
-
 Not yet released.
-
-## All Releases
 
 [All Released Versions](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22org.clojure%22%20AND%20a%3A%22tools.deps.alpha%22)
 
