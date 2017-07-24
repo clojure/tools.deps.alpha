@@ -71,11 +71,8 @@
   (if refresh?
     ;; read deps, parse resolve opt, run resolve-deps, cache libs file
     (let [resolve-aliases (read-kws resolve-opt)
-          ;;_ (println "resolve-aliases" resolve-aliases)
           resolve-args (apply merge-with merge (map #(get-in deps [:aliases %]) resolve-aliases))
-          ;;_ (println "resolve-args" resolve-args)
           libs (deps/resolve-deps deps resolve-args)]
-      ;;(println "Updating" libs-file)
       (spit libs-file (pr-str libs))
       libs)
     (-> libs-file slurp edn/read-string)))
@@ -85,16 +82,12 @@
   overrides, write to cp cache file."
   [deps libs cp-file cp-opt overrides-opt]
   (let [cp-aliases (read-kws cp-opt)
-        ;;_ (println "cp-aliases" cp-aliases)
         overrides (reduce #(let [[lib path] (str/split %2 #"=")]
                              (assoc %1 (symbol lib) path))
                     {} (when overrides-opt (str/split overrides-opt #",")))
-        ;;_ (println "overrides" overrides)
         cp-args (apply merge-with merge (conj (map #(get-in deps [:aliases %]) cp-aliases) overrides))
-        ;;_ (println "cp-args" cp-args)
         cp (deps/make-classpath libs cp-args)]
     (when (not overrides-opt)
-      ;;(println "Updating" cp-file)
       (jio/make-parents cp-file)
       (spit cp-file cp))
     cp))
@@ -121,10 +114,7 @@
         lib-path (or R "default")
         libs-file (jio/file cache-dir (str lib-path ".libs"))
         cp-file (jio/file cache-dir lib-path (str (or C "default") ".cp"))
-        ;;_ (println "libs-file" libs-file)
-        ;;_ (println "cp-file" cp-file)
         deps (read-deps deps-file)
-        ;;_ (println "deps" deps)
         libs (make-libs deps (newer-than deps-file libs-file) libs-file R)
         cp (make-cp deps libs cp-file C P)]
     (println cp)))

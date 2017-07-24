@@ -26,11 +26,13 @@ Also see:
 
 # Releases Information
 
+## Current Release
+
+Not yet released.
+
+## All Releases
+
 [All Released Versions](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22org.clojure%22%20AND%20a%3A%22tools.deps.alpha%22)
-
-### Current Release
-
-* not yet released 
 
 # API 
 
@@ -46,6 +48,27 @@ The Clojure installer places tools.deps and its dependencies in your local Maven
 * `clj` - a Clojure runner script, placed on the PATH 
 * ~/.clojure/deps.edn - a default deps.edn file that includes the latest stable version of Clojure as a dependency and standard Maven repositories
 * ~/.clojure/deptools.cp - a classpath file to use when running tools.deps.alpha
+
+There will be system installers for different platforms to take care of this. For now, see the following for manual installation.
+
+## Manual installation
+
+```shell
+git clone https://github.com/clojure/tools.deps.alpha.git
+cd tools.deps.alpha
+
+mkdir $HOME/.clojure
+
+mvn dependency:build-classpath -Dmdep.outputFile=$HOME/.clojure/deptools.cp
+
+cat <<EOF > $HOME/.clojure/deps.edn
+{:deps {org.clojure/clojure {:type :mvn :version "1.8.0"}}
+ :providers {:mvn {:repos {"central" {:url "https://repo1.maven.org/maven2/"}
+                           "clojars" {:url "https://clojars.org/repo/"}}}}}
+EOF
+
+export PATH=$PATH:$PWD/src/main/resources/clj.sh
+```
 
 ## Command line options
 
