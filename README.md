@@ -28,173 +28,182 @@ Maven-artifacts-first orientation of current tooling has created great rigidity 
 
 * not yet released 
 
-# Overview
+# API 
 
-While tools.deps.alpha will predominantly be used within other tools, it can be used directly as well.
+For info on using tools.deps as a library, see:
 
-* [API Documentation](https://clojure.github.io/tools.deps.alpha/)
+* [API Usage](API.md)
+* [API Docs](https://clojure.github.io/tools.deps.alpha/)
 
-## API
+# `clj` script
 
-There are two fundamental operations supported by tools.deps.alpha: `resolve-deps` and `make-classpath`.
+The Clojure installer places tools.deps and its dependencies in your local Maven repository and also installs the following:
 
-### `resolve-deps`
+* `clj` - a Clojure runner script, placed on the PATH 
+* ~/.clojure/deps.edn - a default deps.edn file that includes the latest stable version of Clojure as a dependency and standard Maven repositories
+* ~/.clojure/deptools.cp - a classpath file to use when running tools.deps.alpha
 
-Usage: `(resolve-args deps-map resolve-args)`
+## Command line options
 
-Args:
+Usage: `clj [<jvm_opts>] [<dep_opts>] [<main_opts>]`
 
-* deps-map - a dependency map (as typically found in deps.edn). A map with the following keys:
-    * `:deps` - a map of library to coordinate (which may be maven, git, local, etc)
-    * `:providers` - a map of artifact provider type to provider configuration
-    * `:resolve-args` - a map with the same structure as the resolve-args arg which serves as the basis resolve-args
-    * `:aliases` - a map from keyword (the alias) to a resolve-args map
-* resolve-args - a map with the following optional keys:
-    * `:extra-deps` - a map of library to coordinate to add to initial dependency list
-    * `:default-deps` - a map of library to coordinate to use if no coordinate is specified anywhere in expansion.
-    * `:override-deps` - a map of library to coordinate to use instead of coordinate found by expansion.
+where:
 
-Returns:
+* `jvm_opts` is 0 or more of the following:
+** `-D...` - sets a system property in the JVM, ex: -Dfoo=bar
+** `-X...` - sets a JVM runtime setting, ex: -Xmx256m
+** `-Jopt` - passes `opt` through to the JVM, ex: -J-server
+* `dep_opts` is any of the following (but each at most once):
+** `-Ralias...` - concatenated resolve-args aliases, ex: -R:bench:1.9
+** `-Calias...` - concatenated classpath-override aliases, ex: -C:dev
+** `-Plib=path,...` - comma-delimited, lib=path pairs specifying classpath overrides. Note: disables caching!
+* `main_opts` are the `clojure.main` arguments, see [docs](https://clojure.org/reference/repl_and_main)
 
-* a lib-map - map of library to a resolved dep. Resolved deps have the coordinate, the dependents needing the dep (informational), and a path
+The `clj` script constructs and invokes a command-line of the form:
 
-### `make-classpath`
-
-Usage: `(make-classpath lib-map overrides)`
-
-Args:
-
-* lib-map - a library map, as returned by resolve-deps
-* overrides - a map from library to a path to use for that library
-
-Returns:
-
-* a classpath string
-
-## Data structures
-
-### Library
-
-A library is identified by a symbol whose namespace is the groupId and name is the artifactId. If no namespace is specified, the groupId is the same as the artifactId.
-
-Specs:
-
-```clojure
-(s/def ::lib symbol?)
+```shell
+java <java_opts> -cp <classpath> clojure.main <main_opts>
 ```
 
-Examples: `org.clojure/clojure`, `cheshire`
+The `dep_opts` are used to compute the `<classpath>`. Classpaths are cached (except when using `-P`) - see the
+section on classpath caching below for more details. When a classpath is not available, the following process is
+used to construct the classpath:
 
-### Coordinate
+* Compute the deps map
+  * Read the ~/.clojure/deps.edn file
+  * If a local edn file exists at ./deps.edn, read that file
+  * Combine these two maps with `merge`
+* Compute the resolve-deps args
+  * If `-R` specifies one or more aliases, find each alias in the deps map `:aliases`
+  * `merge-with` `merge` the alias maps - the result is the resolve-args map
+* Invoke `resolve-deps` with deps map and resolve-args map
+* Write the libs map to the classpath cache
+* Compute the classpath-overrides map
+  * If `-C` specifies one or more aliases, find each alias in the deps map `:aliases`
+  * If `-P` specifies a map of lib to path, add this as a trailing overrides map
+  * `merge` the classpath-override alias maps
+* Invoke `make-classpath` with the libs map returned by `resolve-deps` and the classpath-overrides map
+* Write the classpath to the classpath cache
+* Print the computed classpath to stdout
 
-A coordinate is a map specifying the provider type (a keyword) and version (a string) that will fulfill a library. Initial coordinate types include: `:mvn`, `:local`, `:git`. In some cases, a coordinate may optionally contain other information, such as a path or provider-specific attributes.
+## deps.edn
 
-Specs:
+The deps.edn file has the following format:
 
 ```clojure
-(s/def ::coord (s/multi-spec coord :type))
-(s/def ::type keyword?)
-(s/def ::path string?)
-
-(defmulti coord :type)
-(defmethod coord :mvn [_] (s/keys :opt-un [::version ::path]))
-(defmethod coord :local [_] (s/keys :req-un [::path]))
-;; :git impl TBD
+{:deps {<lib> <coord>, ...}
+ :aliases {<alias> <resolve-args-or-classpath-overrides>, ...}
+ :providers {<provider-type> <provider-config>}}
 ```
 
-Examples: `{:type :mvn :version "1.2.3"}`, `{:type :local :path "/Users/me/clojure/target/classes"}`
+where:
 
-### Providers
+* `<lib>` is a symbol of the form `<groupId>/<artifactId>` or just `<artifact-and-groupId>`
+* `<coord>` is a map with keys `:type` and (optionally) `:version` where the only initial type is `:mvn`
+* `<alias>` is a keyword
+* `<resolve-args-or-classpath-overrides> is:
+** resolve-args: map with any of these optional keys. The value for each is a map from lib to coord.
+*** `:extra-deps` - dependencies to add to the initial set
+*** `:override-deps` - if dep is found when expanding deps, use this coordinate, regardless of what is specified
+*** `:default-deps` - if dep is found when expanding deps, and no coordinate is provided, use this
+** classpath-overrides: map from lib to path
+* `<provider-type>` - matches the coord type, ie `:mvn`
+* `<provider-config>` - depends on provider type, but example is `{:repos {"central" {:url "..."}}}`
 
-A provider is a system that can traverse dependencies and download artifacts.
+_Note: see [API Usage](API.md) for specs, shorthand used here._
 
-Specs:
+## Classpath caching
+
+_Note: implementation is temporary, more changes coming soon._
+
+Classpath files are cached in the current directory under `.cpcache/`. File are of two forms:
+
+* `.cpcache/<resolve-aliases>.libs`
+* `.cpcache/<resolve-aliases>/<classpath-aliases>.cp`
+
+where the `<resolve-aliases>` are either the `-R` aliases or `default`. The `<classpath-aliases>` are either the `-C` aliases or `default`.
+
+The cached classpath file is used when:
+
+* It exists
+* It is newer than `deps.edn`
+* It is newer than the libs file
+* `-P` is NOT in use
+
+The cached libs file is used when:
+
+* It exists
+* It is newer than `deps.edn`
+* `-P` is NOT in use
+
+## Examples
+
+* Invoke: `clj`
+* Given: No deps.edn file in the current directory.
+* Result: Start a repl using the default deps file at ~/.clojure/deps.edn.
+
+---
+
+* Invoke: `clj`
+* Given: A deps.edn file in the current directory.
+* Result: Start a repl using the deps.edn file at ./deps.edn.
+
+---
+
+* Invoke: `clj -m my.app 1 2 3`
+* Result: Load the my.app namespace and invoke my.app/-main with the arguments `1 2 3`. If a deps.edn file exists, use it, otherwise use the default deps file.
+
+---
+
+* Invoke: `clj -R:bench`
+* Given: A deps.edn file like the one below.
+* Result: Start a repl using the deps and add the extra deps defined by the `:bench` alias.
+
+deps.edn:
 
 ```clojure
-;; keys here match the coordinate :type keys
-(s/def ::providers (s/keys :opt-un [::mvn ::git]))
-
-(s/def ::url string?)
-(s/def ::mvn (s/keys :opt [::repos]))
-(s/def ::repo (s/keys :opt-un [::url]))
-(s/def ::repo-id string?)
-(s/def ::repos (s/map-of ::repo-id ::repo))
-
-;; TODO: more Maven repo info (mirrors, etc)
-
-;; :git impl TBD
+{:deps {org.clojure/clojure {:type :mvn :version "1.8.0"}}
+ :aliases {:bench {:extra-deps {criterium {:type :mvn :version "0.4.4"}}}}}
 ```
 
-Example:
+---
+
+* Invoke: `clj -R:bench,1.9`
+* Given: A deps.edn file like the one below.
+* Result: Start a repl using the deps and add the extra deps defined by the `:bench` alias and the override deps defined by the `:1.9` alias.
+
+deps.edn:
 
 ```clojure
-{:mvn {:repos {"central" {:url "https://repo1.maven.org/maven2/"}
-               "clojars" {:url "https://clojars.org/repo/"}}}}
+{:deps {org.clojure/clojure {:type :mvn :version "1.8.0"}}
+ :aliases {:1.9 {:override-deps {org.clojure/clojure {:type :mvn :version "1.9.0-alpha17"}}}
+           :bench {:extra-deps {criterium {:type :mvn :version "0.4.4"}}}}}
 ```
 
-### Deps map
+---
 
-A deps map describes a set of dependencies and optional modifications to those dependencies for the purposes of building classpaths.
+* Invoke: `clj -R1.9 -Cdev`
+* Given: A deps.edn file like the one below.
+* Result: Start a repl using the deps, the override deps defined by the `:1.9` alias, and the classpath override for the dev path.
 
-Specs:
+deps.edn:
 
 ```clojure
-(s/def ::deps-map (s/keys :opt-un [::deps ::resolve-args ::providers ::aliases]))
-
-(s/def ::deps (s/map-of ::lib ::coord))
-
-(s/def ::alias unqualified-keyword?)
-(s/def ::aliases (s/map-of ::alias map?))
+{:deps {org.clojure/clojure {:type :mvn :version "1.8.0"}}
+ :aliases {:1.9 {:override-deps {org.clojure/clojure {:type :mvn :version "1.9.0-alpha17"}}}
+           :dev {org.clojure/clojure "/Users/me/code/clojure/target/classes"}}}
 ```
 
-### Resolve args map
+---
 
-The resolve args are a set of modifiers that can be used to change the base set of
-dependencies.
+* Invoke: `clj -Porg.clojure=/Users/me/code/clojure/target/classes`
+* Given: A deps.edn file like the one below.
+* Result: Start a repl using the deps and the classpath override for the lib. The cache is never used when `-P` is used on the command-line.
 
-Semantics:
-
-* extra-deps - additional dependencies to add to the base dependencies, for example, a benchmarking library, a testing library, etc.
-* override-deps - alternate coordinates to use instead of the base dependencies. For example, specifying an alternate version of Clojure to use instead of the one included in the deps.
-* default-deps - default coordinates to use if a dependency is required, but its coordinate is not. This can be used to provide an external source of dependency information (often handled with managed dependencies in Maven or lein)
-
-Specs:
+deps.edn:
 
 ```clojure
-(s/def ::resolve-args (s/keys :opt-un [::extra-deps ::override-deps ::default-deps]))
-(s/def ::extra-deps (s/map-of ::lib ::coord))
-(s/def ::override-deps (s/map-of ::lib ::coord))
-(s/def ::default-deps (s/map-of ::lib ::coord))
-```
-
-### Lib map
-
-A lib map represents the result of resolving dependencies. It state the full set of
-libraries, where to find the artifact for each library, and which dependents requested
-each dependency.
-
-Specs:
-
-```clojure
-(s/def ::dependents (s/coll-of ::lib))
-(s/def ::resolved-coord (s/merge ::coord (s/keys :req-un [::path] :opt-un [::dependents])))
-(s/def ::lib-map (s/map-of ::lib ::resolved-coord)
-```
-
-### Classpath overrides
-
-Specs:
-
-```clojure
-(s/def ::classpath-overrides (s/map ::lib ::path))
-```
-
-### Classpath
-
-Specs:
-
-```clojure
-(s/def ::classpath string?)
+{:deps {org.clojure/clojure {:type :mvn :version "1.9.0-alpha17"}}}
 ```
 
 # Developer Information
@@ -208,8 +217,6 @@ Specs:
 * [Continuous Integration](http://build.clojure.org/job/tools.deps.alpha/)
 
 * [Compatibility Test Matrix](http://build.clojure.org/job/tools.deps.alpha-test-matrix/)
-
-
 
 # Copyright and License
 
