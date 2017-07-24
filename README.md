@@ -20,6 +20,10 @@ The Clojure 1.9 release for the first time requires multiple artifacts to run Cl
 
 Maven-artifacts-first orientation of current tooling has created great rigidity and friction for dev processes - making it hard to e.g. work with libs not yet building/publishing artifacts (new users!), working on speculative changes w/o artifacts, working on mutual changes across multiple libs, give control to a 3rd party tool to manage shared dependencies, and to directly leverage git which is now widely used as a source of truth for code lifecycles.
 
+Also see:
+
+* [Dependency Heaven](http://cdn.cognitect.com/presentations/2017/dependency_heaven.pdf) from EuroClojure 2017, video coming soon
+
 # Releases Information
 
 [All Released Versions](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22org.clojure%22%20AND%20a%3A%22tools.deps.alpha%22)
