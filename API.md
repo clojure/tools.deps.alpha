@@ -1,40 +1,4 @@
-tools.deps.alpha
-========================================
-
-A fuctional API for transitive dependency graph expansion and the creation of classpaths.
-
-# Rationale
-
-Clojure "endeavors to be a general-purpose language suitable in those areas where Java is suitable" (from [Rationale](https://clojure.org/about/rationale)). To effectively target the JVM platform, Clojure needs to provide ready access to Java libraries, ideally in a way suited for dynamic development. In practice, this means meeting the JVM platform in two places:
-
-* the classpath used when invoking JVM processes (and/or URLClassLoaders)
-* transitive dependency download and resolution from Maven repositories
-
-tools.deps.alpha aims to provide a functional API to access these capabilities.
-
-tools.deps.alpha makes it simple and easy to interactively consume JVM libraries, without dragging in unrelated concerns of building programs or project management. (It should also be a useful shared resource for future work on project and build tools.) 
-
-tools.deps.alpha will support package installers for Clojure (e.g. brew, apt-get, etc) to provide a path for Clojure installation and ongoing Clojure development.
-
-The Clojure 1.9 release for the first time requires multiple artifacts to run Clojure (clojure, spec.alpha, and core.specs.alpha) and thus the issues of transitive dependency are now immediately in front of a Clojure user in the first minute.
-
-Maven-artifacts-first orientation of current tooling has created great rigidity and friction for dev processes - making it hard to e.g. work with libs not yet building/publishing artifacts (new users!), working on speculative changes w/o artifacts, working on mutual changes across multiple libs, give control to a 3rd party tool to manage shared dependencies, and to directly leverage git which is now widely used as a source of truth for code lifecycles.
-
-# Releases Information
-
-[All Released Versions](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22org.clojure%22%20AND%20a%3A%22tools.deps.alpha%22)
-
-### Current Release
-
-* not yet released 
-
-# Overview
-
-While tools.deps.alpha will predominantly be used within other tools, it can be used directly as well.
-
-* [API Documentation](https://clojure.github.io/tools.deps.alpha/)
-
-## API
+# API
 
 There are two fundamental operations supported by tools.deps.alpha: `resolve-deps` and `make-classpath`.
 
@@ -196,31 +160,3 @@ Specs:
 ```clojure
 (s/def ::classpath string?)
 ```
-
-# Developer Information
-
-* [GitHub project](https://github.com/clojure/tools.deps.alpha)
-
-* [How to contribute](http://dev.clojure.org/display/community/Contributing)
-
-* [Bug Tracker](http://dev.clojure.org/jira/browse/TDEPS)
-
-* [Continuous Integration](http://build.clojure.org/job/tools.deps.alpha/)
-
-* [Compatibility Test Matrix](http://build.clojure.org/job/tools.deps.alpha-test-matrix/)
-
-
-
-# Copyright and License
-
-Copyright © 2017 Rich Hickey, Alex Miller, and contributors
-
-All rights reserved. The use and
-distribution terms for this software are covered by the
-[Eclipse Public License 1.0] which can be found in the file
-epl-v10.html at the root of this distribution. By using this software
-in any fashion, you are agreeing to be bound by the terms of this
-license. You must not remove this notice, or any other, from this
-software.
-
-[Eclipse Public License 1.0]: http://opensource.org/licenses/eclipse-1.0.php
