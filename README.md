@@ -151,7 +151,7 @@ where:
 * `<lib>` is a symbol of the form `<groupId>/<artifactId>` or just `<artifact-and-groupId>`
 * `<coord>` is a map with keys `:type` and (optionally) `:version` where the only initial type is `:mvn`
 * `<alias>` is a keyword
-* `<resolve-args-or-classpath-overrides> is:
+* `<resolve-args-or-classpath-overrides>` is:
   * resolve-args: map with any of these optional keys. The value for each is a map from lib to coord.
     * `:extra-deps` - dependencies to add to the initial set
     * `:override-deps` - if dep is found when expanding deps, use this coordinate, regardless of what is specified
