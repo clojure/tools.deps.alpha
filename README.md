@@ -100,13 +100,13 @@ Usage: `clj [<jvm_opts>] [<dep_opts>] [<main_opts>]`
 where:
 
 * `jvm_opts` is 0 or more of the following:
-** `-D...` - sets a system property in the JVM, ex: -Dfoo=bar
-** `-X...` - sets a JVM runtime setting, ex: -Xmx256m
-** `-Jopt` - passes `opt` through to the JVM, ex: -J-server
+  * `-D...` - sets a system property in the JVM, ex: -Dfoo=bar
+  * `-X...` - sets a JVM runtime setting, ex: -Xmx256m
+  * `-Jopt` - passes `opt` through to the JVM, ex: -J-server
 * `dep_opts` is any of the following (but each at most once):
-** `-Ralias...` - concatenated resolve-args aliases, ex: -R:bench:1.9
-** `-Calias...` - concatenated classpath-override aliases, ex: -C:dev
-** `-Plib=path,...` - comma-delimited, lib=path pairs specifying classpath overrides. Note: disables caching!
+  * `-Ralias...` - concatenated resolve-args aliases, ex: -R:bench:1.9
+  * `-Calias...` - concatenated classpath-override aliases, ex: -C:dev
+  * `-Plib=path,...` - comma-delimited, lib=path pairs specifying classpath overrides. Note: disables caching!
 * `main_opts` are the `clojure.main` arguments, see [docs](https://clojure.org/reference/repl_and_main)
 
 The `clj` script constructs and invokes a command-line of the form:
@@ -152,11 +152,11 @@ where:
 * `<coord>` is a map with keys `:type` and (optionally) `:version` where the only initial type is `:mvn`
 * `<alias>` is a keyword
 * `<resolve-args-or-classpath-overrides> is:
-** resolve-args: map with any of these optional keys. The value for each is a map from lib to coord.
-*** `:extra-deps` - dependencies to add to the initial set
-*** `:override-deps` - if dep is found when expanding deps, use this coordinate, regardless of what is specified
-*** `:default-deps` - if dep is found when expanding deps, and no coordinate is provided, use this
-** classpath-overrides: map from lib to path
+  * resolve-args: map with any of these optional keys. The value for each is a map from lib to coord.
+    * `:extra-deps` - dependencies to add to the initial set
+    * `:override-deps` - if dep is found when expanding deps, use this coordinate, regardless of what is specified
+    * `:default-deps` - if dep is found when expanding deps, and no coordinate is provided, use this
+  * classpath-overrides: map from lib to path
 * `<provider-type>` - matches the coord type, ie `:mvn`
 * `<provider-config>` - depends on provider type, but example is `{:repos {"central" {:url "..."}}}`
 
