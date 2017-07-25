@@ -1,7 +1,7 @@
 tools.deps.alpha
 ========================================
 
-A fuctional API for transitive dependency graph expansion and the creation of classpaths.
+A functional API for transitive dependency graph expansion and the creation of classpaths.
 
 # Rationale
 
