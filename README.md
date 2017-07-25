@@ -49,6 +49,15 @@ There will be system installers for different platforms to take care of this. Fo
 
 ## Manual installation
 
+Goals:
+
+* Create ~/.clojure
+* Create ~/.clojure/deptools.cp
+* Create ~/.clojure/deps.edn
+* Add clj to path
+
+Process:
+
 ```shell
 git clone https://github.com/clojure/tools.deps.alpha.git
 cd tools.deps.alpha
@@ -63,7 +72,7 @@ cat <<EOF > $HOME/.clojure/deps.edn
                            "clojars" {:url "https://clojars.org/repo/"}}}}}
 EOF
 
-export PATH=$PATH:$PWD/src/main/resources/clj.sh
+export PATH=$PATH:$PWD/src/main/resources/clj
 ```
 
 ## Command line options
@@ -137,7 +146,7 @@ _Note: see [API Usage](API.md) for specs, shorthand used here._
 
 ## Classpath caching
 
-_Note: implementation is temporary, more changes coming soon._
+_Note: implementation is in flux, changes coming soon._
 
 Classpath files are cached in the current directory under `.cpcache/`. File are of two forms:
 
@@ -233,13 +242,13 @@ deps.edn:
 
 * [GitHub project](https://github.com/clojure/tools.deps.alpha)
 
-* [How to contribute](http://dev.clojure.org/display/community/Contributing)
+* [How to contribute](https://dev.clojure.org/display/community/Contributing)
 
-* [Bug Tracker](http://dev.clojure.org/jira/browse/TDEPS)
+* [Bug Tracker](https://dev.clojure.org/jira/browse/TDEPS)
 
-* [Continuous Integration](http://build.clojure.org/job/tools.deps.alpha/)
+* [Continuous Integration](https://build.clojure.org/job/tools.deps.alpha/)
 
-* [Compatibility Test Matrix](http://build.clojure.org/job/tools.deps.alpha-test-matrix/)
+* [Compatibility Test Matrix](https://build.clojure.org/job/tools.deps.alpha-test-matrix/)
 
 # Copyright and License
 
