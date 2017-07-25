@@ -61,10 +61,12 @@ Process:
 ```shell
 git clone https://github.com/clojure/tools.deps.alpha.git
 cd tools.deps.alpha
+mvn clean install
 
 mkdir $HOME/.clojure
 
 mvn dependency:build-classpath -Dmdep.outputFile=$HOME/.clojure/deptools.cp
+echo ":$PWD/target/classes" >> "$HOME/.clojure/deptools.cp"
 
 cat <<EOF > $HOME/.clojure/deps.edn
 {:deps {org.clojure/clojure {:type :mvn :version "1.8.0"}}
