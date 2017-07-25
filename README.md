@@ -72,7 +72,7 @@ cat <<EOF > $HOME/.clojure/deps.edn
                            "clojars" {:url "https://clojars.org/repo/"}}}}}
 EOF
 
-export PATH=$PATH:$PWD/src/main/resources/clj
+export PATH=$PATH:$PWD/src/main/resources
 ```
 
 ## Command line options
