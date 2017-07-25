@@ -246,7 +246,7 @@ deps.edn:
 
 ---
 
-* Invoke: `clj -Porg.clojure=/Users/me/code/clojure/target/classes`
+* Invoke: `clj -Porg.clojure/clojure=/Users/me/code/clojure/target/classes`
 * Given: A deps.edn file like the one below.
 * Result: Start a repl using the deps and the classpath override for the lib. The cache is never used when `-P` is used on the command-line.
 
