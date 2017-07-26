@@ -59,7 +59,7 @@ The Clojure installer places tools.deps and its dependencies in your local Maven
 
 * `clj` - a Clojure runner script, placed on the PATH 
 * ~/.clojure/deps.edn - a default deps.edn file that includes the latest stable version of Clojure as a dependency and standard Maven repositories
-* ~/.clojure/deptools.cp - a classpath file to use when running tools.deps.alpha
+* ~/.clojure/clj.cp - a classpath file to use when running tools.deps.alpha
 
 There will be system installers for different platforms to take care of this. For now, see the following for manual installation.
 
@@ -68,7 +68,7 @@ There will be system installers for different platforms to take care of this. Fo
 Goals:
 
 * Create ~/.clojure
-* Create ~/.clojure/deptools.cp
+* Create ~/.clojure/clj.cp
 * Create ~/.clojure/deps.edn
 * Add clj to path
 
@@ -81,8 +81,8 @@ mvn clean install
 
 mkdir $HOME/.clojure
 
-mvn dependency:build-classpath -Dmdep.outputFile=$HOME/.clojure/deptools.cp
-echo ":$PWD/target/classes" >> "$HOME/.clojure/deptools.cp"
+mvn dependency:build-classpath -Dmdep.outputFile=$HOME/.clojure/clj.cp
+echo ":$PWD/target/classes" >> "$HOME/.clojure/clj.cp"
 
 cat <<EOF > $HOME/.clojure/deps.edn
 {:deps {org.clojure/clojure {:type :mvn :version "1.8.0"}}
