@@ -84,6 +84,11 @@ fi
 
 # Check cached cp file - if needed, make a new one
 if [ ! -f "$cp_file" ] || [ ! -f "$libs_file" ] || [ "$libs_file" -nt "$cp_file" ] || [ "$project_deps" -nt "$cp_file" ]; then
+  # Check whether the clj.cp itself is out of date and if so, rebuild it
+  if [ -f "$clojure_dir/clj.props" ] && [ "$clojure_dir/clj.props" -nt "$clojure_dir/clj.cp" ]; then
+    install-clj
+  fi
+
   tools_cp=$(cat "$clojure_dir/clj.cp")
   tools_args=()
 
