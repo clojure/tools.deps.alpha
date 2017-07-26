@@ -12,20 +12,11 @@
             [clojure.tools.deps.alpha :as deps]
             [clojure.tools.deps.alpha.providers.maven]
             [clojure.string :as str])
-  (:import [java.io File IOException]
+  (:import [java.io File IOException FileReader PushbackReader]
            [java.nio.file Files LinkOption]
            [java.nio.file.attribute FileTime]))
 
 (set! *warn-on-reflection* true)
-
-(defn- assert-path
-  "Asserts that the specified path segments refer to a file that exists
-  and returns a File for that path."
-  ^File [& paths]
-  (let [f ^File (apply jio/file paths)]
-    (when (not (.exists f))
-      (throw (IOException. (str "Missing file: " (.getAbsolutePath f)))))
-    f))
 
 (defn- ensure-dir
   "Asserts that the specified directory either exists, creating if needed
@@ -64,12 +55,30 @@
          (keyword (subs % 0 i) (subs % (inc i)))
          (keyword %)))))
 
+(defn- io-err
+  ^IOException [fmt ^File f]
+  (IOException. (format fmt (.getAbsolutePath f))))
+
+(defn- slurp-edn-map
+  "Read the file specified by the path-segments, slurp it, and read it as edn."
+  [& path-segments]
+  (let [f ^File (apply jio/file path-segments)
+        EOF (Object.)]
+    (if (.exists f)
+      (with-open [rdr (PushbackReader. (FileReader. f))]
+        (let [val (edn/read {:eof EOF} rdr)]
+          (cond
+            (identical? val EOF) nil ;; empty file
+            (map? val) val
+            :else (throw (io-err "Expected edn map: %s" f)))))
+      (throw (io-err "File does not exist: %s" f)))))
+
 (defn- read-deps
   "Read the system deps (~/.clojure/deps.edn) and the project deps (usually ./deps.edn)
   and merge them into a single deps map."
   [deps-file]
-  (let [system-deps (-> (assert-path (System/getProperty "user.home") ".clojure" "deps.edn") slurp edn/read-string)
-        project-deps (-> (assert-path deps-file) slurp edn/read-string)]
+  (let [system-deps (slurp-edn-map (System/getProperty "user.home") ".clojure" "deps.edn")
+        project-deps (slurp-edn-map deps-file)]
     (merge system-deps project-deps)))
 
 (defn- make-libs
@@ -83,7 +92,7 @@
           libs (deps/resolve-deps deps resolve-args)]
       (spit libs-file (pr-str libs))
       libs)
-    (-> libs-file slurp edn/read-string)))
+    (slurp-edn-map libs-file)))
 
 (defn- make-cp
   "Use aliases and overrides to invoke make-classpath on the libs. If not using
@@ -95,10 +104,8 @@
                     {} (when overrides-opt (str/split overrides-opt #",")))
         cp-args (apply merge-with merge (conj (map #(get-in deps [:aliases %]) cp-aliases) overrides))
         cp (deps/make-classpath libs cp-args)]
-    (when (not overrides-opt)
-      (jio/make-parents cp-file)
-      (spit cp-file cp))
-    cp))
+    (jio/make-parents cp-file)
+    (spit cp-file cp)))
 
 (defn -main
   "Main entry point for makecp script.
@@ -115,17 +122,24 @@
   The libs file is at <cachedir>/<resolve-aliases>.libs
   The cp file is at <cachedir>/<resolve-aliases>/<cpaliases>.cp"
   [& args]
-  (let [[deps-path cache-path & opts] args
-        deps-file (jio/file deps-path)
-        cache-dir (ensure-dir cache-path)
-        {:strs [R C P]} (parse-opts opts)
-        lib-path (or R "default")
-        libs-file (jio/file cache-dir (str lib-path ".libs"))
-        cp-file (jio/file cache-dir lib-path (str (or C "default") ".cp"))
-        deps (read-deps deps-file)
-        libs (make-libs deps (newer-than deps-file libs-file) libs-file R)
-        cp (make-cp deps libs cp-file C P)]
-    (println cp)))
+  (try
+    (let [[deps-path cache-path & opts] args
+          deps-file (jio/file deps-path)
+          cache-dir (ensure-dir cache-path)
+          {:strs [R C P]} (parse-opts opts)
+          lib-path (or R "default")
+          libs-file (jio/file cache-dir (str lib-path ".libs"))
+          cp-file (jio/file cache-dir lib-path (str (or C "default") ".cp"))
+          deps (read-deps deps-file)
+          libs (make-libs deps (newer-than deps-file libs-file) libs-file R)]
+      (make-cp deps libs cp-file C P)
+      nil)
+
+    ;; print any exception message to stderr
+    (catch Throwable t
+      (binding [*out* *err*]
+        (println "Error building classpath." (.getMessage t)))
+      (System/exit 1))))
 
 (comment
   ;; write libmap to ./cp/default.libs and classpath to ./cp/default/default.cp

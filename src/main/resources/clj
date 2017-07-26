@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 # Extract java opts
 java_opts=()
 while [ $# -gt 0 ]
@@ -78,6 +80,8 @@ libs_file="$libs_root.libs"
 
 if [[ -n "$classpath_aliases" ]]; then
   cp_file="$libs_root/$classpath_aliases.cp"
+elif [[ -n "$classpath_overrides" ]]; then
+  cp_file="$libs_root/overrides.cp"
 else
   cp_file="$libs_root/default.cp"
 fi
@@ -102,13 +106,13 @@ if [ ! -f "$cp_file" ] || [ ! -f "$libs_file" ] || [ "$libs_file" -nt "$cp_file"
     tools_args+=("-P$classpath_overrides")
   fi
 
-  cp=$("$JAVA_CMD" -Xmx256m -classpath "$tools_cp" clojure.main -m clojure.tools.deps.alpha.makecp "$project_deps" "$project_cache_dir" "${tools_args[@]}")
-else
-	cp=$(cat "$cp_file")
+  "$JAVA_CMD" -Xmx256m -classpath "$tools_cp" clojure.main -m clojure.tools.deps.alpha.makecp "$project_deps" "$project_cache_dir" "${tools_args[@]}"
 fi
 
+cp=$(cat "$cp_file")
+
 # Launch!
-if $(type -p rlwrap >/dev/null 2>&1); then
+if type -p rlwrap >/dev/null 2>&1; then
   rlwrap -r -q '\"' -b "(){}[],^%3@\";:'" "$JAVA_CMD" "${java_opts[@]}" -classpath "$cp" clojure.main "$@"
 else
   "$JAVA_CMD" "${java_opts[@]}" -classpath "$cp" clojure.main "$@"
