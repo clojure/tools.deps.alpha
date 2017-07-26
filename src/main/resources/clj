@@ -108,4 +108,8 @@ else
 fi
 
 # Launch!
-rlwrap -r -q '\"' -b "(){}[],^%3@\";:'" "$JAVA_CMD" "${java_opts[@]}" -classpath "$cp" clojure.main "$@"
+if $(type -p rlwrap >/dev/null 2>&1); then
+  rlwrap -r -q '\"' -b "(){}[],^%3@\";:'" "$JAVA_CMD" "${java_opts[@]}" -classpath "$cp" clojure.main "$@"
+else
+  "$JAVA_CMD" "${java_opts[@]}" -classpath "$cp" clojure.main "$@"
+fi
