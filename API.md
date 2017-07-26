@@ -4,7 +4,7 @@ There are two fundamental operations supported by tools.deps.alpha: `resolve-dep
 
 ### `resolve-deps`
 
-Usage: `(resolve-args deps-map resolve-args)`
+Usage: `(resolve-deps deps-map resolve-args)`
 
 Args:
 
