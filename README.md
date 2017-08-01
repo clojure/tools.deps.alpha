@@ -24,7 +24,7 @@ Also see:
 
 * [Dependency Heaven](http://cdn.cognitect.com/presentations/2017/dependency_heaven.pdf) from EuroClojure 2017, video coming soon
 
-# Releases Information
+# Release Information
 
 Latest release: 0.1.14
 
@@ -259,13 +259,9 @@ deps.edn:
 # Developer Information
 
 * [GitHub project](https://github.com/clojure/tools.deps.alpha)
-
 * [How to contribute](https://dev.clojure.org/display/community/Contributing)
-
 * [Bug Tracker](https://dev.clojure.org/jira/browse/TDEPS)
-
 * [Continuous Integration](https://build.clojure.org/job/tools.deps.alpha/)
-
 * [Compatibility Test Matrix](https://build.clojure.org/job/tools.deps.alpha-test-matrix/)
 
 # Copyright and License
