@@ -22,7 +22,7 @@ Maven-artifacts-first orientation of current tooling has created great rigidity 
 
 Also see:
 
-* [Dependency Heaven](http://cdn.cognitect.com/presentations/2017/dependency_heaven.pdf) from EuroClojure 2017, video coming soon
+* [Dependency Heaven](http://cdn.cognitect.com/presentations/2017/dependency_heaven.pdf) from EuroClojure 2017 - [video](https://youtube.com/watch?v=sStlTye-Kjk)
 
 # Release Information
 
