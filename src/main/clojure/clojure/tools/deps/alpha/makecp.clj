@@ -62,9 +62,8 @@
 
 (defn- slurp-edn-map
   "Read the file specified by the path-segments, slurp it, and read it as edn."
-  [& path-segments]
-  (let [f ^File (apply jio/file path-segments)
-        EOF (Object.)]
+  [^File f]
+  (let [EOF (Object.)]
     (if (.exists f)
       (with-open [rdr (PushbackReader. (FileReader. f))]
         (let [val (edn/read {:eof EOF} rdr)]
@@ -75,17 +74,15 @@
       (throw (io-err "File does not exist: %s" f)))))
 
 (defn- read-deps
-  "Read the system deps (~/.clojure/deps.edn) and the project deps (usually ./deps.edn)
-  and merge them into a single deps map."
-  [deps-file]
-  (let [system-deps (slurp-edn-map (System/getProperty "user.home") ".clojure" "deps.edn")
-        project-deps (slurp-edn-map deps-file)]
-    (merge system-deps project-deps)))
+  "Read the system deps (usually ~/.clojure/deps.edn) and the project deps
+  (usually ./deps.edn) and merge them into a single deps map."
+  [^File system-deps-file ^File deps-file]
+  (merge (slurp-edn-map system-deps-file) (slurp-edn-map deps-file)))
 
 (defn- make-libs
   "If libs file is out of date, use deps and resolve-opt to form resolve-args, then
   run resolve-deps and cache. In either case, return the edn representation of the lib map."
-  [deps refresh? libs-file resolve-opt]
+  [deps refresh? ^File libs-file resolve-opt]
   (if refresh?
     ;; read deps, parse resolve opt, run resolve-deps, cache libs file
     (let [resolve-aliases (read-kws resolve-opt)
@@ -112,6 +109,7 @@
   "Main entry point for makecp script.
 
   Takes:
+    system-deps-path - path to system deps file
     deps-path - path to project deps file
     cache-path - path to project classpath cache directory
     options:
@@ -124,14 +122,15 @@
   The cp file is at <cachedir>/<resolve-aliases>/<cpaliases>.cp"
   [& args]
   (try
-    (let [[deps-path cache-path & opts] args
+    (let [[system-deps-path deps-path cache-path & opts] args
+          system-deps-file (jio/file system-deps-path)
           deps-file (jio/file deps-path)
           cache-dir (ensure-dir cache-path)
           {:strs [R C P]} (parse-opts opts)
           lib-path (or R "default")
           libs-file (jio/file cache-dir (str lib-path ".libs"))
           cp-file (jio/file cache-dir lib-path (str (or C "default") ".cp"))
-          deps (read-deps deps-file)
+          deps (read-deps system-deps-file deps-file)
           libs (make-libs deps (newer-than deps-file libs-file) libs-file R)]
       (make-cp deps libs cp-file C P)
       nil)
@@ -143,13 +142,14 @@
       (System/exit 1))))
 
 (comment
+  (def clojure (str (System/getProperty "user.home") "/.clojure"))
+
   ;; write libmap to ./cp/default.libs and classpath to ./cp/default/default.cp
   ;; deps.edn = {:deps {org.clojure/clojure {:type :mvn :version "1.8.0"}, org.clojure/core.memoize {:type :mvn :version "0.5.8"}}}
-  (time (def x (-main "deps.edn" ".cpcache")))
+  (time (def x (-main (str clojure "/deps.edn") "deps.edn" ".cpcache")))
 
-  (time (def x (-main "deps.edn" ".cpcache" "-R:perf")))
+  (time (def x (-main (str clojure "/deps.edn") "deps.edn" ".cpcache" "-R:perf")))
 
   ;; no local deps, just use the system one
-  (let [home (System/getProperty "user.home")]
-    (time (def x (-main (str home "/.clojure/deps.edn") (str home "/.clojure/.cpcache")))))
+  (time (def x (-main (str clojure "/deps.edn") (str clojure "/deps.edn") (str clojure "/.cpcache"))))
   )
