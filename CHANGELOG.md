@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* 0.1.40 on Aug 14, 2017
+  * makecp now takes an initial argument that is the system deps file to avoid all implicit dirs
 * 0.1.35 on Aug 14, 2017
   * Load prototype :file provider in addition to the :mvn provider
   * clj script has been deprecated and moved to the brew-install repo (but is still here for the moment)
