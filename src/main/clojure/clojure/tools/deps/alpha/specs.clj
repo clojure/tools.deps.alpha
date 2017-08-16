@@ -18,11 +18,11 @@
 (s/def ::providers (s/keys :opt-un [::mvn]))
 
 ;; maven provider
-(s/def ::url string?)
 (s/def ::mvn (s/keys :opt [::repos]))
-(s/def ::repo (s/keys :opt-un [::url]))
-(s/def ::repo-id string?)
 (s/def ::repos (s/map-of ::repo-id ::repo))
+(s/def ::repo-id string?)
+(s/def ::repo (s/keys :opt-un [::url]))
+(s/def ::url string?)
 
 ;; resolve-deps args
 ;;   used to modify the expanded deps tree
@@ -66,3 +66,11 @@
 (s/fdef clojure.tools.deps.alpha/make-classpath
   :args (s/cat :libs ::lib-map :overrides ::classpath-overrides)
   :ret ::classpath)
+
+(comment
+  (s/valid? ::providers
+    {:providers {:mvn {:repos {"central" {:url "https://repo1.maven.org/maven2/"}
+                               "clojars" {:url "https://clojars.org/repo/"}}}}})
+  (require '[clojure.spec.test.alpha :as stest])
+  (stest/instrument (stest/enumerate-namespace 'clojure.tools.deps.alpha))
+  )

@@ -114,7 +114,10 @@
   (str/join ":" (map :path (vals (merge-with (fn [coord path] (assoc coord :path path)) lib-map lib-paths)))))
 
 (comment
-  (require '[clojure.tools.deps.alpha.providers.maven :as mvn])
+  (require
+    '[clojure.tools.deps.alpha.providers.maven :as mvn]
+    '[clojure.tools.deps.alpha.providers.file])
+
 
   (clojure.pprint/pprint
     (resolve-deps {:deps {'org.clojure/clojure {:type :mvn :version "1.8.0"}
@@ -144,7 +147,7 @@
 
   (make-classpath
     (resolve-deps
-      {:deps {'org.clojure/tools.deps {:type :mvn :version "0.3.0-SNAPSHOT"}
+      {:deps {'org.clojure/tools.deps.alpha {:type :mvn :version "0.1.40"}
               'org.clojure/clojure {:type :mvn :version "1.9.0-alpha17"}}
        :providers {:mvn {:repos mvn/standard-repos}}} nil) nil)
 
