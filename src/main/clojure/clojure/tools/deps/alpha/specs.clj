@@ -12,10 +12,10 @@
 (s/def ::version string?)
 
 (defmethod coord :mvn [_] (s/keys :opt-un [::version ::path]))
-(defmethod coord :file [_] (s/keys :req-un [::path]))
+(defmethod coord :file [_] (s/keys :opt-un [::path]))
 
 ;; providers
-(s/def ::providers (s/keys :opt-un [::mvn]))
+(s/def ::providers (s/keys :opt-un [::mvn ::file]))
 
 ;; maven provider
 (s/def ::mvn (s/keys :opt [::repos]))
