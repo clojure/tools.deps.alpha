@@ -43,7 +43,7 @@
 ;;   ::providers - a map of artifact provider type to provider configuration
 ;;   ::resolve-args - a map with the same structure as the resolve-deps second arg
 ;;   ::aliases - a map from keyword (the alias) to a resolve-args map OR a make-classpath overrides map
-(s/def ::alias simple-keyword?)
+(s/def ::alias keyword?)
 (s/def ::aliases (s/map-of ::alias (s/or :resolve-deps ::resolve-args :make-classpath ::classpath-overrides)))
 (s/def ::deps (s/map-of ::lib ::coord))
 (s/def ::deps-map (s/keys :opt-un [::deps ::resolve-args ::providers ::aliases]))
