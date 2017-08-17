@@ -6,7 +6,7 @@
 
 ;; coordinate, like {:type :mvn :version "0.1.2"}
 (defmulti coord :type)
-(s/def ::coord (s/multi-spec coord :type))
+(s/def ::coord (s/nilable (s/multi-spec coord :type)))
 (s/def ::type keyword?)
 (s/def ::path string?)
 (s/def ::version string?)
