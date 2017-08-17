@@ -20,3 +20,8 @@
   points to the downloaded artifact."
   (fn [lib coord provider] (:type coord)))
 
+(defmulti compare-versions
+  "Given two coordinates, use this as a comparator returning a negative number, zero,
+  or positive number when coord-x is logically 'less than', 'equal to', or 'greater than'
+  coord-y. The dispatch occurs on the type of x and y."
+  (fn [coord-x coord-y] [(:type coord-x) (:type coord-y)]))

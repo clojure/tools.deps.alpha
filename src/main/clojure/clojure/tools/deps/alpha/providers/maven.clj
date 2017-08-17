@@ -35,6 +35,9 @@
 
     ;; maven-aether-provider
     [org.apache.maven.repository.internal MavenRepositorySystemUtils]
+
+    ;; maven-resolver-util
+    [org.eclipse.aether.util.version GenericVersionScheme]
     ))
 
 (set! *warn-on-reflection* true)
@@ -142,10 +145,24 @@
       (.isMissing result) (throw (Exception. (str "Unable to download: [" lib (pr-str (:version coord)) "]")))
       :else (throw (first (.getExceptions result))))))
 
+(defonce ^:private version-scheme (GenericVersionScheme.))
+
+(defn- parse-version [{version :version :as coord}]
+  (.parseVersion ^GenericVersionScheme version-scheme ^String version))
+
+(defmethod providers/compare-versions [:mvn :mvn]
+  [coord-x coord-y]
+  (apply compare (map parse-version [coord-x coord-y])))
+
 (comment
   ;; given a dep, find the child deps
   (providers/expand-dep 'org.clojure/clojure {:type :mvn :version "1.9.0-alpha17"} {:repos standard-repos})
 
   ;; give a dep, download just that dep (not transitive - that's handled by the core algorithm)
   (providers/download-dep 'org.clojure/clojure {:type :mvn :version "1.9.0-alpha17"} {:repos standard-repos})
+
+  (parse-version {:type :mvn :version "1.1.0"})
+
+  (providers/compare-versions {:type :mvn :version "1.1.0-alpha10"} {:type :mvn :version "1.1.0-beta1"})
   )
+

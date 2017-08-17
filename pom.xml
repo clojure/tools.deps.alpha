@@ -20,7 +20,7 @@
   <properties>
     <clojure.warnOnReflection>true</clojure.warnOnReflection>
     <clojure.version>1.8.0</clojure.version>
-    <resolverVersion>1.0.3</resolverVersion>
+    <resolverVersion>1.1.0</resolverVersion>
     <mavenVersion>3.3.9</mavenVersion>
     <wagonVersion>2.12</wagonVersion>
   </properties>
@@ -45,6 +45,11 @@
     <dependency>
       <groupId>org.apache.maven.resolver</groupId>
       <artifactId>maven-resolver-impl</artifactId>
+      <version>${resolverVersion}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.resolver</groupId>
+      <artifactId>maven-resolver-util</artifactId>
       <version>${resolverVersion}</version>
     </dependency>
     <dependency>

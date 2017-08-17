@@ -61,16 +61,13 @@
     {:mvn {:repos mvn/standard-repos}} true)
   )
 
-;; TODO - choose better
 (defn- choose-coord
   [coord1 coord2]
   (if coord1
     (if coord2
-      (let [v1 (:version coord1)
-            v2 (:version coord2)]
-        (if (pos? (compare (str v1) (str v2)))
-          coord1
-          coord2))
+      (if (pos? (providers/compare-versions coord1 coord2))
+        coord1
+        coord2)
       coord1)
     coord2))
 
