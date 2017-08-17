@@ -46,7 +46,7 @@
 (s/def ::alias keyword?)
 (s/def ::aliases (s/map-of ::alias (s/or :resolve-deps ::resolve-args :make-classpath ::classpath-overrides)))
 (s/def ::deps (s/map-of ::lib ::coord))
-(s/def ::deps-map (s/keys :opt-un [::deps ::resolve-args ::providers ::aliases]))
+(s/def ::deps-map (s/keys :opt-un [::deps ::providers ::aliases]))
 
 ;; lib map
 ;;   a map of lib to resolved coordinate (a coord with a ::path) and dependent info
