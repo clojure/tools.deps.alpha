@@ -102,7 +102,7 @@
   [^Dependency dep]
   (let [scope (.getScope dep)
         optional (.isOptional dep)
-        exclusions (.getExclusions dep)
+        exclusions (exclusions->data (.getExclusions dep))
         ^Artifact artifact (.getArtifact dep)
         classifier (.getClassifier artifact)
         ext (.getExtension artifact)]
@@ -112,7 +112,7 @@
        (not= "jar" ext) (assoc :extension ext)
        scope (assoc :scope scope)
        optional (assoc :optional true)
-       exclusions (assoc :exclusions (exclusions->data exclusions)))]))
+       (seq exclusions) (assoc :exclusions exclusions))]))
 
 (defn- coord->artifact
   ^Artifact [lib {:keys [version classifier extension] :or {version "LATEST", classifier "", extension "jar"}}]
