@@ -10,8 +10,9 @@
 (s/def ::type keyword?)
 (s/def ::path string?)
 (s/def ::version string?)
+(s/def ::exclusions (s/coll-of ::lib :kind set? :into #{}))
 
-(defmethod coord :mvn [_] (s/keys :opt-un [::version ::path]))
+(defmethod coord :mvn [_] (s/keys :opt-un [::version ::path ::exclusions]))
 (defmethod coord :file [_] (s/keys :opt-un [::path]))
 
 ;; providers

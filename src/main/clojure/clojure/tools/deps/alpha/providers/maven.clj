@@ -17,7 +17,7 @@
     [org.eclipse.aether.artifact Artifact DefaultArtifact]
     [org.eclipse.aether.repository LocalRepository RemoteRepository RemoteRepository$Builder]
     [org.eclipse.aether.resolution ArtifactRequest ArtifactResult ArtifactDescriptorRequest ArtifactDescriptorResult]
-    [org.eclipse.aether.graph Dependency]
+    [org.eclipse.aether.graph Dependency Exclusion]
     [org.eclipse.aether.transfer TransferListener TransferEvent TransferResource]
 
     ;; maven-resolver-spi
@@ -91,6 +91,13 @@
     (.setTransferListener session console-listener)
     session))
 
+(defn- exclusions->data
+  [exclusions]
+  (into #{}
+    (map (fn [^Exclusion exclusion]
+           (symbol (.getGroupId exclusion) (.getArtifactId exclusion))))
+    exclusions))
+
 (defn- dep->data
   [^Dependency dep]
   (let [scope (.getScope dep)
@@ -105,10 +112,7 @@
        (not= "jar" ext) (assoc :extension ext)
        scope (assoc :scope scope)
        optional (assoc :optional true)
-       ;; TODO: handle exclusions - the tricky part here is that exclusions can kick in anywhere below
-       ;; this point, so we need to simply record these here, then apply them later in the context of
-       ;; the full tree
-       )]))
+       exclusions (assoc :exclusions (exclusions->data exclusions)))]))
 
 (defn- coord->artifact
   ^Artifact [lib {:keys [version classifier extension] :or {version "LATEST", classifier "", extension "jar"}}]
