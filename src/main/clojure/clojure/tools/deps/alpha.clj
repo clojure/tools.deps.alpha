@@ -18,9 +18,6 @@
   [coord providers]
   (get providers (:type coord)))
 
-(defn- report-expand [lib orig-coord using-coord msg verbose]
-  using-coord)
-
 (defn- expand-deps
   [deps default-deps override-deps providers verbose]
   (loop [q (into (PersistentQueue/EMPTY) (map vector deps)) ;; queue of dep paths
@@ -47,10 +44,7 @@
               (when (not= coord use-coord) (println "  instead using" use-coord)))
             (recur (into q' child-paths) (update-in tree use-path merge nil) (conj seen use-dep)))))
       (do
-        (when verbose
-          (println)
-          (println "Expanded tree:")
-          (pprint tree))
+        (when verbose (println) (println "Expanded tree:") (pprint tree))
         tree))))
 
 (comment
