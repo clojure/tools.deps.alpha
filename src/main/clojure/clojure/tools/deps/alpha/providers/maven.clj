@@ -133,7 +133,8 @@
     (into []
       (comp (map dep->data)
         (filter #(= (:scope (second %)) "compile"))
-        (remove (comp :optional second)))
+        (remove (comp :optional second))
+        (map #(update-in % [1] dissoc :scope :optional)))
       (.getDependencies result))))
 
 (defmethod providers/download-dep :mvn
