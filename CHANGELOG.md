@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* 0.1.68 on Aug 25, 2017
+  * Top dep coords take priority over transitive deps
 * 0.1.62 on Aug 24, 2017
   * Omit scope and optional attributes on expanded Maven deps
   * Handle exclusions in resolve-deps
