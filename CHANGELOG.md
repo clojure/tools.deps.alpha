@@ -1,6 +1,14 @@
 Changelog
 ===========
 
+* 0.1.62 on Aug 24, 2017
+  * Omit scope and optional attributes on expanded Maven deps
+  * Handle exclusions in resolve-deps
+* 0.1.56 on Aug 22, 2017
+  * Add specs
+  * Add provider-specific version comparison
+  * Add Maven version comparison
+  * Report exclusions in Maven coords
 * 0.1.40 on Aug 14, 2017
   * makecp now takes an initial argument that is the system deps file to avoid all implicit dirs
 * 0.1.35 on Aug 14, 2017
