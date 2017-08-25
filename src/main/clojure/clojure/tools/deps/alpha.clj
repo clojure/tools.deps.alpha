@@ -19,30 +19,26 @@
   (get providers (:type coord)))
 
 (defn- expand-deps
-  [deps providers verbose]
+  [deps default-deps override-deps providers verbose]
   (loop [q (into (PersistentQueue/EMPTY) (map vector deps)) ;; queue of dep paths
          tree {} ;; map of [lib coord] to child map of same, leaf values are nil
          seen #{}] ;; set of [lib coord]
     (if-let [path (peek q)] ;; path from root dep to dep being expanded
       (let [q' (pop q)
-            [lib coord :as dep] (peek path)]
+            [lib coord :as dep] (peek path)
+            override-coord (get override-deps lib)
+            use-coord (cond override-coord override-coord
+                            coord coord
+                            :else (get default-deps lib))]
         (if (seen dep)
           (recur q' tree seen)
-          (let [children (providers/expand-dep lib coord (choose-provider coord providers))
+          (let [children (providers/expand-dep lib use-coord (choose-provider use-coord providers))
                 child-paths (map #(conj path %) children)]
-            (when verbose (println "Expanding" lib coord))
+            (when verbose (println "Expanding" lib use-coord))
             (recur (into q' child-paths) (update-in tree path merge nil) (conj seen dep)))))
       (do
         (when verbose (println) (println "Expanded tree:") (pprint tree))
         tree))))
-
-(comment
-  (expand-deps {'org.clojure/clojure {:type :mvn :version "1.9.0-alpha17"}}
-    {:mvn {:repos mvn/standard-repos}} true)
-  (expand-deps {'org.clojure/clojure {:type :mvn :version "1.9.0-alpha17"}
-                'org.clojure/core.memoize {:type :mvn :version "0.5.8"}}
-    {:mvn {:repos mvn/standard-repos}} true)
-  )
 
 (defn- cut-exclusions
   ([deps-tree]
@@ -58,28 +54,28 @@
        (into {} node)))))
 
 (defn- choose-coord
-  [coord1 coord2 override-coord default-coord]
+  [coord1 coord2 top-coord]
   (cond
-    override-coord override-coord
+    top-coord top-coord
     (and coord1 (not coord2)) coord1
     (and coord2 (not coord1)) coord2
-    (and coord1 coord2) (if (pos? (providers/compare-versions coord1 coord2)) coord1 coord2)
-    :else default-coord))
+    :else (if (pos? (providers/compare-versions coord1 coord2)) coord1 coord2)))
 
 (defn- resolve-versions
-  [deps-tree default-deps override-deps providers verbose]
-  (loop [q (into (PersistentQueue/EMPTY) deps-tree)
-         lib-map {}]
-    (if-let [[[lib coord] child-deps] (peek q)]
-      (recur
-        (into (pop q) (map #(update-in % [0 1 :dependents] (fnil conj []) lib) child-deps))
-        (assoc lib-map lib (choose-coord (lib-map lib) coord (get override-deps lib) (get default-deps lib))))
-      (do
-        (when verbose
-          (println)
-          (println "Resolved libs:")
-          (pprint lib-map))
-        lib-map))))
+  [deps-tree providers verbose]
+  (let [top-deps (into {} (keys deps-tree))]
+    (loop [q (into (PersistentQueue/EMPTY) deps-tree)
+           lib-map {}]
+      (if-let [[[lib coord] child-deps] (peek q)]
+        (recur
+          (into (pop q) (map #(update-in % [0 1 :dependents] (fnil conj []) lib) child-deps))
+          (assoc lib-map lib (choose-coord (lib-map lib) coord (get top-deps lib))))
+        (do
+          (when verbose
+            (println)
+            (println "Resolved libs:")
+            (pprint lib-map))
+          lib-map)))))
 
 (defn- download-deps
   [lib-map providers]
@@ -97,9 +93,9 @@
       (pprint deps))
 
     (-> deps
-      (expand-deps providers verbose)
+      (expand-deps default-deps override-deps providers verbose)
       (cut-exclusions)
-      (resolve-versions default-deps override-deps providers verbose)
+      (resolve-versions providers verbose)
       (download-deps providers))))
 
 (defn make-classpath
@@ -110,6 +106,13 @@
   (require
     '[clojure.tools.deps.alpha.providers.maven :as mvn]
     '[clojure.tools.deps.alpha.providers.file])
+
+  (expand-deps {'org.clojure/clojure {:type :mvn :version "1.9.0-alpha17"}} nil nil
+    {:mvn {:repos mvn/standard-repos}} true)
+
+  (expand-deps {'org.clojure/clojure {:type :mvn :version "1.9.0-alpha17"}
+                'org.clojure/core.memoize {:type :mvn :version "0.5.8"}} nil nil
+    {:mvn {:repos mvn/standard-repos}} true)
 
   (clojure.pprint/pprint
     (resolve-deps {:deps {'org.clojure/clojure {:type :mvn :version "1.8.0"}
@@ -127,6 +130,12 @@
 
   (clojure.pprint/pprint
     (resolve-deps {:deps {'cheshire {:type :mvn :version "5.7.0"}}
+                   :providers {:mvn {:repos mvn/standard-repos}}} nil))
+
+  ;; top deps win
+  (clojure.pprint/pprint
+    (resolve-deps {:deps {'org.clojure/clojure {:type :mvn :version "1.2.0"}
+                          'cheshire/cheshire {:type :mvn :version "5.8.0"}}
                    :providers {:mvn {:repos mvn/standard-repos}}} nil))
 
   ;; override to local
