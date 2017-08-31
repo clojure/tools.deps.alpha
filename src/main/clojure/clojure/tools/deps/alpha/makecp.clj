@@ -77,7 +77,7 @@
   "Read the system deps (usually ~/.clojure/deps.edn) and the project deps
   (usually ./deps.edn) and merge them into a single deps map."
   [^File system-deps-file ^File deps-file]
-  (merge (slurp-edn-map system-deps-file) (slurp-edn-map deps-file)))
+  (merge-with merge (slurp-edn-map system-deps-file) (slurp-edn-map deps-file)))
 
 (defn- make-libs
   "If libs file is out of date, use deps and resolve-opt to form resolve-args, then
