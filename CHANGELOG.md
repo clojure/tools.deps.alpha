@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* 0.1.73 on Aug 31, 2017
+  * Combine user and project deps.edn with `merge-with merge` rather than `merge`
 * 0.1.68 on Aug 25, 2017
   * Top dep coords take priority over transitive deps
 * 0.1.62 on Aug 24, 2017
