@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* 0.1.78 on Sep 12, 2017
+  * TDEPS-10 - Change makecp to take a list of config files to be merged left to right rather than just a user and project level file. Changed args to be named rather than positional to help with script evolution.
 * 0.1.73 on Aug 31, 2017
   * Combine user and project deps.edn with `merge-with merge` rather than `merge`
 * 0.1.68 on Aug 25, 2017
