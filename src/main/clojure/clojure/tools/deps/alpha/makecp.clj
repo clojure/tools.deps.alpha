@@ -40,12 +40,28 @@
       true)
     false))
 
-(defn- parse-opts
-  "Turn args like `-R:foo:bar -C:baz` into {\"R\" \":foo:bar\", \"C\" \"baz\"}."
-  [opts]
-  (->> opts
-    (remove str/blank?)
-    (reduce #(assoc %1 (subs %2 1 2) (subs %2 2)) {})))
+(defn- parse-opt
+  "Turn opt like `-R:foo:bar` into {:R \":foo:bar\"}."
+  [opt]
+  {(keyword (subs opt 1 2)) (subs opt 2)})
+
+(defn- parse-arg
+  [parsed arg]
+  (cond
+    ;; comma-delimited list of config paths -> split, turn into files, keep only existing
+    (str/starts-with? arg "--config-paths=")
+    (let [paths (str/split (subs arg (count "--config-paths=")) #",")]
+      (assoc parsed :config-files (->> paths (map jio/file) (filter #(.exists ^File %)))))
+
+    (str/starts-with? arg "--cache-path=")
+    (assoc parsed :cache-dir (ensure-dir (subs arg (count "--cache-path="))))
+
+    :else
+    (merge parsed (parse-opt arg))))
+
+(defn- parse-args
+  [args]
+  (->> args (remove nil?) (reduce parse-arg {})))
 
 (defn- read-kws
   [s]
@@ -64,20 +80,17 @@
   "Read the file specified by the path-segments, slurp it, and read it as edn."
   [^File f]
   (let [EOF (Object.)]
-    (if (.exists f)
-      (with-open [rdr (PushbackReader. (FileReader. f))]
-        (let [val (edn/read {:eof EOF} rdr)]
-          (cond
-            (identical? val EOF) nil ;; empty file
-            (map? val) val
-            :else (throw (io-err "Expected edn map: %s" f)))))
-      (throw (io-err "File does not exist: %s" f)))))
+    (with-open [rdr (PushbackReader. (FileReader. f))]
+      (let [val (edn/read {:eof EOF} rdr)]
+        (cond
+          (identical? val EOF) nil ;; empty file
+          (map? val) val
+          :else (throw (io-err "Expected edn map: %s" f)))))))
 
 (defn- read-deps
-  "Read the system deps (usually ~/.clojure/deps.edn) and the project deps
-  (usually ./deps.edn) and merge them into a single deps map."
-  [^File system-deps-file ^File deps-file]
-  (merge-with merge (slurp-edn-map system-deps-file) (slurp-edn-map deps-file)))
+  "Read a set of user deps and merge them left to right into a single deps map."
+  [deps-files]
+  (->> deps-files (map slurp-edn-map) (apply merge-with merge)))
 
 (defn- make-libs
   "If libs file is out of date, use deps and resolve-opt to form resolve-args, then
@@ -108,30 +121,25 @@
 (defn -main
   "Main entry point for makecp script.
 
-  Takes:
-    system-deps-path - path to system deps file
-    deps-path - path to project deps file
-    cache-path - path to project classpath cache directory
-    options:
-      -Rresolve-aliases - concatenated resolve-args alias names
-      -Cmake-classpath-aliases - concatenated make-classpath alias names
-      -Pclasspath-overrides - comma-delimited lib to path overrides
+  Required:
+    --config-paths=/install/deps.edn,... - comma-delimited list of deps.edn files to merge
+    --cache-path=path - classpath cache directory
+  Options:
+    -Rresolve-aliases - concatenated resolve-args alias names
+    -Cmake-classpath-aliases - concatenated make-classpath alias names
+    -Pclasspath-overrides - comma-delimited lib to path overrides
 
   Resolves the dependencies and updates the cached libs and/or classpath file.
   The libs file is at <cachedir>/<resolve-aliases>.libs
   The cp file is at <cachedir>/<resolve-aliases>/<cpaliases>.cp"
   [& args]
   (try
-    (let [[system-deps-path deps-path cache-path & opts] args
-          system-deps-file (jio/file system-deps-path)
-          deps-file (jio/file deps-path)
-          cache-dir (ensure-dir cache-path)
-          {:strs [R C P]} (parse-opts opts)
+    (let [{:keys [config-files cache-dir R C P]} (parse-args args)
           lib-path (or R "default")
           libs-file (jio/file cache-dir (str lib-path ".libs"))
           cp-file (jio/file cache-dir lib-path (str (or C "default") ".cp"))
-          deps (read-deps system-deps-file deps-file)
-          libs (make-libs deps (newer-than deps-file libs-file) libs-file R)]
+          deps (read-deps config-files)
+          libs (make-libs deps (newer-than (last config-files) libs-file) libs-file R)]
       (make-cp deps libs cp-file C P)
       nil)
 
@@ -146,10 +154,17 @@
 
   ;; write libmap to ./cp/default.libs and classpath to ./cp/default/default.cp
   ;; deps.edn = {:deps {org.clojure/clojure {:type :mvn :version "1.8.0"}, org.clojure/core.memoize {:type :mvn :version "0.5.8"}}}
-  (time (def x (-main (str clojure "/deps.edn") "deps.edn" ".cpcache")))
+  (-main
+    (str "--config-paths=" clojure "/deps.edn" "," "deps.edn")
+    (str "--cache-path=" ".cpcache"))
 
-  (time (def x (-main (str clojure "/deps.edn") "deps.edn" ".cpcache" "-R:perf")))
+  (-main
+    (str "--config-paths=" clojure "/deps.edn" "," "deps.edn")
+    (str "--cache-path=" ".cpcache")
+    "-R:perf")
 
-  ;; no local deps, just use the system one
-  (time (def x (-main (str clojure "/deps.edn") (str clojure "/deps.edn") (str clojure "/.cpcache"))))
+  ;; no local deps, just use the user one
+  (-main
+    (str "--config-paths=" clojure "/deps.edn")
+    (str "--cache-path=" clojure "/.cpcache"))
   )
