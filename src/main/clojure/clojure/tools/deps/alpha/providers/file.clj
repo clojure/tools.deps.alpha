@@ -17,7 +17,7 @@
 ;; deps.edn file and/or project.clj and/or pom.xml etc
 
 (defmethod providers/expand-dep :file
-  [lib {:keys [path] :as coord} provider]
+  [lib {:keys [path] :as coord} config]
   (assert (not (nil? path)) (format "File coordinate for %s is missing :path" lib))
   (let [path-file (jio/file path)]
     (if (.isDirectory path-file)
@@ -26,6 +26,6 @@
           (seq (:deps (-> deps-file slurp edn/read-string))))))))
 
 (defmethod providers/download-dep :file
-  [lib coord provider]
+  [lib coord config]
   coord)
 

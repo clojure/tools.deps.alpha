@@ -124,7 +124,7 @@
 ;; Main entry points for using Maven deps
 
 (defmethod providers/expand-dep :mvn
-  [lib coord {:keys [repos local-repo] :or {local-repo default-local-repo}}]
+  [lib coord {:keys [mvn/repos mvn/local-repo] :or {local-repo default-local-repo}}]
   (let [system ^RepositorySystem @the-system
         session (make-session system local-repo)
         artifact (coord->artifact lib coord)
@@ -138,7 +138,7 @@
       (.getDependencies result))))
 
 (defmethod providers/download-dep :mvn
-  [lib coord {:keys [repos local-repo] :or {local-repo default-local-repo}}]
+  [lib coord {:keys [mvn/repos mvn/local-repo] :or {local-repo default-local-repo}}]
   (let [system ^RepositorySystem @the-system
         session (make-session system local-repo)
         artifact (coord->artifact lib coord)
@@ -161,10 +161,10 @@
 
 (comment
   ;; given a dep, find the child deps
-  (providers/expand-dep 'org.clojure/clojure {:type :mvn :version "1.9.0-alpha17"} {:repos standard-repos})
+  (providers/expand-dep 'org.clojure/clojure {:type :mvn :version "1.9.0-alpha17"} {:mvn/repos standard-repos})
 
   ;; give a dep, download just that dep (not transitive - that's handled by the core algorithm)
-  (providers/download-dep 'org.clojure/clojure {:type :mvn :version "1.9.0-alpha17"} {:repos standard-repos})
+  (providers/download-dep 'org.clojure/clojure {:type :mvn :version "1.9.0-alpha17"} {:mvn/repos standard-repos})
 
   (parse-version {:type :mvn :version "1.1.0"})
 

@@ -14,12 +14,8 @@
   (:import
     [clojure.lang PersistentQueue]))
 
-(defn- choose-provider
-  [coord providers]
-  (get providers (:type coord)))
-
 (defn- expand-deps
-  [deps default-deps override-deps providers verbose]
+  [deps default-deps override-deps config verbose]
   (loop [q (into (PersistentQueue/EMPTY) (map vector deps)) ;; queue of dep paths
          tree {} ;; map of [lib coord] to child map of same, leaf values are nil
          seen #{}] ;; set of [lib coord]
@@ -32,7 +28,7 @@
                             :else (get default-deps lib))]
         (if (seen dep)
           (recur q' tree seen)
-          (let [children (providers/expand-dep lib use-coord (choose-provider use-coord providers))
+          (let [children (providers/expand-dep lib use-coord config)
                 child-paths (map #(conj path %) children)]
             (when verbose (println "Expanding" lib use-coord))
             (recur (into q' child-paths) (update-in tree path merge nil) (conj seen dep)))))
@@ -62,7 +58,7 @@
     :else (if (pos? (providers/compare-versions coord1 coord2)) coord1 coord2)))
 
 (defn- resolve-versions
-  [deps-tree providers verbose]
+  [deps-tree config verbose]
   (let [top-deps (into {} (keys deps-tree))]
     (loop [q (into (PersistentQueue/EMPTY) deps-tree)
            lib-map {}]
@@ -78,13 +74,13 @@
           lib-map)))))
 
 (defn- download-deps
-  [lib-map providers]
+  [lib-map config]
   (reduce (fn [ret [lib coord]]
-            (assoc ret lib (providers/download-dep lib coord (choose-provider coord providers))))
+            (assoc ret lib (providers/download-dep lib coord config)))
     {} lib-map))
 
 (defn resolve-deps
-  [{:keys [deps resolve-args providers] :as deps-map} args-map]
+  [{:keys [deps resolve-args] :as deps-map} args-map]
   (let [{:keys [extra-deps default-deps override-deps verbose]} (merge resolve-args args-map)
         deps (merge (:deps deps-map) extra-deps)]
 
@@ -93,10 +89,10 @@
       (pprint deps))
 
     (-> deps
-      (expand-deps default-deps override-deps providers verbose)
+      (expand-deps default-deps override-deps deps-map verbose)
       (cut-exclusions)
-      (resolve-versions providers verbose)
-      (download-deps providers))))
+      (resolve-versions deps-map verbose)
+      (download-deps deps-map))))
 
 (defn make-classpath
   [lib-map lib-paths]
@@ -117,32 +113,32 @@
   (clojure.pprint/pprint
     (resolve-deps {:deps {'org.clojure/clojure {:type :mvn :version "1.8.0"}
                           'org.clojure/core.memoize {:type :mvn :version "0.5.8"}}
-                    :providers {:mvn {:repos mvn/standard-repos}}} nil))
+                   :mvn/repos mvn/standard-repos} nil))
 
   (make-classpath
     (resolve-deps {:deps {'org.clojure/clojure {:type :mvn :version "1.9.0-alpha17"}
                           'org.clojure/core.memoize {:type :mvn :version "0.5.8"}}
-                    :providers {:mvn {:repos mvn/standard-repos}}} nil) nil)
+                   :mvn/repos mvn/standard-repos} nil) nil)
 
   (clojure.pprint/pprint
     (resolve-deps {:deps {'org.clojure/tools.analyzer.jvm {:type :mvn :version "0.6.9"}}
-                   :providers {:mvn {:repos mvn/standard-repos}}} nil))
+                   :mvn/repos mvn/standard-repos} nil))
 
   (clojure.pprint/pprint
     (resolve-deps {:deps {'cheshire {:type :mvn :version "5.7.0"}}
-                   :providers {:mvn {:repos mvn/standard-repos}}} nil))
+                   :mvn/repos mvn/standard-repos} nil))
 
   ;; top deps win
   (clojure.pprint/pprint
     (resolve-deps {:deps {'org.clojure/clojure {:type :mvn :version "1.2.0"}
                           'cheshire/cheshire {:type :mvn :version "5.8.0"}}
-                   :providers {:mvn {:repos mvn/standard-repos}}} nil))
+                   :mvn/repos mvn/standard-repos} nil))
 
   ;; override to local
   (make-classpath
     (resolve-deps
       {:deps {'org.clojure/core.memoize {:type :mvn :version "0.5.8"}}
-       :providers {:mvn {:repos mvn/standard-repos}}}
+       :mvn/repos mvn/standard-repos}
       {:override-deps {'org.clojure/clojure {:type :file :path "/Users/alex/code/clojure/classes"}}
         :verbose true}) nil)
 
@@ -150,22 +146,22 @@
     (resolve-deps
       {:deps {'org.clojure/tools.deps.alpha {:type :mvn :version "0.1.40"}
               'org.clojure/clojure {:type :mvn :version "1.9.0-alpha17"}}
-       :providers {:mvn {:repos mvn/standard-repos}}} nil) nil)
+       :mvn/repos mvn/standard-repos} nil) nil)
 
   (make-classpath
     (resolve-deps
       {:deps {'cheshire {:type :mvn}} ;; omit version - should default to latest
-       :providers {:mvn {:repos mvn/standard-repos}}}
+       :mvn/repos mvn/standard-repos}
       {:verbose true}) nil)
 
   (make-classpath
     (resolve-deps
       {:deps {'org.clojure/clojure {:type :mvn :version "1.8.0"}}
-       :providers {:mvn {:repos mvn/standard-repos}}}
+       :mvn/repos mvn/standard-repos}
       {:verbose true})
     {'org.clojure/clojure "/Users/alex/code/clojure/target/classes"})
 
   ;; err case
   (resolve-deps {:deps {'bogus {:type :mvn :version "1.2.3"}}
-                 :providers {:mvn {:repos mvn/standard-repos}}} nil)
+                 :mvn/repos mvn/standard-repos} nil)
   )
