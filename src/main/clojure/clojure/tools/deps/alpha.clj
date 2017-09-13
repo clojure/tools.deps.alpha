@@ -12,7 +12,8 @@
     [clojure.string :as str]
     [clojure.tools.deps.alpha.providers :as providers])
   (:import
-    [clojure.lang PersistentQueue]))
+    [clojure.lang PersistentQueue]
+    [java.io File]))
 
 (defn- expand-deps
   [deps default-deps override-deps config verbose]
@@ -96,7 +97,7 @@
 
 (defn make-classpath
   [lib-map lib-paths]
-  (str/join ":" (map :path (vals (merge-with (fn [coord path] (assoc coord :path path)) lib-map lib-paths)))))
+  (str/join File/pathSeparator (map :path (vals (merge-with (fn [coord path] (assoc coord :path path)) lib-map lib-paths)))))
 
 (comment
   (require
