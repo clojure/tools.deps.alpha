@@ -91,8 +91,9 @@
   "Read a set of user deps and merge them left to right into a single deps map."
   [deps-files]
   (let [configs (map slurp-edn-map deps-files)
-        combined (apply merge-with merge configs)]
-    (assoc combined :paths (last (->> deps-files (map :paths) (remove nil?))))))
+        combined (apply merge-with merge configs)
+        paths (last (->> configs (map :paths) (remove nil?)))]
+    (assoc combined :paths paths)))
 
 (defn- make-libs
   "If libs file is out of date, use deps and resolve-opt to form resolve-args, then
