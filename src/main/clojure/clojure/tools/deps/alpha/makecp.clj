@@ -66,7 +66,7 @@
 (defn- read-kws
   [s]
   (->> (str/split (or s "") #":")
-    (remove str/blank? )
+    (remove str/blank?)
     (map
       #(if-let [i (str/index-of % \/)]
          (keyword (subs % 0 i) (subs % (inc i)))
@@ -90,7 +90,9 @@
 (defn- read-deps
   "Read a set of user deps and merge them left to right into a single deps map."
   [deps-files]
-  (->> deps-files (map slurp-edn-map) (apply merge-with merge)))
+  (let [configs (map slurp-edn-map deps-files)
+        combined (apply merge-with merge configs)]
+    (assoc combined :paths (last (->> deps-files (map :paths) (remove nil?))))))
 
 (defn- make-libs
   "If libs file is out of date, use deps and resolve-opt to form resolve-args, then
@@ -113,8 +115,9 @@
         overrides (reduce #(let [[lib path] (str/split %2 #"=")]
                              (assoc %1 (symbol lib) path))
                     {} (when overrides-opt (str/split overrides-opt #",")))
-        cp-args (apply merge-with merge (conj (map #(get-in deps [:aliases %]) cp-aliases) overrides))
-        cp (deps/make-classpath libs cp-args)]
+        cp-args (apply merge-with merge (conj (map #(get-in deps [:aliases %]) cp-aliases)
+                                          {:classpath-overrides overrides}))
+        cp (deps/make-classpath libs (:paths deps) cp-args)]
     (jio/make-parents cp-file)
     (spit cp-file cp)))
 

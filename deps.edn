@@ -1,15 +1,20 @@
-{:deps {
+{:paths ["src"]
+ :deps {
    org.clojure/clojure {:type :mvn :version "1.8.0"}
-   org.apache.maven.resolver/maven-resolver-api {:type :mvn :version "1.0.3"}
-   org.apache.maven.resolver/maven-resolver-spi {:type :mvn :version "1.0.3"}
-   org.apache.maven.resolver/maven-resolver-impl {:type :mvn :version "1.0.3"}
-   org.apache.maven.resolver/maven-resolver-connector-basic {:type :mvn :version "1.0.3"}
-   org.apache.maven.resolver/maven-resolver-transport-file {:type :mvn :version "1.0.3"}
-   org.apache.maven.resolver/maven-resolver-transport-http {:type :mvn :version "1.0.3"}
+   org.apache.maven.resolver/maven-resolver-api {:type :mvn :version "1.1.0"}
+   org.apache.maven.resolver/maven-resolver-spi {:type :mvn :version "1.1.0"}
+   org.apache.maven.resolver/maven-resolver-impl {:type :mvn :version "1.1.0"}
+   org.apache.maven.resolver/maven-resolver-connector-basic {:type :mvn :version "1.1.0"}
+   org.apache.maven.resolver/maven-resolver-transport-file {:type :mvn :version "1.1.0"}
+   org.apache.maven.resolver/maven-resolver-transport-http {:type :mvn :version "1.1.0"}
    org.apache.maven/maven-aether-provider {:type :mvn :version "3.3.9"}
    org.slf4j/slf4j-nop {:type :mvn :version "1.6.2"}
  }
  :aliases {
    :1.9 {:override-deps {org.clojure/clojure {:type :mvn :version "1.9.0-alpha17"}}} 
+ }
+ :mvn/repos {
+   "central" {:url "https://repo1.maven.org/maven2/"}
+   "clojars" {:url "https://clojars.org/repo/"}
  }
 }
