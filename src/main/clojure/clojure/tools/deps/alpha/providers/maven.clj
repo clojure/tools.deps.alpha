@@ -139,8 +139,9 @@
       (.getDependencies result))))
 
 (defmethod providers/download-dep :mvn
-  [lib coord {:keys [mvn/repos mvn/local-repo] :or {local-repo default-local-repo}}]
-  (let [system ^RepositorySystem @the-system
+  [lib coord {:keys [mvn/repos mvn/local-repo]}]
+  (let [local-repo (or local-repo default-local-repo)
+        system ^RepositorySystem @the-system
         session (make-session system local-repo)
         artifact (coord->artifact lib coord)
         req (ArtifactRequest. artifact (mapv remote-repo repos) nil)
