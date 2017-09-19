@@ -108,6 +108,12 @@
       libs)
     (slurp-edn-map libs-file)))
 
+(defn- combine-cp-args
+  [cp-arg-maps]
+  (let [combined (apply merge-with merge cp-arg-maps)
+        extra-paths (into [] (mapcat :extra-paths) cp-arg-maps)]
+    (assoc combined :extra-paths extra-paths)))
+
 (defn- make-cp
   "Use aliases and overrides to invoke make-classpath on the libs. If not using
   overrides, write to cp cache file."
@@ -116,8 +122,8 @@
         overrides (reduce #(let [[lib path] (str/split %2 #"=")]
                              (assoc %1 (symbol lib) path))
                     {} (when overrides-opt (str/split overrides-opt #",")))
-        cp-args (apply merge-with merge (conj (map #(get-in deps [:aliases %]) cp-aliases)
-                                          {:classpath-overrides overrides}))
+        alias-maps (map #(get-in deps [:aliases %]) cp-aliases)
+        cp-args (combine-cp-args (conj alias-maps {:classpath-overrides overrides}))
         cp (deps/make-classpath libs (:paths deps) cp-args)]
     (jio/make-parents cp-file)
     (spit cp-file cp)))
