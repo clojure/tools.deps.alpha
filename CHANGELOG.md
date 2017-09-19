@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* 0.1.103 on Sep 19, 2017
+  * Bug fixes for :paths and :extra-paths
 * 0.1.85 on Sep 15, 2017
   * TDEPS-11 - Lift provider attributes up to top-level with namespace qualifiers
   * Use platform-specific character when creating classpaths

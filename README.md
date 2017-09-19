@@ -26,14 +26,14 @@ Also see:
 
 # Release Information
 
-Latest release: 0.1.85
+Latest release: 0.1.103
 
 * [All released versions](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22org.clojure%22%20AND%20a%3A%22tools.deps.alpha%22)
 
 [Leiningen](http://github.com/technomancy/leiningen/) dependency information:
 
 ```
-[org.clojure/tools.deps.alpha "0.1.85"]
+[org.clojure/tools.deps.alpha "0.1.103"]
 ```
 
 [Maven](http://maven.apache.org) dependency information:
@@ -42,7 +42,7 @@ Latest release: 0.1.85
 <dependency>
   <groupId>org.clojure</groupId>
   <artifactId>tools.deps.alpha</artifactId>
-  <version>0.1.85</version>
+  <version>0.1.103</version>
 </dependency>
 ```
 
@@ -51,11 +51,6 @@ Latest release: 0.1.85
 For info on using tools.deps as a library, see:
 
 * [API Usage](API.md)
-* [API Docs](https://clojure.github.io/tools.deps.alpha/)
-
-# `clj` script
-
-_Moving to a different repo, replacement docs coming shortly._
 
 # Developer Information
 
