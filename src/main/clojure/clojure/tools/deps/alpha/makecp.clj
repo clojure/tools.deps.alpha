@@ -117,14 +117,12 @@
 (defn- make-cp
   "Use aliases and overrides to invoke make-classpath on the libs. If not using
   overrides, write to cp cache file."
-  [deps libs cp-file cp-opt overrides-opt]
-  (let [cp-aliases (read-kws cp-opt)
-        overrides (reduce #(let [[lib path] (str/split %2 #"=")]
-                             (assoc %1 (symbol lib) path))
-                    {} (when overrides-opt (str/split overrides-opt #",")))
-        alias-maps (map #(get-in deps [:aliases %]) cp-aliases)
-        cp-args (combine-cp-args (conj alias-maps {:classpath-overrides overrides}))
-        cp (deps/make-classpath libs (:paths deps) cp-args)]
+  [deps libs cp-file cp-opt]
+  (let [cp (->> cp-opt
+             read-kws
+             (map #(get-in deps [:aliases %]))
+             combine-cp-args
+             (deps/make-classpath libs (:paths deps)))]
     (jio/make-parents cp-file)
     (spit cp-file cp)))
 
@@ -137,20 +135,19 @@
   Options:
     -Rresolve-aliases - concatenated resolve-args alias names
     -Cmake-classpath-aliases - concatenated make-classpath alias names
-    -Pclasspath-overrides - comma-delimited lib to path overrides
 
   Resolves the dependencies and updates the cached libs and/or classpath file.
   The libs file is at <cachedir>/<resolve-aliases>.libs
   The cp file is at <cachedir>/<resolve-aliases>/<cpaliases>.cp"
   [& args]
   (try
-    (let [{:keys [config-files cache-dir R C P]} (parse-args args)
+    (let [{:keys [config-files cache-dir R C]} (parse-args args)
           lib-path (or R "default")
           libs-file (jio/file cache-dir (str lib-path ".libs"))
           cp-file (jio/file cache-dir lib-path (str (or C "default") ".cp"))
           deps (read-deps config-files)
           libs (make-libs deps (newer-than (last config-files) libs-file) libs-file R)]
-      (make-cp deps libs cp-file C P)
+      (make-cp deps libs cp-file C)
       nil)
 
     ;; print any exception message to stderr
@@ -160,7 +157,15 @@
       (System/exit 1))))
 
 (comment
-  (def clojure (str (System/getProperty "user.home") "/.clojure"))
+  (def home (System/getProperty "user.home"))
+  (def clojure (str home "/.clojure"))
+
+  (make-cp
+    {:deps {'org.clojure/clojure {:type :mvn :version "1.8.0"}}
+     :aliases {:foo {:extra-paths ["a" "b"]}}}
+    {'org.clojure/clojure {:type :mvn :version "1.8.0" :path (str home "/.m2/repository/org/clojure/clojure/1.8.0/clojure-1.8.0.jar")}}
+    "target/temp"
+    ":foo:bar")
 
   ;; write libmap to ./cp/default.libs and classpath to ./cp/default/default.cp
   ;; deps.edn = {:deps {org.clojure/clojure {:type :mvn :version "1.8.0"}, org.clojure/core.memoize {:type :mvn :version "0.5.8"}}}
