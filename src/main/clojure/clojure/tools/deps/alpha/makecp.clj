@@ -161,14 +161,14 @@
   (def clojure (str home "/.clojure"))
 
   (make-cp
-    {:deps {'org.clojure/clojure {:type :mvn :version "1.8.0"}}
+    {:deps {'org.clojure/clojure {:mvn/version "1.8.0"}}
      :aliases {:foo {:extra-paths ["a" "b"]}}}
-    {'org.clojure/clojure {:type :mvn :version "1.8.0" :path (str home "/.m2/repository/org/clojure/clojure/1.8.0/clojure-1.8.0.jar")}}
+    {'org.clojure/clojure {:mvn/version "1.8.0" :path (str home "/.m2/repository/org/clojure/clojure/1.8.0/clojure-1.8.0.jar")}}
     "target/temp"
     ":foo:bar")
 
   ;; write libmap to ./cp/default.libs and classpath to ./cp/default/default.cp
-  ;; deps.edn = {:deps {org.clojure/clojure {:type :mvn :version "1.8.0"}, org.clojure/core.memoize {:type :mvn :version "0.5.8"}}}
+  ;; deps.edn = {:deps {org.clojure/clojure {:mvn/version "1.8.0"}, org.clojure/core.memoize {:mvn/version "0.5.8"}}}
   (-main
     (str "--config-paths=" clojure "/deps.edn" "," "deps.edn")
     (str "--cache-path=" ".cpcache"))

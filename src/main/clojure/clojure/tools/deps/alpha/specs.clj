@@ -4,16 +4,19 @@
 ;; library, like org.clojure/clojure
 (s/def ::lib symbol?)
 
-;; coordinate, like {:type :mvn :version "0.1.2"}
-(defmulti coord :type)
-(s/def ::coord (s/nilable (s/multi-spec coord :type)))
-(s/def ::type keyword?)
-(s/def ::path string?)
-(s/def ::version string?)
-(s/def ::exclusions (s/coll-of ::lib :kind set? :into #{}))
+;; coordinates
 
-(defmethod coord :mvn [_] (s/keys :opt-un [::version ::path ::exclusions]))
-(defmethod coord :file [_] (s/keys :opt-un [::path]))
+(s/def ::path string?)
+
+(s/def :mvn/version string?)
+(s/def ::exclusions (s/coll-of ::lib :kind set? :into #{}))
+(s/def :mvn/coord (s/keys :req [:mvn/version] :opt-un [::path ::exclusions]))
+
+(s/def :file/path string?)
+(s/def :file/coord (s/keys :req-un [:file/path] :opt-un [::path]))
+
+(s/def ::coord (s/or :mvn :mvn/coord
+                     :file :file/coord))
 
 ;; resolve-deps args
 ;;   used to modify the expanded deps tree

@@ -23,16 +23,18 @@
     (if-let [path (peek q)] ;; path from root dep to dep being expanded
       (let [q' (pop q)
             [lib coord :as dep] (peek path)
+            parents (pop path)
             override-coord (get override-deps lib)
             use-coord (cond override-coord override-coord
                             coord coord
                             :else (get default-deps lib))]
         (if (seen dep)
           (recur q' tree seen)
-          (let [children (providers/expand-dep lib use-coord config)
-                child-paths (map #(conj path %) children)]
+          (let [use-path (conj parents [lib use-coord])
+                children (providers/expand-dep lib use-coord config)
+                child-paths (map #(conj use-path %) children)]
             (when verbose (println "Expanding" lib use-coord))
-            (recur (into q' child-paths) (update-in tree path merge nil) (conj seen dep)))))
+            (recur (into q' child-paths) (update-in tree use-path merge nil) (conj seen dep)))))
       (do
         (when verbose (println) (println "Expanded tree:") (pprint tree))
         tree))))
@@ -106,75 +108,69 @@
     '[clojure.tools.deps.alpha.providers.maven :as mvn]
     '[clojure.tools.deps.alpha.providers.file])
 
-  (expand-deps {'org.clojure/clojure {:type :mvn :version "1.9.0-alpha17"}} nil nil
+  (expand-deps {'org.clojure/clojure {:mvn/version "1.9.0-alpha17"}} nil nil
     {:mvn {:repos mvn/standard-repos}} true)
 
-  (expand-deps {'org.clojure/clojure {:type :mvn :version "1.9.0-alpha17"}
-                'org.clojure/core.memoize {:type :mvn :version "0.5.8"}} nil nil
+  (expand-deps {'org.clojure/clojure {:mvn/version "1.9.0-alpha17"}
+                'org.clojure/core.memoize {:mvn/version "0.5.8"}} nil nil
     {:mvn {:repos mvn/standard-repos}} true)
 
   (clojure.pprint/pprint
-    (resolve-deps {:deps {'org.clojure/clojure {:type :mvn :version "1.8.0"}
-                          'org.clojure/core.memoize {:type :mvn :version "0.5.8"}}
+    (resolve-deps {:deps {'org.clojure/clojure {:mvn/version "1.8.0"}
+                          'org.clojure/core.memoize {:mvn/version "0.5.8"}}
                    :mvn/repos mvn/standard-repos} nil))
 
   (make-classpath
-    (resolve-deps {:deps {'org.clojure/clojure {:type :mvn :version "1.9.0-alpha17"}
-                          'org.clojure/core.memoize {:type :mvn :version "0.5.8"}}
+    (resolve-deps {:deps {'org.clojure/clojure {:mvn/version "1.9.0-alpha17"}
+                          'org.clojure/core.memoize {:mvn/version "0.5.8"}}
                    :mvn/repos mvn/standard-repos} nil) ["src"] {:extra-paths ["test"]})
 
   (clojure.pprint/pprint
-    (resolve-deps {:deps {'org.clojure/tools.analyzer.jvm {:type :mvn :version "0.6.9"}}
-                   :mvn/repos mvn/standard-repos} nil))
+    (resolve-deps {:deps {'org.clojure/tools.analyzer.jvm {:mvn/version "0.6.9"}}
+                   :mvn/repos mvn/standard-repos} {:verbose true}))
 
   (clojure.pprint/pprint
-    (resolve-deps {:deps {'cheshire {:type :mvn :version "5.7.0"}}
+    (resolve-deps {:deps {'cheshire {:mvn/version "5.7.0"}}
                    :mvn/repos mvn/standard-repos} nil))
 
   ;; top deps win
   (clojure.pprint/pprint
-    (resolve-deps {:deps {'org.clojure/clojure {:type :mvn :version "1.2.0"}
-                          'cheshire/cheshire {:type :mvn :version "5.8.0"}}
+    (resolve-deps {:deps {'org.clojure/clojure {:mvn/version "1.2.0"}
+                          'cheshire/cheshire {:mvn/version "5.8.0"}}
                    :mvn/repos mvn/standard-repos} nil))
 
   ;; override to local
   (make-classpath
     (resolve-deps
-      {:deps {'org.clojure/core.memoize {:type :mvn :version "0.5.8"}}
+      {:deps {'org.clojure/core.memoize {:mvn/version "0.5.8"}}
        :mvn/repos mvn/standard-repos}
-      {:override-deps {'org.clojure/clojure {:type :file :path "/Users/alex/code/clojure/classes"}}
-        :verbose true})
+      {:override-deps {'org.clojure/clojure {:mvn/version "1.3.0"}} ;; is this working?
+       :verbose true})
     ["src"] nil)
 
   (make-classpath
     (resolve-deps
-      {:deps {'org.clojure/tools.deps.alpha {:type :mvn :version "0.1.40"}
-              'org.clojure/clojure {:type :mvn :version "1.9.0-alpha17"}}
+      {:deps {'org.clojure/tools.deps.alpha {:mvn/version "0.1.40"}
+              'org.clojure/clojure {:mvn/version "1.9.0-alpha17"}}
        :mvn/repos mvn/standard-repos} nil) nil nil)
 
   ;; classpath overrides
   (make-classpath
     (resolve-deps
-      {:deps {'org.clojure/tools.deps.alpha {:type :mvn :version "0.1.40"}
-              'org.clojure/clojure {:type :mvn :version "1.9.0-alpha17"}}
+      {:deps {'org.clojure/tools.deps.alpha {:mvn/version "0.1.40"}
+              'org.clojure/clojure {:mvn/version "1.9.0-alpha17"}}
        :mvn/repos mvn/standard-repos} nil) nil
     '{:classpath-overrides {org.clojure/clojure "foo"}})
 
   (make-classpath
     (resolve-deps
-      {:deps {'cheshire {:type :mvn}} ;; omit version - should default to latest
-       :mvn/repos mvn/standard-repos}
-      {:verbose true}) nil nil)
-
-  (make-classpath
-    (resolve-deps
-      {:deps {'org.clojure/clojure {:type :mvn :version "1.8.0"}}
+      {:deps {'org.clojure/clojure {:mvn/version "1.8.0"}}
        :mvn/repos mvn/standard-repos}
       {:verbose true})
     nil
     {'org.clojure/clojure "/Users/alex/code/clojure/target/classes"})
 
   ;; err case
-  (resolve-deps {:deps {'bogus {:type :mvn :version "1.2.3"}}
+  (resolve-deps {:deps {'bogus {:mvn/version "1.2.3"}}
                  :mvn/repos mvn/standard-repos} nil)
   )

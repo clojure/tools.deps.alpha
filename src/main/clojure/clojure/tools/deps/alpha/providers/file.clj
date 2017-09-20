@@ -12,12 +12,8 @@
     [clojure.java.io :as jio]
     [clojure.tools.deps.alpha.providers :as providers]))
 
-;; TODO - this currently handles the "jar file" case, but doesn't handle
-;; pointing to an actual project directory, which might have its own
-;; deps.edn file and/or project.clj and/or pom.xml etc
-
 (defmethod providers/expand-dep :file
-  [lib {:keys [path] :as coord} config]
+  [lib {:keys [file/path] :as coord} config]
   (assert (not (nil? path)) (format "File coordinate for %s is missing :path" lib))
   (let [path-file (jio/file path)]
     (if (.isDirectory path-file)
@@ -27,5 +23,5 @@
 
 (defmethod providers/download-dep :file
   [lib coord config]
-  coord)
+  (assoc coord :path (:file/path coord)))
 

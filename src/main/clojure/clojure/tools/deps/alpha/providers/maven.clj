@@ -107,7 +107,7 @@
         classifier (.getClassifier artifact)
         ext (.getExtension artifact)]
     [(symbol (.getGroupId artifact) (.getArtifactId artifact))
-     (cond-> {:type :mvn, :version (.getVersion artifact)}
+     (cond-> {:mvn/version (.getVersion artifact)}
        (not (str/blank? classifier)) (assoc :classifier classifier)
        (not= "jar" ext) (assoc :extension ext)
        scope (assoc :scope scope)
@@ -115,8 +115,9 @@
        (seq exclusions) (assoc :exclusions exclusions))]))
 
 (defn- coord->artifact
-  ^Artifact [lib {:keys [version classifier extension] :or {version "LATEST", classifier "", extension "jar"}}]
-  (let [artifactId (name lib)
+  ^Artifact [lib {:keys [mvn/version classifier extension] :or {classifier "", extension "jar"}}]
+  (let [version (or version "LATEST")
+        artifactId (name lib)
         groupId (or (namespace lib) artifactId)
         artifact (DefaultArtifact. groupId artifactId classifier extension version)]
     artifact))
@@ -149,12 +150,12 @@
         exceptions (.getExceptions result)]
     (cond
       (.isResolved result) (assoc coord :path (.. result getArtifact getFile getAbsolutePath))
-      (.isMissing result) (throw (Exception. (str "Unable to download: [" lib (pr-str (:version coord)) "]")))
+      (.isMissing result) (throw (Exception. (str "Unable to download: [" lib (pr-str (:mvn/version coord)) "]")))
       :else (throw (first (.getExceptions result))))))
 
 (defonce ^:private version-scheme (GenericVersionScheme.))
 
-(defn- parse-version [{version :version :as coord}]
+(defn- parse-version [{version :mvn/version :as coord}]
   (.parseVersion ^GenericVersionScheme version-scheme ^String version))
 
 (defmethod providers/compare-versions [:mvn :mvn]
@@ -163,13 +164,13 @@
 
 (comment
   ;; given a dep, find the child deps
-  (providers/expand-dep 'org.clojure/clojure {:type :mvn :version "1.9.0-alpha17"} {:mvn/repos standard-repos})
+  (providers/expand-dep 'org.clojure/clojure {:mvn/version "1.9.0-alpha17"} {:mvn/repos standard-repos})
 
   ;; give a dep, download just that dep (not transitive - that's handled by the core algorithm)
-  (providers/download-dep 'org.clojure/clojure {:type :mvn :version "1.9.0-alpha17"} {:mvn/repos standard-repos})
+  (providers/download-dep 'org.clojure/clojure {:mvn/version "1.9.0-alpha17"} {:mvn/repos standard-repos})
 
-  (parse-version {:type :mvn :version "1.1.0"})
+  (parse-version {:mvn/version "1.1.0"})
 
-  (providers/compare-versions {:type :mvn :version "1.1.0-alpha10"} {:type :mvn :version "1.1.0-beta1"})
+  (providers/compare-versions {:mvn/version "1.1.0-alpha10"} {:mvn/version "1.1.0-beta1"})
   )
 
