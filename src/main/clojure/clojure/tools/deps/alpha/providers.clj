@@ -9,9 +9,10 @@
 (ns clojure.tools.deps.alpha.providers)
 
 (defn coord-type
-  "The namespace (as a keyword) of the only qualified key in the coordinate."
+  "The namespace (as a keyword) of the only qualified key in the coordinate,
+   excluding the reserved deps namespace."
   [coord]
-  (->> coord keys (filter namespace) first namespace keyword))
+  (->> coord keys (keep namespace) (remove #(= "deps" %)) first keyword))
 
 (defmulti expand-dep
   "Takes a lib, a coordinate, and the root config. Dispatch based on the coordinate's
