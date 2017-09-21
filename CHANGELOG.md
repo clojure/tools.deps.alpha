@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* 0.2.130 on Sep 21, 2017
+  * Always treat libs-file as stale
 * 0.2.122 on Sep 21, 2017
   * Ignore reserved "deps" namespace when dispatching on coord type
   * Avoid duplicating cache logic in makecp
