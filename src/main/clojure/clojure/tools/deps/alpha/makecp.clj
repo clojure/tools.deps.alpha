@@ -13,32 +13,9 @@
             [clojure.tools.deps.alpha.providers.maven]
             [clojure.tools.deps.alpha.providers.file]
             [clojure.string :as str])
-  (:import [java.io File IOException FileReader PushbackReader]
-           [java.nio.file Files LinkOption]
-           [java.nio.file.attribute FileTime]))
+  (:import [java.io File IOException FileReader PushbackReader]))
 
 (set! *warn-on-reflection* true)
-
-(defn- ensure-dir
-  "Asserts that the specified directory either exists, creating if needed
-  and returning the directory File."
-  [path]
-  (let [f (jio/file path)]
-    (when (not (.exists f))
-      (.mkdirs f))
-    f))
-
-(defn- last-modified
-  ^FileTime [^File f]
-  (Files/getLastModifiedTime (.toPath f) ^"[Ljava.nio.file.LinkOption;" (make-array LinkOption 0)))
-
-(defn- newer-than
-  [^File f1 ^File f2]
-  (if (.exists f1)
-    (if (.exists f2)
-      (pos? (.compareTo (last-modified f1) (last-modified f2)))
-      true)
-    false))
 
 (defn- parse-opt
   "Turn opt like `-R:foo:bar` into {:R \":foo:bar\"}."
@@ -53,8 +30,14 @@
     (let [paths (str/split (subs arg (count "--config-paths=")) #",")]
       (assoc parsed :config-files (->> paths (map jio/file) (filter #(.exists ^File %)))))
 
-    (str/starts-with? arg "--cache-path=")
-    (assoc parsed :cache-dir (ensure-dir (subs arg (count "--cache-path="))))
+    (str/starts-with? arg "--libs-file=")
+    (assoc parsed :libs-file (jio/file (subs arg (count "--libs-file="))))
+
+    (str/starts-with? arg "--libs-stale")
+    (assoc parsed :libs-stale true)
+
+    (str/starts-with? arg "--cp-file=")
+    (assoc parsed :cp-file (jio/file (subs arg (count "--cp-file="))))
 
     :else
     (merge parsed (parse-opt arg))))
@@ -95,43 +78,32 @@
         paths (last (->> configs (map :paths) (remove nil?)))]
     (assoc combined :paths paths)))
 
-(defn- make-libs
-  "If libs file is out of date, use deps and resolve-opt to form resolve-args, then
-  run resolve-deps and cache. In either case, return the edn representation of the lib map."
-  [deps refresh? ^File libs-file resolve-opt]
-  (if refresh?
-    ;; read deps, parse resolve opt, run resolve-deps, cache libs file
-    (let [resolve-aliases (read-kws resolve-opt)
-          resolve-args (apply merge-with merge (map #(get-in deps [:aliases %]) resolve-aliases))
-          libs (deps/resolve-deps deps resolve-args)]
-      (spit libs-file (pr-str libs))
-      libs)
-    (slurp-edn-map libs-file)))
+(defn- resolve-deps-aliases
+  "Find, read, and combine resolve-deps aliases into a single argsmap
+  for resolved-deps."
+  [deps resolve-opt]
+  (->> resolve-opt
+    read-kws
+    (map #(get-in deps [:aliases %]))
+    (apply merge-with merge)))
 
-(defn- combine-cp-args
-  [cp-arg-maps]
-  (let [combined (apply merge-with merge cp-arg-maps)
+(defn- resolve-cp-aliases
+  "Find, read, and combine make-classpath aliases into a single argsmap
+  for make-classpath."
+  [deps cp-opt]
+  (let [cp-arg-maps (->> cp-opt read-kws (map #(get-in deps [:aliases %])))
+        combined (apply merge-with merge cp-arg-maps)
         extra-paths (into [] (mapcat :extra-paths) cp-arg-maps)]
     (assoc combined :extra-paths extra-paths)))
-
-(defn- make-cp
-  "Use aliases and overrides to invoke make-classpath on the libs. If not using
-  overrides, write to cp cache file."
-  [deps libs cp-file cp-opt]
-  (let [cp (->> cp-opt
-             read-kws
-             (map #(get-in deps [:aliases %]))
-             combine-cp-args
-             (deps/make-classpath libs (:paths deps)))]
-    (jio/make-parents cp-file)
-    (spit cp-file cp)))
 
 (defn -main
   "Main entry point for makecp script.
 
   Required:
     --config-paths=/install/deps.edn,... - comma-delimited list of deps.edn files to merge
-    --cache-path=path - classpath cache directory
+    --libs-file=path - libs cache file
+    --libs-stale - if present, write a new libs file
+    --cp-file=path - cp cache file to write (presumed stale)
   Options:
     -Rresolve-aliases - concatenated resolve-args alias names
     -Cmake-classpath-aliases - concatenated make-classpath alias names
@@ -141,16 +113,30 @@
   The cp file is at <cachedir>/<resolve-aliases>/<cpaliases>.cp"
   [& args]
   (try
-    (let [{:keys [config-files cache-dir R C]} (parse-args args)
-          lib-path (or R "default")
-          libs-file (jio/file cache-dir (str lib-path ".libs"))
-          cp-file (jio/file cache-dir lib-path (str (or C "default") ".cp"))
-          deps (read-deps config-files)
-          libs (make-libs deps (newer-than (last config-files) libs-file) libs-file R)]
-      (make-cp deps libs cp-file C)
-      nil)
+    (let [;; Parse args
+          {:keys [config-files libs-file libs-stale cp-file R C]} (parse-args args)
 
-    ;; print any exception message to stderr
+          ;; Read and combine deps files
+          deps (read-deps config-files)
+
+          ;; Read or compute and write libs map with resolve-deps
+          libs (if libs-stale
+                 (let [resolve-args (resolve-deps-aliases deps R)
+                       libs (deps/resolve-deps deps resolve-args)]
+                   (jio/make-parents libs-file)
+                   (spit libs-file (pr-str libs))
+                   libs)
+                 (slurp-edn-map libs-file))
+
+          ;; Compute classpath with make-classpath
+          cp-args (resolve-cp-aliases deps C)
+          cp (deps/make-classpath libs (:paths deps) cp-args)]
+
+      ;; Write cache file
+      (jio/make-parents cp-file)
+      (spit cp-file cp))
+
+    ;; Print any exception message to stderr
     (catch Throwable t
       (binding [*out* *err*]
         (println "Error building classpath." (.getMessage t)))
@@ -160,12 +146,12 @@
   (def home (System/getProperty "user.home"))
   (def clojure (str home "/.clojure"))
 
-  (make-cp
-    {:deps {'org.clojure/clojure {:mvn/version "1.8.0"}}
-     :aliases {:foo {:extra-paths ["a" "b"]}}}
+  (deps/make-classpath
     {'org.clojure/clojure {:mvn/version "1.8.0" :path (str home "/.m2/repository/org/clojure/clojure/1.8.0/clojure-1.8.0.jar")}}
-    "target/temp"
-    ":foo:bar")
+    ["a"]
+    (resolve-cp-aliases
+      {:aliases {:foo {:extra-paths ["b" "c"]}}}
+      ":foo:bar"))
 
   ;; write libmap to ./cp/default.libs and classpath to ./cp/default/default.cp
   ;; deps.edn = {:deps {org.clojure/clojure {:mvn/version "1.8.0"}, org.clojure/core.memoize {:mvn/version "0.5.8"}}}
