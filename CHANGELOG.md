@@ -1,6 +1,11 @@
 Changelog
 ===========
 
+* 0.2.122 on Sep 21, 2017
+  * Ignore reserved "deps" namespace when dispatching on coord type
+  * Avoid duplicating cache logic in makecp
+* 0.2.116 on Sep 20, 2017
+  * New strategy for coordinate specification and dispatch
 * 0.1.108 on Sep 19, 2017
   * Remove -P classpath overrides option handling
 * 0.1.103 on Sep 19, 2017
