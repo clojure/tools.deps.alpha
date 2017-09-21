@@ -33,9 +33,6 @@
     (str/starts-with? arg "--libs-file=")
     (assoc parsed :libs-file (jio/file (subs arg (count "--libs-file="))))
 
-    (str/starts-with? arg "--libs-stale")
-    (assoc parsed :libs-stale true)
-
     (str/starts-with? arg "--cp-file=")
     (assoc parsed :cp-file (jio/file (subs arg (count "--cp-file="))))
 
@@ -101,9 +98,8 @@
 
   Required:
     --config-paths=/install/deps.edn,... - comma-delimited list of deps.edn files to merge
-    --libs-file=path - libs cache file
-    --libs-stale - if present, write a new libs file
-    --cp-file=path - cp cache file to write (presumed stale)
+    --libs-file=path - libs cache file to write
+    --cp-file=path - cp cache file to write
   Options:
     -Rresolve-aliases - concatenated resolve-args alias names
     -Cmake-classpath-aliases - concatenated make-classpath alias names
@@ -114,19 +110,17 @@
   [& args]
   (try
     (let [;; Parse args
-          {:keys [config-files libs-file libs-stale cp-file R C]} (parse-args args)
+          {:keys [config-files libs-file cp-file R C]} (parse-args args)
 
           ;; Read and combine deps files
           deps (read-deps config-files)
 
           ;; Read or compute and write libs map with resolve-deps
-          libs (if libs-stale
-                 (let [resolve-args (resolve-deps-aliases deps R)
-                       libs (deps/resolve-deps deps resolve-args)]
-                   (jio/make-parents libs-file)
-                   (spit libs-file (pr-str libs))
-                   libs)
-                 (slurp-edn-map libs-file))
+          libs (let [resolve-args (resolve-deps-aliases deps R)
+                     libs (deps/resolve-deps deps resolve-args)]
+                 (jio/make-parents libs-file)
+                 (spit libs-file (pr-str libs))
+                 libs)
 
           ;; Compute classpath with make-classpath
           cp-args (resolve-cp-aliases deps C)
