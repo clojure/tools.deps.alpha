@@ -32,7 +32,7 @@
 ;;   used when constructing the classpath
 ;;   ::classpath-overrides - map of lib to path to use instead of the artifact found during resolution
 ;;   ::extra-paths - collection of extra paths to add to the classpath in addition to ::paths
-(s/def ::classpath-args (s/keys :opt-un [::classpath-overrides ::extra-deps]))
+(s/def ::classpath-args (s/keys :opt-un [::classpath-overrides ::extra-paths]))
 (s/def ::classpath-overrides (s/map-of ::lib ::path))
 (s/def ::extra-paths (s/coll-of string? :kind vector? :into []))
 
