@@ -14,10 +14,9 @@
 
 (defmethod providers/expand-dep :local
   [lib {:keys [local/root] :as coord} config]
-  (assert (not (nil? path)) (format "Local coordinate for %s is missing :local/root" lib))
-  (let [path-file (jio/file path)]
-    ;; TODO
-    coord))
+  (assert (not (nil? root)) (format "Local coordinate for %s is missing :local/root" lib))
+  ;; TODO
+  coord)
 
 (defmethod providers/download-dep :local
   [lib coord config]
