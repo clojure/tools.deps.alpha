@@ -106,7 +106,7 @@
 (comment
   (require
     '[clojure.tools.deps.alpha.providers.maven :as mvn]
-    '[clojure.tools.deps.alpha.providers.file])
+    '[clojure.tools.deps.alpha.providers.local])
 
   (expand-deps {'org.clojure/clojure {:mvn/version "1.9.0-alpha17"}} nil nil
     {:mvn {:repos mvn/standard-repos}} true)

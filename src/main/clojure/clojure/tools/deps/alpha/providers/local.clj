@@ -6,22 +6,20 @@
 ;   the terms of this license.
 ;   You must not remove this notice, or any other, from this software.
 
-(ns clojure.tools.deps.alpha.providers.file
+(ns clojure.tools.deps.alpha.providers.local
   (:require
     [clojure.edn :as edn]
     [clojure.java.io :as jio]
     [clojure.tools.deps.alpha.providers :as providers]))
 
-(defmethod providers/expand-dep :file
-  [lib {:keys [file/path] :as coord} config]
-  (assert (not (nil? path)) (format "File coordinate for %s is missing :path" lib))
+(defmethod providers/expand-dep :local
+  [lib {:keys [local/root] :as coord} config]
+  (assert (not (nil? path)) (format "Local coordinate for %s is missing :local/root" lib))
   (let [path-file (jio/file path)]
-    (if (.isDirectory path-file)
-      (let [deps-file (jio/file path "deps.edn")]
-        (when (.exists deps-file)
-          (seq (:deps (-> deps-file slurp edn/read-string))))))))
+    ;; TODO
+    coord))
 
-(defmethod providers/download-dep :file
+(defmethod providers/download-dep :local
   [lib coord config]
-  (assoc coord :path (:file/path coord)))
+  (assoc coord :path (:local/root coord)))
 

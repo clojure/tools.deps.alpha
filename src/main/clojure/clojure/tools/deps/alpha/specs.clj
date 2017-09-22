@@ -12,11 +12,11 @@
 (s/def ::exclusions (s/coll-of ::lib :kind set? :into #{}))
 (s/def :mvn/coord (s/keys :req [:mvn/version] :opt-un [::path ::exclusions]))
 
-(s/def :file/path string?)
-(s/def :file/coord (s/keys :req-un [:file/path] :opt-un [::path]))
+(s/def :local/root string?)
+(s/def :local/coord (s/keys :req-un [:local/root] :opt-un [::path]))
 
 (s/def ::coord (s/or :mvn :mvn/coord
-                     :file :file/coord))
+                     :local :local/coord))
 
 ;; resolve-deps args
 ;;   used to modify the expanded deps tree

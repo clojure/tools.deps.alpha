@@ -11,7 +11,7 @@
             [clojure.java.io :as jio]
             [clojure.tools.deps.alpha :as deps]
             [clojure.tools.deps.alpha.providers.maven]
-            [clojure.tools.deps.alpha.providers.file]
+            [clojure.tools.deps.alpha.providers.local]
             [clojure.string :as str])
   (:import [java.io File IOException FileReader PushbackReader]))
 
