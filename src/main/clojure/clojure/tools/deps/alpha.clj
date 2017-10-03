@@ -22,19 +22,21 @@
          seen #{}] ;; set of [lib coord]
     (if-let [path (peek q)] ;; path from root dep to dep being expanded
       (let [q' (pop q)
-            [lib coord :as dep] (peek path)
+            [lib coord] (peek path)
             parents (pop path)
             override-coord (get override-deps lib)
             use-coord (cond override-coord override-coord
                             coord coord
-                            :else (get default-deps lib))]
-        (if (seen dep)
+                            :else (get default-deps lib))
+            dep-id (providers/dep-id lib use-coord)]
+        (if (seen dep-id)
           (recur q' tree seen)
-          (let [use-path (conj parents [lib use-coord])
-                children (providers/expand-dep lib use-coord config)
+          (let [manifest-type (providers/manifest-type lib coord config)
+                children (providers/coord-deps lib use-coord manifest-type config)
+                use-path (conj parents [lib use-coord])
                 child-paths (map #(conj use-path %) children)]
             (when verbose (println "Expanding" lib use-coord))
-            (recur (into q' child-paths) (update-in tree use-path merge nil) (conj seen dep)))))
+            (recur (into q' child-paths) (update-in tree use-path merge nil) (conj seen dep-id)))))
       (do
         (when verbose (println) (println "Expanded tree:") (pprint tree))
         tree))))
@@ -76,10 +78,12 @@
             (pprint lib-map))
           lib-map)))))
 
-(defn- download-deps
+(defn- lib-paths
   [lib-map config]
   (reduce (fn [ret [lib coord]]
-            (assoc ret lib (providers/download-dep lib coord config)))
+            (let [manifest-type (providers/manifest-type lib coord config)
+                  paths (providers/coord-paths lib coord manifest-type config)]
+              (assoc ret lib (assoc coord :paths paths))))
     {} lib-map))
 
 (defn resolve-deps
@@ -95,12 +99,12 @@
       (expand-deps default-deps override-deps deps-map verbose)
       (cut-exclusions)
       (resolve-versions deps-map verbose)
-      (download-deps deps-map))))
+      (lib-paths deps-map))))
 
 (defn make-classpath
   [lib-map paths {:keys [classpath-overrides extra-paths] :as classpath-args}]
-  (let [libs (merge-with (fn [coord path] (assoc coord :path path)) lib-map classpath-overrides)
-        lib-paths (map :path (vals libs))]
+  (let [libs (merge-with (fn [coord path] (assoc coord :paths [path])) lib-map classpath-overrides)
+        lib-paths (mapcat :paths (vals libs))]
     (str/join File/pathSeparator (concat paths extra-paths lib-paths))))
 
 (comment
@@ -139,7 +143,7 @@
                           'cheshire/cheshire {:mvn/version "5.8.0"}}
                    :mvn/repos mvn/standard-repos} nil))
 
-  ;; override to local
+  ;; override-deps
   (make-classpath
     (resolve-deps
       {:deps {'org.clojure/core.memoize {:mvn/version "0.5.8"}}

@@ -8,26 +8,39 @@
 
 (ns clojure.tools.deps.alpha.providers)
 
+;; Methods switching on coordinate type
+
 (defn coord-type
   "The namespace (as a keyword) of the only qualified key in the coordinate,
    excluding the reserved deps namespace."
   [coord]
   (->> coord keys (keep namespace) (remove #(= "deps" %)) first keyword))
 
-(defmulti expand-dep
-  "Takes a lib, a coordinate, and the root config. Dispatch based on the coordinate's
-  provider type to a provider to expand that coordinate into its immediate
-  dependencies. The return is a collection of [lib coord] elements."
+(defmulti dep-id
+  "Returns an identifier value that can be used to detect a lib/coord cycle while
+   expanding deps."
+  (fn [lib coord] (coord-type coord)))
+
+(defmulti manifest-type
+  "Takes a lib, a coord, and the . Dispatch based on the
+  coordinate type. Determine and return the manifest type
+  for this coordinate."
   (fn [lib coord config] (coord-type coord)))
 
-(defmulti download-dep
-  "Given a lib, a coordinate, and the root config. Dispatch to the provider
-  to download/obtain the dependency. Return the coord with an added :path key that
-  points to the downloaded artifact."
-  (fn [lib coord config] (coord-type coord)))
+;; Version comparison, either within or across coordinate types
 
 (defmulti compare-versions
   "Given two coordinates, use this as a comparator returning a negative number, zero,
   or positive number when coord-x is logically 'less than', 'equal to', or 'greater than'
   coord-y. The dispatch occurs on the type of x and y."
   (fn [coord-x coord-y] [(coord-type coord-x) (coord-type coord-y)]))
+
+;; Methods switching on manifest provider type
+
+(defmulti coord-deps
+  "Return coll of immediate [lib coord] external deps for this library."
+  (fn [lib coord manifest-type config] manifest-type))
+
+(defmulti coord-paths
+  "Return coll of classpath roots for this library on disk."
+  (fn [lib coord manifest-type config] manifest-type))

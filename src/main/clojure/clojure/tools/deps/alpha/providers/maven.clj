@@ -122,10 +122,29 @@
         artifact (DefaultArtifact. groupId artifactId classifier extension version)]
     artifact))
 
-;; Main entry points for using Maven deps
+;; Main extension points for using Maven deps
 
-(defmethod providers/expand-dep :mvn
-  [lib coord {:keys [mvn/repos mvn/local-repo]}]
+(defmethod providers/dep-id :mvn
+  [lib {:keys [mvn/version classifier] :as coord}]
+  {:lib lib
+   :version version
+   :classifier classifier})
+
+(defmethod providers/manifest-type :mvn
+  [lib coord config]
+  :mvn)
+
+(defonce ^:private version-scheme (GenericVersionScheme.))
+
+(defn- parse-version [{version :mvn/version :as coord}]
+  (.parseVersion ^GenericVersionScheme version-scheme ^String version))
+
+(defmethod providers/compare-versions [:mvn :mvn]
+  [coord-x coord-y]
+  (apply compare (map parse-version [coord-x coord-y])))
+
+(defmethod providers/coord-deps :mvn
+  [lib coord _manifest {:keys [mvn/repos mvn/local-repo]}]
   (let [local-repo (or local-repo default-local-repo)
         system ^RepositorySystem @the-system
         session (make-session system local-repo)
@@ -139,8 +158,8 @@
         (map #(update-in % [1] dissoc :scope :optional)))
       (.getDependencies result))))
 
-(defmethod providers/download-dep :mvn
-  [lib coord {:keys [mvn/repos mvn/local-repo]}]
+(defmethod providers/coord-paths :mvn
+  [lib coord _manifest {:keys [mvn/repos mvn/local-repo]}]
   (let [local-repo (or local-repo default-local-repo)
         system ^RepositorySystem @the-system
         session (make-session system local-repo)
@@ -149,25 +168,16 @@
         result (.resolveArtifact system session req)
         exceptions (.getExceptions result)]
     (cond
-      (.isResolved result) (assoc coord :path (.. result getArtifact getFile getAbsolutePath))
+      (.isResolved result) [(.. result getArtifact getFile getAbsolutePath)]
       (.isMissing result) (throw (Exception. (str "Unable to download: [" lib (pr-str (:mvn/version coord)) "]")))
       :else (throw (first (.getExceptions result))))))
 
-(defonce ^:private version-scheme (GenericVersionScheme.))
-
-(defn- parse-version [{version :mvn/version :as coord}]
-  (.parseVersion ^GenericVersionScheme version-scheme ^String version))
-
-(defmethod providers/compare-versions [:mvn :mvn]
-  [coord-x coord-y]
-  (apply compare (map parse-version [coord-x coord-y])))
-
 (comment
   ;; given a dep, find the child deps
-  (providers/expand-dep 'org.clojure/clojure {:mvn/version "1.9.0-alpha17"} {:mvn/repos standard-repos})
+  (providers/coord-deps 'org.clojure/clojure {:mvn/version "1.9.0-alpha17"} :mvn {:mvn/repos standard-repos})
 
   ;; give a dep, download just that dep (not transitive - that's handled by the core algorithm)
-  (providers/download-dep 'org.clojure/clojure {:mvn/version "1.9.0-alpha17"} {:mvn/repos standard-repos})
+  (providers/coord-paths 'org.clojure/clojure {:mvn/version "1.9.0-alpha17"} :mvn {:mvn/repos standard-repos})
 
   (parse-version {:mvn/version "1.1.0"})
 

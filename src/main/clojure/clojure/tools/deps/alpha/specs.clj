@@ -1,3 +1,11 @@
+;   Copyright (c) Rich Hickey. All rights reserved.
+;   The use and distribution terms for this software are covered by the
+;   Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
+;   which can be found in the file epl-v10.html at the root of this distribution.
+;   By using this software in any fashion, you are agreeing to be bound by
+;   the terms of this license.
+;   You must not remove this notice, or any other, from this software.
+
 (ns clojure.tools.deps.alpha.specs
   (:require [clojure.spec.alpha :as s]))
 
@@ -50,7 +58,7 @@
 ;; lib map
 ;;   a map of lib to resolved coordinate (a coord with a ::path) and dependent info
 (s/def ::dependents (s/coll-of ::lib))
-(s/def ::resolved-coord (s/merge ::coord (s/keys :req-un [::path] :opt-un [::dependents])))
+(s/def ::resolved-coord (s/merge ::coord (s/keys :req-un [::paths] :opt-un [::dependents])))
 (s/def ::lib-map (s/map-of ::lib ::resolved-coord))
 
 ;; Providers

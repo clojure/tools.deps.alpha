@@ -12,13 +12,21 @@
     [clojure.java.io :as jio]
     [clojure.tools.deps.alpha.providers :as providers]))
 
-(defmethod providers/expand-dep :local
-  [lib {:keys [local/root] :as coord} config]
-  (assert (not (nil? root)) (format "Local coordinate for %s is missing :local/root" lib))
-  ;; TODO
-  coord)
+(defmethod providers/dep-id :local
+  [lib {:keys [local/root] :as coord}]
+  {:lib lib
+   :root root})
 
-(defmethod providers/download-dep :local
+(defmethod providers/manifest-type :local
   [lib coord config]
-  (assoc coord :path (:local/root coord)))
+  ;; TODO - manifest detection
+  :jar)
+
+(defmethod providers/coord-deps :jar
+  [lib {:keys [local/root] :as coord} config]
+  [])
+
+(defmethod providers/coord-paths :jar
+  [lib coord config]
+  [(:local/root coord)])
 
