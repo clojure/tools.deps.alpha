@@ -8,7 +8,6 @@
 
 (ns clojure.tools.deps.alpha.providers.local
   (:require
-    [clojure.edn :as edn]
     [clojure.java.io :as jio]
     [clojure.tools.deps.alpha.providers :as providers]))
 
@@ -18,9 +17,11 @@
    :root root})
 
 (defmethod providers/manifest-type :local
-  [lib coord config]
-  ;; TODO - manifest detection
-  :jar)
+  [lib {:keys [local/root deps/manifest] :as coord} config]
+  (cond
+    manifest {:deps/manifest manifest :deps/root root}
+    (.isFile (jio/file root)) {:deps/manifest :jar, :deps/root root}
+    :else (providers/detect-manifest root)))
 
 (defmethod providers/coord-deps :jar
   [lib {:keys [local/root] :as coord} config]

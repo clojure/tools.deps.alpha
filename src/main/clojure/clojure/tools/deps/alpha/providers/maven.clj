@@ -132,7 +132,7 @@
 
 (defmethod providers/manifest-type :mvn
   [lib coord config]
-  :mvn)
+  {:deps/manifest :mvn})
 
 (defonce ^:private version-scheme (GenericVersionScheme.))
 

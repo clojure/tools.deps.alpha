@@ -6,7 +6,24 @@
 ;   the terms of this license.
 ;   You must not remove this notice, or any other, from this software.
 
-(ns clojure.tools.deps.alpha.providers)
+(ns clojure.tools.deps.alpha.providers
+  (:require [clojure.java.io :as jio]))
+
+;; Helper for autodetect of manifest type
+
+;; vector to control ordering
+(def manifest-types
+  ["deps.edn" :deps, "project.clj" :lein, "pom.xml" :pom])
+
+(defn detect-manifest
+  "Given a directory, detect the manifest type and return the manifest info."
+  [dir]
+  (loop [[file-name manifest-type & others] manifest-types]
+    (when file-name
+      (let [f (jio/file dir file-name)]
+        (if (and (.exists f) (.isFile f))
+          {:deps/manifest manifest-type, :deps/root dir}
+          (recur others))))))
 
 ;; Methods switching on coordinate type
 
@@ -22,9 +39,9 @@
   (fn [lib coord] (coord-type coord)))
 
 (defmulti manifest-type
-  "Takes a lib, a coord, and the . Dispatch based on the
-  coordinate type. Determine and return the manifest type
-  for this coordinate."
+  "Takes a lib, a coord, and the root config. Dispatch based on the
+   coordinate type. Detect and return the manifest type and location
+   for this coordinate."
   (fn [lib coord config] (coord-type coord)))
 
 ;; Version comparison, either within or across coordinate types

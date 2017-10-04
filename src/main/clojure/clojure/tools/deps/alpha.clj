@@ -31,7 +31,8 @@
             dep-id (providers/dep-id lib use-coord)]
         (if (seen dep-id)
           (recur q' tree seen)
-          (let [manifest-type (providers/manifest-type lib coord config)
+          (let [{manifest-type :deps/manifest :as manifest-info} (providers/manifest-type lib coord config)
+                use-coord (merge use-coord manifest-info)
                 children (providers/coord-deps lib use-coord manifest-type config)
                 use-path (conj parents [lib use-coord])
                 child-paths (map #(conj use-path %) children)]
@@ -81,8 +82,7 @@
 (defn- lib-paths
   [lib-map config]
   (reduce (fn [ret [lib coord]]
-            (let [manifest-type (providers/manifest-type lib coord config)
-                  paths (providers/coord-paths lib coord manifest-type config)]
+            (let [paths (providers/coord-paths lib coord (:deps/manifest coord) config)]
               (assoc ret lib (assoc coord :paths paths))))
     {} lib-map))
 
@@ -148,7 +148,7 @@
     (resolve-deps
       {:deps {'org.clojure/core.memoize {:mvn/version "0.5.8"}}
        :mvn/repos mvn/standard-repos}
-      {:override-deps {'org.clojure/clojure {:mvn/version "1.3.0"}} ;; is this working?
+      {:override-deps {'org.clojure/clojure {:mvn/version "1.3.0"}}
        :verbose true})
     ["src"] nil)
 
