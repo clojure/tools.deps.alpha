@@ -7,13 +7,13 @@
 ;   You must not remove this notice, or any other, from this software.
 
 (ns clojure.tools.deps.alpha.makecp
-  (:require [clojure.edn :as edn]
-            [clojure.java.io :as jio]
+  (:require [clojure.java.io :as jio]
             [clojure.tools.deps.alpha :as deps]
+            [clojure.tools.deps.alpha.reader :as reader]
             [clojure.tools.deps.alpha.providers.maven]
             [clojure.tools.deps.alpha.providers.local]
             [clojure.string :as str])
-  (:import [java.io File IOException FileReader PushbackReader]))
+  (:import [java.io File]))
 
 (set! *warn-on-reflection* true)
 
@@ -51,29 +51,6 @@
       #(if-let [i (str/index-of % \/)]
          (keyword (subs % 0 i) (subs % (inc i)))
          (keyword %)))))
-
-(defn- io-err
-  ^IOException [fmt ^File f]
-  (IOException. (format fmt (.getAbsolutePath f))))
-
-(defn- slurp-edn-map
-  "Read the file specified by the path-segments, slurp it, and read it as edn."
-  [^File f]
-  (let [EOF (Object.)]
-    (with-open [rdr (PushbackReader. (FileReader. f))]
-      (let [val (edn/read {:eof EOF} rdr)]
-        (cond
-          (identical? val EOF) nil ;; empty file
-          (map? val) val
-          :else (throw (io-err "Expected edn map: %s" f)))))))
-
-(defn- read-deps
-  "Read a set of user deps and merge them left to right into a single deps map."
-  [deps-files]
-  (let [configs (map slurp-edn-map deps-files)
-        combined (apply merge-with merge configs)
-        paths (last (->> configs (map :paths) (remove nil?)))]
-    (assoc combined :paths paths)))
 
 (defn- resolve-deps-aliases
   "Find, read, and combine resolve-deps aliases into a single argsmap
@@ -113,7 +90,7 @@
           {:keys [config-files libs-file cp-file R C]} (parse-args args)
 
           ;; Read and combine deps files
-          deps (read-deps config-files)
+          deps (reader/read-deps config-files)
 
           ;; Read or compute and write libs map with resolve-deps
           libs (let [resolve-args (resolve-deps-aliases deps R)
