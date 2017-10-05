@@ -12,6 +12,7 @@
             [clojure.tools.deps.alpha.reader :as reader]
             [clojure.tools.deps.alpha.providers.maven]
             [clojure.tools.deps.alpha.providers.local]
+            [clojure.tools.deps.alpha.manifest.deps]
             [clojure.string :as str])
   (:import [java.io File]))
 
