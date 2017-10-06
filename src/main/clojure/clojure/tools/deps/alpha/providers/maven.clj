@@ -46,11 +46,11 @@
 
 (defmethod providers/coord-deps :mvn
   [lib coord _manifest {:keys [mvn/repos mvn/local-repo]}]
-  (let [local-repo (or local-repo default-local-repo)
+  (let [local-repo (or local-repo maven/default-local-repo)
         system ^RepositorySystem @maven/the-system
         session (maven/make-session system local-repo)
         artifact (maven/coord->artifact lib coord)
-        req (ArtifactDescriptorRequest. artifact (mapv remote-repo repos) nil)
+        req (ArtifactDescriptorRequest. artifact (mapv maven/remote-repo repos) nil)
         result (.readArtifactDescriptor system session req)]
     (into []
       (comp (map dep->data)
@@ -61,11 +61,11 @@
 
 (defmethod providers/coord-paths :mvn
   [lib coord _manifest {:keys [mvn/repos mvn/local-repo]}]
-  (let [local-repo (or local-repo default-local-repo)
+  (let [local-repo (or local-repo maven/default-local-repo)
         system ^RepositorySystem @maven/the-system
         session (maven/make-session system local-repo)
         artifact (maven/coord->artifact lib coord)
-        req (ArtifactRequest. artifact (mapv remote-repo repos) nil)
+        req (ArtifactRequest. artifact (mapv maven/remote-repo repos) nil)
         result (.resolveArtifact system session req)
         exceptions (.getExceptions result)]
     (cond
