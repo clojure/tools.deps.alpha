@@ -53,7 +53,8 @@
         req (ArtifactDescriptorRequest. artifact (mapv maven/remote-repo repos) nil)
         result (.readArtifactDescriptor system session req)]
     (into []
-      (comp (map dep->data)
+      (comp
+        (map maven/dep->data)
         (filter #(= (:scope (second %)) "compile"))
         (remove (comp :optional second))
         (map #(update-in % [1] dissoc :scope :optional)))
