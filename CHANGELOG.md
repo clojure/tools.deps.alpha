@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* 0.2.162 on Oct 24, 2017
+  * Add pom gen/sync
 * 0.2.155 on Oct 6, 2017
   * Overhaul provider extensions
   * Implement local provider deps project support
