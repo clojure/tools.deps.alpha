@@ -68,6 +68,11 @@
       <version>${resolverVersion}</version>
     </dependency>
     <dependency>
+      <groupId>org.apache.maven.resolver</groupId>
+      <artifactId>maven-resolver-transport-wagon</artifactId>
+      <version>${resolverVersion}</version>
+    </dependency>
+    <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-aether-provider</artifactId>
       <version>${mavenVersion}</version>
@@ -99,6 +104,11 @@
       <groupId>org.clojure</groupId>
       <artifactId>data.xml</artifactId>
       <version>0.2.0-alpha3</version>
+    </dependency>
+    <dependency>
+      <groupId>s3-wagon-private</groupId>
+      <artifactId>s3-wagon-private</artifactId>
+      <version>1.3.0</version>
     </dependency>
   </dependencies>
 
@@ -140,4 +150,10 @@
     <tag>HEAD</tag>
   </scm>
 
+  <repositories>
+    <repository>
+      <id>clojars</id>
+      <url>https://clojars.org/repo/</url>
+    </repository>
+  </repositories>
 </project>

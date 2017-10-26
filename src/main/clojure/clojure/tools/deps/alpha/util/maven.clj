@@ -32,6 +32,9 @@
     ;; maven-resolver-transport-http
     [org.eclipse.aether.transport.http HttpTransporterFactory]
 
+    ;; maven-resolver-transport-wagon
+    [org.eclipse.aether.transport.wagon WagonTransporterFactory WagonProvider]
+
     ;; maven-aether-provider
     [org.apache.maven.repository.internal MavenRepositorySystemUtils]
     ))
@@ -58,13 +61,24 @@
 
 ;; Maven system and session
 
+;; TODO: in the future this could be user-extensible
+(deftype CustomProvider []
+  WagonProvider
+  (lookup [_ role-hint]
+    (if (contains? #{"s3" "s3p"} role-hint)
+      (org.springframework.build.aws.maven.PrivateS3Wagon.)
+      (throw (Exception. (str "Unknown wagon provider: " role-hint)))))
+  (release [_ wagon]))
+
 ;; Delay creation, but then cache Maven RepositorySystem instance
 (def the-system
   (delay
     (let [locator (doto (MavenRepositorySystemUtils/newServiceLocator)
                     (.addService RepositoryConnectorFactory BasicRepositoryConnectorFactory)
                     (.addService TransporterFactory FileTransporterFactory)
-                    (.addService TransporterFactory HttpTransporterFactory))]
+                    (.addService TransporterFactory HttpTransporterFactory)
+                    (.addService TransporterFactory WagonTransporterFactory)
+                    (.setService WagonProvider CustomProvider))]
       (.getService locator RepositorySystem))))
 
 (def ^TransferListener console-listener
