@@ -45,14 +45,10 @@
 (s/def ::extra-paths (s/coll-of string? :kind vector? :into []))
 
 ;; deps map (format of the deps.edn file)
-;;   ::deps - a map of library to coordinate (which has a provider type)
-;;   ::providers - a map of artifact provider type to provider configuration
-;;   ::resolve-args - a map with the same structure as the resolve-deps second arg
-;;   ::aliases - a map from keyword (the alias) to a resolve-args map OR a make-classpath overrides map
 (s/def ::paths (s/coll-of string? :kind vector? :into []))
 (s/def ::deps (s/map-of ::lib ::coord))
 (s/def ::alias keyword?)
-(s/def ::aliases (s/map-of ::alias (s/or ::resolve-args ::classpath-args)))
+(s/def ::aliases (s/map-of ::alias (s/or :resolve-deps ::resolve-args :make-classpath ::classpath-args)))
 (s/def ::deps-map (s/keys :opt-un [::paths ::deps ::aliases]))
 
 ;; lib map
