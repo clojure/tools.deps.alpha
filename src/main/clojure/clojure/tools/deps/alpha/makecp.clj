@@ -53,20 +53,28 @@
          (keyword (subs % 0 i) (subs % (inc i)))
          (keyword %)))))
 
+(defn- lookup-alias
+  [deps alias]
+  (or
+    (get-in deps [:aliases alias])
+    (if (str/includes? alias ",")
+      (throw (RuntimeException. (str "Invalid alias: " alias ". If specifying multiple aliases, use concatenated keywords, like -R:1.9:bench")))
+      (throw (RuntimeException. (str "Alias not defined: " alias))))))
+
 (defn- resolve-deps-aliases
   "Find, read, and combine resolve-deps aliases into a single argsmap
   for resolved-deps."
   [deps resolve-opt]
   (->> resolve-opt
     read-kws
-    (map #(get-in deps [:aliases %]))
+    (map #(lookup-alias deps %))
     (apply merge-with merge)))
 
 (defn- resolve-cp-aliases
   "Find, read, and combine make-classpath aliases into a single argsmap
   for make-classpath."
   [deps cp-opt]
-  (let [cp-arg-maps (->> cp-opt read-kws (map #(get-in deps [:aliases %])))
+  (let [cp-arg-maps (->> cp-opt read-kws (map #(lookup-alias deps %)))
         combined (apply merge-with merge cp-arg-maps)
         extra-paths (into [] (mapcat :extra-paths) cp-arg-maps)]
     (assoc combined :extra-paths extra-paths)))
@@ -123,5 +131,5 @@
     ["a"]
     (resolve-cp-aliases
       {:aliases {:foo {:extra-paths ["b" "c"]}}}
-      ":foo:bar"))
+      ":foo"))
   )
