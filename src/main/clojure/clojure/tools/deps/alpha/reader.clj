@@ -7,7 +7,9 @@
 ;   You must not remove this notice, or any other, from this software.
 
 (ns clojure.tools.deps.alpha.reader
-  (:require [clojure.edn :as edn])
+  (:require [clojure.edn :as edn]
+            [clojure.walk :as walk]
+            [clojure.tools.deps.alpha.util.coll :as coll])
   (:import [java.io File IOException FileReader PushbackReader]))
 
 (defn- io-err
@@ -25,10 +27,21 @@
           (map? val) val
           :else (throw (io-err "Expected edn map: %s" f)))))))
 
+(defn- canonicalize-sym [s]
+  (if (and (symbol? s) (nil? (namespace s)))
+    (as-> (name s) n (symbol n n))
+    s))
+
+(defn- canonicalize-all-syms
+  [deps-map]
+  (walk/postwalk
+    #(cond-> % (map? %) (coll/map-keys canonicalize-sym))
+    deps-map))
+
 (defn read-deps
   "Read a set of user deps.edn files and merge them left to right into a single deps map."
   [deps-files]
-  (let [configs (map slurp-edn-map deps-files)
+  (let [configs (->> deps-files (map slurp-edn-map) (map canonicalize-all-syms))
         combined (apply merge-with merge configs)
         paths (last (->> configs (map :paths) (remove nil?)))]
     (assoc combined :paths paths)))
