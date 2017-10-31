@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* 0.2.167 on Oct 26, 2017
+  * Add s3 Maven repo support
 * 0.2.162 on Oct 24, 2017
   * Add pom gen/sync
 * 0.2.155 on Oct 6, 2017
