@@ -31,18 +31,29 @@
   "The namespace (as a keyword) of the only qualified key in the coordinate,
    excluding the reserved deps namespace."
   [coord]
-  (->> coord keys (keep namespace) (remove #(= "deps" %)) first keyword))
+  (when (map? coord)
+    (->> coord keys (keep namespace) (remove #(= "deps" %)) first keyword)))
 
 (defmulti dep-id
   "Returns an identifier value that can be used to detect a lib/coord cycle while
    expanding deps."
   (fn [lib coord] (coord-type coord)))
 
+(defn- throw-bad-coord
+  [lib coord]
+  (throw (Exception. (str "Unknown coordinate type for " lib ": " (pr-str coord)))))
+
+(defmethod dep-id :default [lib coord]
+  (throw-bad-coord lib coord))
+
 (defmulti manifest-type
   "Takes a lib, a coord, and the root config. Dispatch based on the
    coordinate type. Detect and return the manifest type and location
    for this coordinate."
   (fn [lib coord config] (coord-type coord)))
+
+(defmethod manifest-type :default [lib coord config]
+  (throw-bad-coord lib coord))
 
 ;; Version comparison, either within or across coordinate types
 
@@ -52,12 +63,22 @@
   coord-y. The dispatch occurs on the type of x and y."
   (fn [coord-x coord-y] [(coord-type coord-x) (coord-type coord-y)]))
 
+(defmethod compare-versions :default [coord-x coord-y]
+  (throw (Exception. (str "Unable to compare versions for coordinates: "
+                       (pr-str coord-x) " and " (pr-str coord-y)))))
+
 ;; Methods switching on manifest provider type
 
 (defmulti coord-deps
   "Return coll of immediate [lib coord] external deps for this library."
   (fn [lib coord manifest-type config] manifest-type))
 
+(defmethod coord-deps :default [lib coord manifest-type config]
+  (throw (Exception. (str "Unable to determine dependencies for manifest type: " manifest-type))))
+
 (defmulti coord-paths
   "Return coll of classpath roots for this library on disk."
   (fn [lib coord manifest-type config] manifest-type))
+
+(defmethod coord-paths :default [lib coord manifest-type config]
+  (throw (Exception. (str "Unable to determine paths for manifest type: " manifest-type))))

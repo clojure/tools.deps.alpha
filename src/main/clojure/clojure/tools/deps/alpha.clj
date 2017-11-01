@@ -176,4 +176,8 @@
   ;; err case
   (resolve-deps {:deps {'bogus {:mvn/version "1.2.3"}}
                  :mvn/repos mvn/standard-repos} nil)
+
+  (resolve-deps {:deps {'bogus "1.2.3"}
+                 :mvn/repos mvn/standard-repos} nil)
+
   )
