@@ -79,18 +79,18 @@
   [{:keys [deps paths] :as c} ^File dir]
   (let [pom-file (jio/file dir "pom.xml")
         pom (if (.exists pom-file)
-              (-> (jio/reader pom-file)
-                xml/parse
-                (replace-deps deps)
-                (replace-paths paths))
+              (with-open [rdr (jio/reader pom-file)]
+                (-> rdr
+                  (xml/parse :include-node? #{:element :characters :comment})
+                  (replace-deps deps)
+                  (replace-paths paths)))
               (gen-pom deps paths (.. dir getCanonicalFile getName)))]
     (spit pom-file (xml/indent-str pom))))
 
 (comment
   (require '[clojure.tools.deps.alpha.reader :as r])
   (sync-pom
-    (r/read-deps [(jio/file "/usr/local/Cellar/clojure/1.9.0-beta1.229/deps.edn")
+    (r/read-deps [(jio/file "/usr/local/Cellar/clojure/1.9.0-beta4.251/deps.edn")
                   (jio/file "deps.edn")])
     (jio/file "."))
-
   )
