@@ -1,6 +1,9 @@
 Changelog
 ===========
 
+* 0.2.183 on Nov 8, 2017
+  * Improve error handling when switching on coordinate and manifest types
+  * Close pom reader before writing during pom gen sync
 * 0.2.173 on Oct 31, 2017
   * TDEPS-14 - Canonicalize lib symbol format
 * 0.2.167 on Oct 26, 2017
