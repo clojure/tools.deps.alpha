@@ -9,6 +9,6 @@ more information on how to contribute.
 [Clojure contrib]: http://dev.clojure.org/display/doc/Clojure+Contrib
 [Contributing]: http://dev.clojure.org/display/community/Contributing
 [FAQ]: http://dev.clojure.org/display/community/Contributing+FAQ
-[JIRA]: http://dev.clojure.org/jira/browse/TNS
+[JIRA]: http://dev.clojure.org/jira/browse/TDEPS
 [guidelines]: http://dev.clojure.org/display/community/Guidelines+for+Clojure+Contrib+committers
 [wiki]: http://dev.clojure.org/
