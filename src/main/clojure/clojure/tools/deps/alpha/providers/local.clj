@@ -24,10 +24,10 @@
     :else (providers/detect-manifest root)))
 
 (defmethod providers/coord-deps :jar
-  [lib {:keys [local/root] :as coord} config]
+  [lib {:keys [local/root] :as coord} _manifest config]
   [])
 
 (defmethod providers/coord-paths :jar
-  [lib coord config]
+  [lib coord _manifest config]
   [(:local/root coord)])
 
