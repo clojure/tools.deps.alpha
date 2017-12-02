@@ -1,6 +1,9 @@
 Changelog
 ===========
 
+* 0.2.190 on Dec 2, 2017
+  * Change default clojars url to use the CDN
+  * Fix bug in :local/root for jar manifests
 * 0.2.183 on Nov 8, 2017
   * Improve error handling when switching on coordinate and manifest types
   * Close pom reader before writing during pom gen sync
