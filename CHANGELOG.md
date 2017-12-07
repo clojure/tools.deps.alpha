@@ -1,6 +1,9 @@
 Changelog
 ===========
 
+* 0.2.196 on Dec 7, 2017
+  * Local deps should use full deps file chain, not just project deps
+  * Change default clojars url back
 * 0.2.190 on Dec 2, 2017
   * Change default clojars url to use the CDN
   * Fix bug in :local/root for jar manifests
