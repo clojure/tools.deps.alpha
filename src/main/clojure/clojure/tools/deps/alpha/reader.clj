@@ -38,11 +38,21 @@
     #(cond-> % (map? %) (coll/map-keys canonicalize-sym))
     deps-map))
 
+(defn slurp-deps
+  "Read a single deps.edn file from disk and canonicalize symbols,
+  return a deps map."
+  [dep-file]
+  (-> dep-file slurp-edn-map canonicalize-all-syms))
+
+(defn merge-deps
+  "Merge multiple deps maps from left to right into a single deps map."
+  [deps-maps]
+  (let [combined (apply merge-with merge deps-maps)
+        paths (last (->> deps-maps (map :paths) (remove nil?)))]
+    (assoc combined :paths paths)))
+
 (defn read-deps
   "Read a set of user deps.edn files and merge them left to right into a single deps map."
   [deps-files]
-  (let [configs (->> deps-files (map slurp-edn-map) (map canonicalize-all-syms))
-        combined (apply merge-with merge configs)
-        paths (last (->> configs (map :paths) (remove nil?)))]
-    (assoc combined :paths paths)))
+  (->> deps-files (map slurp-deps) merge-deps))
 
