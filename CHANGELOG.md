@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* Next release
+  * Print warnings and messages to stderr rather than stdout
 * 0.2.196 on Dec 7, 2017
   * Local deps should use full deps file chain, not just project deps
   * Change default clojars url back
