@@ -9,7 +9,8 @@
 (ns clojure.tools.deps.alpha.gen.pom
   (:require [clojure.java.io :as jio]
             [clojure.data.xml :as xml]
-            [clojure.zip :as zip])
+            [clojure.zip :as zip]
+            [clojure.tools.deps.alpha.util.io :refer [printerrln]])
   (:import [java.io File]))
 
 (xml/alias-uri 'pom "http://maven.apache.org/POM/4.0.0")
@@ -21,7 +22,7 @@
      [::pom/groupId (or (namespace lib) (name lib))]
      [::pom/artifactId (name lib)]
      [::pom/version (:mvn/version coord)]]
-    (println "Skipping coordinate:" coord)))
+    (printerrln "Skipping coordinate:" coord)))
 
 (defn- gen-deps
   [deps]
@@ -46,7 +47,7 @@
      [::pom/name project-name]
      (gen-deps deps)
      (when path
-       (when (seq paths) (apply println "Skipping paths:" paths))
+       (when (seq paths) (apply printerrln "Skipping paths:" paths))
        [::pom/build (gen-source-dir path)])]))
 
 (defn- make-xml-element
@@ -72,7 +73,7 @@
 (defn- replace-paths
   [pom [path & paths]]
   (when path
-    (when (seq paths) (apply println "Skipping paths:" paths))
+    (when (seq paths) (apply printerrln "Skipping paths:" paths))
     (xml-replace pom ::pom/sourceDirectory (xml/sexp-as-element (gen-source-dir path)))))
 
 (defn sync-pom

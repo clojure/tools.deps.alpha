@@ -10,6 +10,7 @@
   (:require [clojure.java.io :as jio]
             [clojure.tools.deps.alpha.reader :as reader]
             [clojure.tools.deps.alpha.gen.pom :as pom]
+            [clojure.tools.deps.alpha.util.io :refer [printerrln]]
             [clojure.string :as str])
   (:import [java.io File]))
 
@@ -41,6 +42,5 @@
     (try
       (pom/sync-pom (reader/read-deps config-files) (jio/file "."))
       (catch Throwable t
-        (binding [*out* *err*]
-          (println "Error generating" gen ":" (.getMessage t)))
+        (printerrln "Error generating" gen ":" (.getMessage t))
         (System/exit 1)))))

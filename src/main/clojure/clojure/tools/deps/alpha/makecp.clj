@@ -13,6 +13,7 @@
             [clojure.tools.deps.alpha.providers.maven]
             [clojure.tools.deps.alpha.providers.local]
             [clojure.tools.deps.alpha.manifest.deps]
+            [clojure.tools.deps.alpha.util.io :refer [printerrln]]
             [clojure.string :as str])
   (:import [java.io File]))
 
@@ -118,8 +119,7 @@
 
     ;; Print any exception message to stderr
     (catch Throwable t
-      (binding [*out* *err*]
-        (println "Error building classpath." (.getMessage t)))
+      (printerrln "Error building classpath." (.getMessage t))
       (System/exit 1))))
 
 (comment

@@ -10,7 +10,8 @@
   (:require
     [clojure.java.io :as jio]
     [clojure.string :as str]
-    [clojure.tools.deps.alpha.providers :as providers])
+    [clojure.tools.deps.alpha.providers :as providers]
+    [clojure.tools.deps.alpha.util.io :refer [printerrln]])
   (:import
     ;; maven-resolver-api
     [org.eclipse.aether RepositorySystem RepositorySystemSession]
@@ -87,13 +88,13 @@
       (let [event ^TransferEvent event
             resource (.getResource event)
             name (.getResourceName resource)]
-        (println "Downloading:" name "from" (.getRepositoryUrl resource))))
+        (printerrln "Downloading:" name "from" (.getRepositoryUrl resource))))
     (transferCorrupted [_ event]
-      (println "Download corrupted:" (.. ^TransferEvent event getException getMessage)))
+      (printerrln "Download corrupted:" (.. ^TransferEvent event getException getMessage)))
     (transferFailed [_ event]
       ;; This happens when Maven can't find an artifact in a particular repo
       ;; (but still may find it in a different repo), ie this is a common event
-      #_(println "Download failed:" (.. ^TransferEvent event getException getMessage)))))
+      #_(printerrln "Download failed:" (.. ^TransferEvent event getException getMessage)))))
 
 (defn make-session
   ^RepositorySystemSession [^RepositorySystem system local-repo]
