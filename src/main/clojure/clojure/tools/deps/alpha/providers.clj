@@ -41,7 +41,7 @@
 
 (defn- throw-bad-coord
   [lib coord]
-  (throw (Exception. (str "Unknown coordinate type for " lib ": " (pr-str coord)))))
+  (throw (Exception. (str "Provider " (coord-type coord) " not loaded for library " lib " in coordinate " (pr-str coord)))))
 
 (defmethod dep-id :default [lib coord]
   (throw-bad-coord lib coord))
@@ -74,11 +74,11 @@
   (fn [lib coord manifest-type config] manifest-type))
 
 (defmethod coord-deps :default [lib coord manifest-type config]
-  (throw (Exception. (str "Unable to determine dependencies for manifest type: " manifest-type))))
+  (throw (Exception. (str "Manifest type " manifest-type " not loaded when finding deps for " lib " in coordinate " (pr-str coord)))))
 
 (defmulti coord-paths
   "Return coll of classpath roots for this library on disk."
   (fn [lib coord manifest-type config] manifest-type))
 
 (defmethod coord-paths :default [lib coord manifest-type config]
-  (throw (Exception. (str "Unable to determine paths for manifest type: " manifest-type))))
+  (throw (Exception. (str "Manifest type " manifest-type " not loaded when finding paths for " lib " in coordinate " (pr-str coord)))))
