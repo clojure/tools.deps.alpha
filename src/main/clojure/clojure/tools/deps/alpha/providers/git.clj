@@ -14,12 +14,29 @@
     [clojure.tools.deps.alpha.util.io :refer [printerrln]])
   (:import
     [java.io File]
-    [org.eclipse.jgit.api Git]
-    [org.eclipse.jgit.lib RepositoryBuilder]))
-
-(set! *warn-on-reflection* true)
+    [org.eclipse.jgit.api Git TransportConfigCallback]
+    [org.eclipse.jgit.lib RepositoryBuilder]
+    [org.eclipse.jgit.transport SshTransport JschConfigSessionFactory]
+    [com.jcraft.jsch JSch]
+    [com.jcraft.jsch.agentproxy Connector RemoteIdentityRepository]
+    [com.jcraft.jsch.agentproxy.connector SSHAgentConnector]
+    [com.jcraft.jsch.agentproxy.usocket JNAUSocketFactory]))
 
 ;;;; Git
+
+(def ^:private ^TransportConfigCallback ssh-callback
+  (reify TransportConfigCallback
+    (configure [_ transport]
+      (.setSshSessionFactory ^SshTransport transport
+        (proxy [JschConfigSessionFactory] []
+               (configure [host session])
+               (getJSch [hc fs]
+                 (let [^JSch jsch (proxy-super getJSch hc fs)]
+                   (when (SSHAgentConnector/isConnectorAvailable)
+                     (let [usf (JNAUSocketFactory.)
+                           connector (SSHAgentConnector. usf)]
+                       (.setIdentityRepository jsch (RemoteIdentityRepository. connector))
+                       jsch)))))))))
 
 (defn- clean-url
   [url]
@@ -32,7 +49,7 @@
 (defn- git-fetch
   ^Git [^File git-dir ^File work-tree]
   (let [git (git-repo git-dir work-tree)]
-    (.. git fetch call)
+    (.. git fetch (setTransportConfigCallback ssh-callback) call)
     git))
 
 ;; TODO: restrict clone to an optional refspec?
@@ -42,6 +59,7 @@
     (setBare true)
     (setNoCheckout true)
     (setCloneAllBranches true)
+    (setTransportConfigCallback ssh-callback)
     call)
   (git-repo git-dir rev-dir))
 
