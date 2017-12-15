@@ -12,6 +12,7 @@
             [clojure.tools.deps.alpha.reader :as reader]
             [clojure.tools.deps.alpha.providers.maven]
             [clojure.tools.deps.alpha.providers.local]
+            [clojure.tools.deps.alpha.providers.git]
             [clojure.tools.deps.alpha.manifest.deps]
             [clojure.tools.deps.alpha.util.io :refer [printerrln]]
             [clojure.string :as str])
@@ -87,6 +88,7 @@
     --config-paths=/install/deps.edn,... - comma-delimited list of deps.edn files to merge
     --libs-file=path - libs cache file to write
     --cp-file=path - cp cache file to write
+    --cache-dir=path - cache root directory
   Options:
     -Rresolve-aliases - concatenated resolve-args alias names
     -Cmake-classpath-aliases - concatenated make-classpath alias names
