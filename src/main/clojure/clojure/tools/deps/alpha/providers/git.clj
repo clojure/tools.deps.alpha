@@ -18,31 +18,30 @@
     [org.eclipse.jgit.lib RepositoryBuilder]
     [org.eclipse.jgit.transport SshTransport JschConfigSessionFactory]
     [com.jcraft.jsch JSch]
-    [com.jcraft.jsch.agentproxy Connector RemoteIdentityRepository]
+    [com.jcraft.jsch.agentproxy Connector ConnectorFactory RemoteIdentityRepository]
     [com.jcraft.jsch.agentproxy.connector SSHAgentConnector]
     [com.jcraft.jsch.agentproxy.usocket JNAUSocketFactory]))
 
 ;;;; Git
 
 (def ^:private ^TransportConfigCallback ssh-callback
-  (reify TransportConfigCallback
-    (configure [_ transport]
-      (.setSshSessionFactory ^SshTransport transport
-        (proxy [JschConfigSessionFactory] []
-               (configure [host session])
-               (getJSch [hc fs]
-                 (let [^JSch jsch (proxy-super getJSch hc fs)]
-                   (when (SSHAgentConnector/isConnectorAvailable)
-                     (let [usf (JNAUSocketFactory.)
-                           connector (SSHAgentConnector. usf)]
-                       (.setIdentityRepository jsch (RemoteIdentityRepository. connector))
-                       jsch)))))))))
+  (delay
+    (let [connector (.createConnector (ConnectorFactory/getDefault))]
+      (reify TransportConfigCallback
+        (configure [_ transport]
+          (.setSshSessionFactory ^SshTransport transport
+            (proxy [JschConfigSessionFactory] []
+              (configure [host session])
+              (getJSch [hc fs]
+                (let [^JSch jsch (proxy-super getJSch hc fs)]
+                  (.setIdentityRepository jsch (RemoteIdentityRepository. connector))
+                  jsch)))))))))
 
 (defn- call-with
   [^String url ^GitCommand command]
   (if (and (instance? TransportCommand command)
         (not (str/starts-with? url "http")))
-    (.. ^TransportCommand command (setTransportConfigCallback ssh-callback) call)
+    (.. ^TransportCommand command (setTransportConfigCallback @ssh-callback) call)
     (.call command)))
 
 (defn- clean-url
