@@ -18,9 +18,7 @@
     [org.eclipse.jgit.lib RepositoryBuilder]
     [org.eclipse.jgit.transport SshTransport JschConfigSessionFactory]
     [com.jcraft.jsch JSch]
-    [com.jcraft.jsch.agentproxy Connector ConnectorFactory RemoteIdentityRepository]
-    [com.jcraft.jsch.agentproxy.connector SSHAgentConnector]
-    [com.jcraft.jsch.agentproxy.usocket JNAUSocketFactory]))
+    [com.jcraft.jsch.agentproxy Connector ConnectorFactory RemoteIdentityRepository]))
 
 ;;;; Git
 
