@@ -14,7 +14,7 @@
     [clojure.tools.deps.alpha.util.io :refer [printerrln]])
   (:import
     [java.io File]
-    [org.eclipse.jgit.api Git TransportConfigCallback]
+    [org.eclipse.jgit.api Git GitCommand TransportCommand TransportConfigCallback]
     [org.eclipse.jgit.lib RepositoryBuilder]
     [org.eclipse.jgit.transport SshTransport JschConfigSessionFactory]
     [com.jcraft.jsch JSch]
@@ -38,6 +38,13 @@
                        (.setIdentityRepository jsch (RemoteIdentityRepository. connector))
                        jsch)))))))))
 
+(defn- call-with
+  [^String url ^GitCommand command]
+  (if (and (instance? TransportCommand command)
+        (not (str/starts-with? url "http")))
+    (.. ^TransportCommand command (setTransportConfigCallback ssh-callback) call)
+    (.call command)))
+
 (defn- clean-url
   [url]
   (last (str/split url #"://")))
@@ -47,25 +54,23 @@
   (Git. (.. (RepositoryBuilder.) (setGitDir git-dir) (setWorkTree work-tree) build)))
 
 (defn- git-fetch
-  ^Git [^File git-dir ^File work-tree]
+  ^Git [^File git-dir ^File work-tree ^String url]
   (let [git (git-repo git-dir work-tree)]
-    (.. git fetch (setTransportConfigCallback ssh-callback) call)
+    (call-with url (.. git fetch))
     git))
 
-;; TODO: restrict clone to an optional refspec?
 (defn- git-clone-bare
   ^Git [^String url ^File git-dir ^File rev-dir]
-  (.. (Git/cloneRepository) (setURI url) (setGitDir git-dir)
-    (setBare true)
-    (setNoCheckout true)
-    (setCloneAllBranches true)
-    (setTransportConfigCallback ssh-callback)
-    call)
+  (call-with url
+    (.. (Git/cloneRepository) (setURI url) (setGitDir git-dir)
+      (setBare true)
+      (setNoCheckout true)
+      (setCloneAllBranches true))) ;; TODO: restrict clone to an optional refspec?
   (git-repo git-dir rev-dir))
 
 (defn- git-checkout
-  ^File [^Git git ^String rev]
-  (.. git checkout (setStartPoint rev) (setAllPaths true) call)
+  ^File [^Git git ^String rev ^String url]
+  (call-with url (.. git checkout (setStartPoint rev) (setAllPaths true)))
   (.. git getRepository getWorkTree))
 
 ;;;; Provider methods
@@ -83,9 +88,9 @@
       (let [git-dir (jio/file cache-root "git" "repos" (clean-url url))]
         (->
           (if (.exists git-dir)
-            (git-fetch git-dir rev-dir)
+            (git-fetch git-dir rev-dir url)
             (git-clone-bare url git-dir rev-dir))
-          (git-checkout rev))))))
+          (git-checkout rev url))))))
 
 (defmethod providers/manifest-type :git
   [lib {:keys [git/url rev deps/manifest] :as coord} {:keys [deps/cache-dir]}]
