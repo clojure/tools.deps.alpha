@@ -10,7 +10,7 @@
   (:require
     [clojure.pprint :refer [pprint]]
     [clojure.string :as str]
-    [clojure.tools.deps.alpha.providers :as providers])
+    [clojure.tools.deps.alpha.extensions :as ext])
   (:import
     [clojure.lang PersistentQueue]
     [java.io File]))
@@ -28,12 +28,12 @@
             use-coord (cond override-coord override-coord
                             coord coord
                             :else (get default-deps lib))
-            dep-id (providers/dep-id lib use-coord)]
+            dep-id (ext/dep-id lib use-coord)]
         (if (seen dep-id)
           (recur q' tree seen)
-          (let [{manifest-type :deps/manifest :as manifest-info} (providers/manifest-type lib coord config)
+          (let [{manifest-type :deps/manifest :as manifest-info} (ext/manifest-type lib coord config)
                 use-coord (merge use-coord manifest-info)
-                children (providers/coord-deps lib use-coord manifest-type config)
+                children (ext/coord-deps lib use-coord manifest-type config)
                 use-path (conj parents [lib use-coord])
                 child-paths (map #(conj use-path %) children)]
             (when verbose (println "Expanding" lib use-coord))
@@ -61,7 +61,7 @@
     top-coord top-coord
     (and coord1 (not coord2)) coord1
     (and coord2 (not coord1)) coord2
-    :else (if (pos? (providers/compare-versions coord1 coord2)) coord1 coord2)))
+    :else (if (pos? (ext/compare-versions coord1 coord2)) coord1 coord2)))
 
 (defn- resolve-versions
   [deps-tree config verbose]
@@ -82,7 +82,7 @@
 (defn- lib-paths
   [lib-map config]
   (reduce (fn [ret [lib coord]]
-            (let [paths (providers/coord-paths lib coord (:deps/manifest coord) config)]
+            (let [paths (ext/coord-paths lib coord (:deps/manifest coord) config)]
               (assoc ret lib (assoc coord :paths paths))))
     {} lib-map))
 

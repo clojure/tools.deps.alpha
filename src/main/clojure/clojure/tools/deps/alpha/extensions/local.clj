@@ -6,28 +6,28 @@
 ;   the terms of this license.
 ;   You must not remove this notice, or any other, from this software.
 
-(ns clojure.tools.deps.alpha.providers.local
+(ns clojure.tools.deps.alpha.extensions.local
   (:require
     [clojure.java.io :as jio]
-    [clojure.tools.deps.alpha.providers :as providers]))
+    [clojure.tools.deps.alpha.extensions :as ext]))
 
-(defmethod providers/dep-id :local
+(defmethod ext/dep-id :local
   [lib {:keys [local/root] :as coord}]
   {:lib lib
    :root root})
 
-(defmethod providers/manifest-type :local
+(defmethod ext/manifest-type :local
   [lib {:keys [local/root deps/manifest] :as coord} config]
   (cond
     manifest {:deps/manifest manifest :deps/root root}
     (.isFile (jio/file root)) {:deps/manifest :jar, :deps/root root}
-    :else (providers/detect-manifest root)))
+    :else (ext/detect-manifest root)))
 
-(defmethod providers/coord-deps :jar
+(defmethod ext/coord-deps :jar
   [lib {:keys [local/root] :as coord} _manifest config]
   [])
 
-(defmethod providers/coord-paths :jar
+(defmethod ext/coord-paths :jar
   [lib coord _manifest config]
   [(:local/root coord)])
 

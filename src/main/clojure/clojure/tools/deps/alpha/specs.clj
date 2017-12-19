@@ -57,9 +57,9 @@
 (s/def ::resolved-coord (s/merge ::coord (s/keys :req-un [::paths] :opt-un [::dependents])))
 (s/def ::lib-map (s/map-of ::lib ::resolved-coord))
 
-;; Providers
+;; Procurers
 
-;; maven provider
+;; maven 
 (s/def :mvn/repos (s/map-of ::repo-id ::repo))
 (s/def ::repo-id string?)
 (s/def ::repo (s/keys :opt-un [::url]))

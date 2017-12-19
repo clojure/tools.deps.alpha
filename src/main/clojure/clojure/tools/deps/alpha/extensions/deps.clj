@@ -9,18 +9,18 @@
 (ns clojure.tools.deps.alpha.manifest.deps
   (:require
     [clojure.java.io :as jio]
-    [clojure.tools.deps.alpha.providers :as providers]
+    [clojure.tools.deps.alpha.extensions :as ext]
     [clojure.tools.deps.alpha.reader :as reader]))
 
 (defn- deps-map
   [config dir]
   (reader/merge-deps [config (reader/slurp-deps (jio/file dir "deps.edn"))]))
 
-(defmethod providers/coord-deps :deps
+(defmethod ext/coord-deps :deps
   [_lib {:keys [deps/root] :as coord} _mf config]
   (seq (:deps (deps-map config root))))
 
-(defmethod providers/coord-paths :deps
+(defmethod ext/coord-paths :deps
   [_lib {:keys [deps/root] :as coord} _mf config]
   (into []
     (map #(.getAbsolutePath (jio/file root %)))

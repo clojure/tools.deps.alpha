@@ -6,7 +6,7 @@
 ;   the terms of this license.
 ;   You must not remove this notice, or any other, from this software.
 
-(ns clojure.tools.deps.alpha.providers
+(ns clojure.tools.deps.alpha.extensions
   (:require [clojure.java.io :as jio]))
 
 ;; Helper for autodetect of manifest type
@@ -41,7 +41,7 @@
 
 (defn- throw-bad-coord
   [lib coord]
-  (throw (Exception. (str "Provider " (coord-type coord) " not loaded for library " lib " in coordinate " (pr-str coord)))))
+  (throw (Exception. (str "Coordinate type " (coord-type coord) " not loaded for library " lib " in coordinate " (pr-str coord)))))
 
 (defmethod dep-id :default [lib coord]
   (throw-bad-coord lib coord))
@@ -67,7 +67,7 @@
   (throw (Exception. (str "Unable to compare versions for coordinates: "
                        (pr-str coord-x) " and " (pr-str coord-y)))))
 
-;; Methods switching on manifest provider type
+;; Methods switching on manifest type
 
 (defmulti coord-deps
   "Return coll of immediate [lib coord] external deps for this library."

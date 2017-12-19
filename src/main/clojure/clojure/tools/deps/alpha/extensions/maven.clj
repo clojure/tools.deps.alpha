@@ -6,11 +6,11 @@
 ;   the terms of this license.
 ;   You must not remove this notice, or any other, from this software.
 
-(ns clojure.tools.deps.alpha.providers.maven
+(ns clojure.tools.deps.alpha.extensions.maven
   (:require
     [clojure.java.io :as jio]
     [clojure.string :as str]
-    [clojure.tools.deps.alpha.providers :as providers]
+    [clojure.tools.deps.alpha.extensions :as ext]
     [clojure.tools.deps.alpha.util.maven :as maven])
   (:import
     ;; maven-resolver-api
@@ -25,13 +25,13 @@
 
 ;; Main extension points for using Maven deps
 
-(defmethod providers/dep-id :mvn
+(defmethod ext/dep-id :mvn
   [lib {:keys [mvn/version classifier] :as coord}]
   {:lib lib
    :version version
    :classifier classifier})
 
-(defmethod providers/manifest-type :mvn
+(defmethod ext/manifest-type :mvn
   [lib coord config]
   {:deps/manifest :mvn})
 
@@ -40,11 +40,11 @@
 (defn- parse-version [{version :mvn/version :as coord}]
   (.parseVersion ^GenericVersionScheme version-scheme ^String version))
 
-(defmethod providers/compare-versions [:mvn :mvn]
+(defmethod ext/compare-versions [:mvn :mvn]
   [coord-x coord-y]
   (apply compare (map parse-version [coord-x coord-y])))
 
-(defmethod providers/coord-deps :mvn
+(defmethod ext/coord-deps :mvn
   [lib coord _manifest {:keys [mvn/repos mvn/local-repo]}]
   (let [local-repo (or local-repo maven/default-local-repo)
         system ^RepositorySystem @maven/the-system
@@ -60,7 +60,7 @@
         (map #(update-in % [1] dissoc :scope :optional)))
       (.getDependencies result))))
 
-(defmethod providers/coord-paths :mvn
+(defmethod ext/coord-paths :mvn
   [lib coord _manifest {:keys [mvn/repos mvn/local-repo]}]
   (let [local-repo (or local-repo maven/default-local-repo)
         system ^RepositorySystem @maven/the-system
@@ -76,13 +76,13 @@
 
 (comment
   ;; given a dep, find the child deps
-  (providers/coord-deps 'org.clojure/clojure {:mvn/version "1.9.0-alpha17"} :mvn {:mvn/repos maven/standard-repos})
+  (ext/coord-deps 'org.clojure/clojure {:mvn/version "1.9.0-alpha17"} :mvn {:mvn/repos maven/standard-repos})
 
   ;; give a dep, download just that dep (not transitive - that's handled by the core algorithm)
-  (providers/coord-paths 'org.clojure/clojure {:mvn/version "1.9.0-alpha17"} :mvn {:mvn/repos maven/standard-repos})
+  (ext/coord-paths 'org.clojure/clojure {:mvn/version "1.9.0-alpha17"} :mvn {:mvn/repos maven/standard-repos})
 
   (parse-version {:mvn/version "1.1.0"})
 
-  (providers/compare-versions {:mvn/version "1.1.0-alpha10"} {:mvn/version "1.1.0-beta1"})
+  (ext/compare-versions {:mvn/version "1.1.0-alpha10"} {:mvn/version "1.1.0-beta1"})
   )
 

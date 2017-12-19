@@ -8,14 +8,16 @@
 
 (ns clojure.tools.deps.alpha.makecp
   (:require [clojure.java.io :as jio]
+            [clojure.string :as str]
             [clojure.tools.deps.alpha :as deps]
             [clojure.tools.deps.alpha.reader :as reader]
-            [clojure.tools.deps.alpha.providers.maven]
-            [clojure.tools.deps.alpha.providers.local]
-            [clojure.tools.deps.alpha.providers.git]
-            [clojure.tools.deps.alpha.manifest.deps]
             [clojure.tools.deps.alpha.util.io :refer [printerrln]]
-            [clojure.string :as str])
+
+            ;; Load extensions
+            [clojure.tools.deps.alpha.extensions.maven]
+            [clojure.tools.deps.alpha.extensions.local]
+            [clojure.tools.deps.alpha.extensions.git]
+            [clojure.tools.deps.alpha.extensions.deps])
   (:import [java.io File]))
 
 (set! *warn-on-reflection* true)

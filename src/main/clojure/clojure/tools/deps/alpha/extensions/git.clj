@@ -6,11 +6,11 @@
 ;   the terms of this license.
 ;   You must not remove this notice, or any other, from this software.
 
-(ns clojure.tools.deps.alpha.providers.git
+(ns clojure.tools.deps.alpha.extensions.git
   (:require
     [clojure.java.io :as jio]
     [clojure.string :as str]
-    [clojure.tools.deps.alpha.providers :as providers]
+    [clojure.tools.deps.alpha.extensions :as ext]
     [clojure.tools.deps.alpha.util.io :refer [printerrln]])
   (:import
     [java.io File]
@@ -71,9 +71,9 @@
   (call-with url (.. git checkout (setStartPoint rev) (setAllPaths true)))
   (.. git getRepository getWorkTree))
 
-;;;; Provider methods
+;;;; Extension methods
 
-(defmethod providers/dep-id :git
+(defmethod ext/dep-id :git
   [lib {:keys [git/url rev] :as coord}]
   {:url url, :rev rev})
 
@@ -90,15 +90,15 @@
             (git-clone-bare url git-dir rev-dir))
           (git-checkout rev url))))))
 
-(defmethod providers/manifest-type :git
+(defmethod ext/manifest-type :git
   [lib {:keys [git/url rev deps/manifest] :as coord} {:keys [deps/cache-dir]}]
   (let [dir (jio/file cache-dir)
         tree (ensure-cache dir url rev)]
     (if manifest
       {:deps/manifest manifest, :deps/root tree}
-      (providers/detect-manifest tree))))
+      (ext/detect-manifest tree))))
 
-(defmethod providers/compare-versions [:git :git]
+(defmethod ext/compare-versions [:git :git]
   [coord-x coord-y]
   ;; TODO
   (throw (ex-info "Unresolvable version conflict with two git coordinates for the same library" {:x coord-x :y coord-y})))
