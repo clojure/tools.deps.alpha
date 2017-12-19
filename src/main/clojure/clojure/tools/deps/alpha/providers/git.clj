@@ -24,16 +24,17 @@
 
 (def ^:private ^TransportConfigCallback ssh-callback
   (delay
-    (let [connector (.createConnector (ConnectorFactory/getDefault))]
+    (let [factory (doto (ConnectorFactory/getDefault) (.setPreferredUSocketFactories "jna,nc"))
+          connector (.createConnector factory)]
+      (JSch/setConfig "PreferredAuthentications" "publickey")
       (reify TransportConfigCallback
         (configure [_ transport]
           (.setSshSessionFactory ^SshTransport transport
             (proxy [JschConfigSessionFactory] []
               (configure [host session])
               (getJSch [hc fs]
-                (let [^JSch jsch (proxy-super getJSch hc fs)]
-                  (.setIdentityRepository jsch (RemoteIdentityRepository. connector))
-                  jsch)))))))))
+                (doto (proxy-super getJSch hc fs)
+                  (.setIdentityRepository (RemoteIdentityRepository. connector)))))))))))
 
 (defn- call-with
   [^String url ^GitCommand command]
