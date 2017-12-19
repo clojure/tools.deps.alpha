@@ -61,9 +61,10 @@
   "Given two coordinates, use this as a comparator returning a negative number, zero,
   or positive number when coord-x is logically 'less than', 'equal to', or 'greater than'
   coord-y. The dispatch occurs on the type of x and y."
-  (fn [coord-x coord-y] [(coord-type coord-x) (coord-type coord-y)]))
+  (fn [coord-x coord-y config] [(coord-type coord-x) (coord-type coord-y)]))
 
-(defmethod compare-versions :default [coord-x coord-y]
+(defmethod compare-versions :default
+  [coord-x coord-y config]
   (throw (Exception. (str "Unable to compare versions for coordinates: "
                        (pr-str coord-x) " and " (pr-str coord-y)))))
 

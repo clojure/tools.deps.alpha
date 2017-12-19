@@ -41,7 +41,7 @@
   (.parseVersion ^GenericVersionScheme version-scheme ^String version))
 
 (defmethod ext/compare-versions [:mvn :mvn]
-  [coord-x coord-y]
+  [coord-x coord-y config]
   (apply compare (map parse-version [coord-x coord-y])))
 
 (defmethod ext/coord-deps :mvn

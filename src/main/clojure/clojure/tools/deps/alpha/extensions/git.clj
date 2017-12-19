@@ -99,7 +99,7 @@
       (ext/detect-manifest tree))))
 
 (defmethod ext/compare-versions [:git :git]
-  [coord-x coord-y]
+  [coord-x coord-y config]
   ;; TODO
   (throw (ex-info "Unresolvable version conflict with two git coordinates for the same library" {:x coord-x :y coord-y})))
 

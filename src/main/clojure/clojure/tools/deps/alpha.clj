@@ -56,12 +56,12 @@
        (into {} node)))))
 
 (defn- choose-coord
-  [coord1 coord2 top-coord]
+  [coord1 coord2 top-coord config]
   (cond
     top-coord top-coord
     (and coord1 (not coord2)) coord1
     (and coord2 (not coord1)) coord2
-    :else (if (pos? (ext/compare-versions coord1 coord2)) coord1 coord2)))
+    :else (if (pos? (ext/compare-versions coord1 coord2 config)) coord1 coord2)))
 
 (defn- resolve-versions
   [deps-tree config verbose]
@@ -71,7 +71,7 @@
       (if-let [[[lib coord] child-deps] (peek q)]
         (recur
           (into (pop q) (map #(update-in % [0 1 :dependents] (fnil conj []) lib) child-deps))
-          (assoc lib-map lib (choose-coord (lib-map lib) coord (get top-deps lib))))
+          (assoc lib-map lib (choose-coord (lib-map lib) coord (get top-deps lib) config)))
         (do
           (when verbose
             (println)
