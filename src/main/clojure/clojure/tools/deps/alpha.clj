@@ -28,7 +28,7 @@
             use-coord (cond override-coord override-coord
                             coord coord
                             :else (get default-deps lib))
-            dep-id (ext/dep-id lib use-coord)]
+            dep-id (ext/dep-id lib use-coord config)]
         (if (seen dep-id)
           (recur q' tree seen)
           (let [{manifest-type :deps/manifest :as manifest-info} (ext/manifest-type lib coord config)

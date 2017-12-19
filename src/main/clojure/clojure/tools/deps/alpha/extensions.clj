@@ -37,13 +37,13 @@
 (defmulti dep-id
   "Returns an identifier value that can be used to detect a lib/coord cycle while
    expanding deps."
-  (fn [lib coord] (coord-type coord)))
+  (fn [lib coord config] (coord-type coord)))
 
 (defn- throw-bad-coord
   [lib coord]
   (throw (Exception. (str "Coordinate type " (coord-type coord) " not loaded for library " lib " in coordinate " (pr-str coord)))))
 
-(defmethod dep-id :default [lib coord]
+(defmethod dep-id :default [lib coord config]
   (throw-bad-coord lib coord))
 
 (defmulti manifest-type

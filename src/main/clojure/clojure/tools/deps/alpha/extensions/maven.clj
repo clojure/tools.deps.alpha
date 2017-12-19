@@ -26,7 +26,7 @@
 ;; Main extension points for using Maven deps
 
 (defmethod ext/dep-id :mvn
-  [lib {:keys [mvn/version classifier] :as coord}]
+  [lib {:keys [mvn/version classifier] :as coord} config]
   {:lib lib
    :version version
    :classifier classifier})

@@ -12,7 +12,7 @@
     [clojure.tools.deps.alpha.extensions :as ext]))
 
 (defmethod ext/dep-id :local
-  [lib {:keys [local/root] :as coord}]
+  [lib {:keys [local/root] :as coord} config]
   {:lib lib
    :root root})
 

@@ -74,7 +74,7 @@
 ;;;; Extension methods
 
 (defmethod ext/dep-id :git
-  [lib {:keys [git/url rev] :as coord}]
+  [lib {:keys [git/url rev] :as coord} config]
   {:url url, :rev rev})
 
 (defn- ensure-cache
