@@ -1,7 +1,8 @@
 Changelog
 ===========
 
-* Next release
+* 0.3.220 on Dec 20, 2017
+  * Added support for git deps - see docs for details
   * Print warnings and messages to stderr rather than stdout
 * 0.2.196 on Dec 7, 2017
   * Local deps should use full deps file chain, not just project deps
