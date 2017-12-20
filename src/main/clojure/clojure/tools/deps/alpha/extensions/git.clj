@@ -46,8 +46,13 @@
     (.call command)))
 
 (defn- clean-url
+  "Chop leading protocol, trailing .git, replace :'s with /"
   [url]
-  (last (str/split url #"://")))
+  (-> url
+    (str/split #"://")
+    last
+    (str/replace #"\.git$" "")
+    (str/replace #":" "/")))
 
 (defn- git-repo
   ^Repository [{:keys [^File git-dir ^File rev-dir]}]
@@ -104,7 +109,7 @@
   "Download git for the specified url and return the cached rev dir"
   [^String cache-dir ^String url ^String rev]
   (let [git-dir (ensure-git-dir cache-dir url)
-        rev-dir (jio/file cache-dir "git" "revs" rev)
+        rev-dir (jio/file cache-dir "git" "revs" (clean-url url) rev)
         dirs {:git-dir git-dir, :rev-dir rev-dir}]
     (when (not (.exists rev-dir))
       (git-checkout (git-fetch dirs url) rev url))
