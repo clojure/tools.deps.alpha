@@ -119,8 +119,9 @@
 ;;;; Extension methods
 
 (defmethod ext/canonicalize :git
-  [lib {:keys [git/url rev] :as coord} {:keys [deps/cache-dir]}]
-  (let [git-dir (ensure-git-dir cache-dir url)
+  [lib {:keys [git/url rev] :as coord} config]
+  (let [cache-dir (-> config :deps/config :cache-dir)
+        git-dir (ensure-git-dir cache-dir url)
         sha (full-commit git-dir rev)]
     [lib (assoc coord :rev sha)]))
 
@@ -129,8 +130,9 @@
   (select-keys coord [:git/url :rev]))
 
 (defmethod ext/manifest-type :git
-  [lib {:keys [git/url rev deps/manifest] :as coord} {:keys [deps/cache-dir]}]
-  (let [{:keys [rev-dir]} (ensure-rev-dir lib cache-dir url rev)]
+  [lib {:keys [git/url rev deps/manifest] :as coord} config]
+  (let [cache-dir (-> config :deps/config :cache-dir)
+        {:keys [rev-dir]} (ensure-rev-dir lib cache-dir url rev)]
     (if manifest
       {:deps/manifest manifest, :deps/root rev-dir}
       (ext/detect-manifest rev-dir))))
@@ -139,12 +141,13 @@
 ;; negative if x is parent of y (y derives from x)
 ;; positive if y is parent of x (x derives from y)
 (defmethod ext/compare-versions [:git :git]
-  [lib {x-url :git/url, x-rev :rev :as x} {y-url :git/url, y-rev :rev :as y} {:keys [deps/cache-dir] :as config}]
-  (cond
-    (= x-rev y-rev) 0
-    (parent? x-rev y-rev (ensure-rev-dir lib cache-dir y-url y-rev)) -1
-    (parent? y-rev x-rev (ensure-rev-dir lib cache-dir x-url x-rev)) 1
-    :else (throw (ex-info "No known relationship between git versions" {:x x :y y}))))
+  [lib {x-url :git/url, x-rev :rev :as x} {y-url :git/url, y-rev :rev :as y} config]
+  (let [cache-dir (-> config :deps/config :cache-dir)]
+    (cond
+      (= x-rev y-rev) 0
+      (parent? x-rev y-rev (ensure-rev-dir lib cache-dir y-url y-rev)) -1
+      (parent? y-rev x-rev (ensure-rev-dir lib cache-dir x-url x-rev)) 1
+      :else (throw (ex-info "No known relationship between git versions" {:x x :y y})))))
 
 (comment
   (def dirs (#'ensure-rev-dir 'org.clojure/spec.alpha
@@ -156,5 +159,5 @@
     'org.clojure/spec.alpha
     {:git/url "https://github.com/clojure/spec.alpha.git" :rev "739c1af56dae621aedf1bb282025a0d676eff713"}
     {:git/url "git@github.com:clojure/spec.alpha.git" :rev "a65fb3aceec67d1096105cab707e6ad7e5f063af"}
-    {:deps/cache-dir "git"})
+    {:deps/config {:cache-dir "."}})
   )
