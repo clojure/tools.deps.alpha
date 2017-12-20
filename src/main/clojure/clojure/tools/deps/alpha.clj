@@ -15,6 +15,12 @@
     [clojure.lang PersistentQueue]
     [java.io File]))
 
+(defn- canonicalize-deps
+  [deps config]
+  (reduce
+    (fn [m [lib coord]] (conj m (ext/canonicalize lib coord config)))
+    [] deps))
+
 (defn- expand-deps
   [deps default-deps override-deps config verbose]
   (loop [q (into (PersistentQueue/EMPTY) (map vector deps)) ;; queue of dep paths
@@ -33,7 +39,7 @@
           (recur q' tree seen)
           (let [{manifest-type :deps/manifest :as manifest-info} (ext/manifest-type lib coord config)
                 use-coord (merge use-coord manifest-info)
-                children (ext/coord-deps lib use-coord manifest-type config)
+                children (canonicalize-deps (ext/coord-deps lib use-coord manifest-type config) config)
                 use-path (conj parents [lib use-coord])
                 child-paths (map #(conj use-path %) children)]
             (when verbose (println "Expanding" lib use-coord))
@@ -96,6 +102,7 @@
       (pprint deps))
 
     (-> deps
+      (canonicalize-deps deps-map)
       (expand-deps default-deps override-deps deps-map verbose)
       (cut-exclusions)
       (resolve-versions deps-map verbose)

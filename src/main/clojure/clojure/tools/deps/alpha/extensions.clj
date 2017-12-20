@@ -34,9 +34,19 @@
   (when (map? coord)
     (->> coord keys (keep namespace) (remove #(= "deps" %)) first keyword)))
 
+(defmulti canonicalize
+  "Takes a lib and coordinate and returns a canonical form.
+  For example, a Maven coordinate might resolve LATEST to a version or a Git
+  coordinate might resolve a partial sha to a full sha. Returns [lib coord]."
+  (fn [lib coord config] (coord-type coord)))
+
+(defmethod canonicalize :default [lib coord config]
+  [lib coord])
+
 (defmulti dep-id
   "Returns an identifier value that can be used to detect a lib/coord cycle while
-   expanding deps."
+   expanding deps. This will only be called after canonicalization so it can rely
+   on the canonical form."
   (fn [lib coord config] (coord-type coord)))
 
 (defn- throw-bad-coord
