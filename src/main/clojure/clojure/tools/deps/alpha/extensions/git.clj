@@ -99,6 +99,7 @@
       (finally (.dispose walk)))))
 
 (defn- ensure-git-dir
+  "Download the bare git dir for the specified url, return the cached git dir"
   ^File [^String cache-dir ^String url]
   (let [git-dir (jio/file cache-dir "git" "repos" (clean-url url))]
     (if (.exists git-dir)
@@ -106,10 +107,10 @@
       (git-clone-bare url git-dir))))
 
 (defn- ensure-rev-dir
-  "Download git for the specified url and return the cached rev dir"
-  [^String cache-dir ^String url ^String rev]
+  "Download working tree for the specified url, return the cached rev dir"
+  [lib ^String cache-dir ^String url ^String rev]
   (let [git-dir (ensure-git-dir cache-dir url)
-        rev-dir (jio/file cache-dir "git" "revs" (clean-url url) rev)
+        rev-dir (jio/file cache-dir "git" "revs" (namespace lib) (name lib) rev)
         dirs {:git-dir git-dir, :rev-dir rev-dir}]
     (when (not (.exists rev-dir))
       (git-checkout (git-fetch dirs url) rev url))
@@ -129,7 +130,7 @@
 
 (defmethod ext/manifest-type :git
   [lib {:keys [git/url rev deps/manifest] :as coord} {:keys [deps/cache-dir]}]
-  (let [{:keys [rev-dir]} (ensure-rev-dir cache-dir url rev)]
+  (let [{:keys [rev-dir]} (ensure-rev-dir lib cache-dir url rev)]
     (if manifest
       {:deps/manifest manifest, :deps/root rev-dir}
       (ext/detect-manifest rev-dir))))
@@ -138,20 +139,21 @@
 ;; negative if x is parent of y (y derives from x)
 ;; positive if y is parent of x (x derives from y)
 (defmethod ext/compare-versions [:git :git]
-  [{x-url :git/url, x-rev :rev :as x} {y-url :git/url, y-rev :rev :as y} {:keys [deps/cache-dir] :as config}]
+  [lib {x-url :git/url, x-rev :rev :as x} {y-url :git/url, y-rev :rev :as y} {:keys [deps/cache-dir] :as config}]
   (cond
     (= x-rev y-rev) 0
-    (parent? x-rev y-rev (ensure-rev-dir cache-dir y-url y-rev)) -1
-    (parent? y-rev x-rev (ensure-rev-dir cache-dir x-url x-rev)) 1
+    (parent? x-rev y-rev (ensure-rev-dir lib cache-dir y-url y-rev)) -1
+    (parent? y-rev x-rev (ensure-rev-dir lib cache-dir x-url x-rev)) 1
     :else (throw (ex-info "No known relationship between git versions" {:x x :y y}))))
 
 (comment
-  (def dirs (#'ensure-rev-dir
+  (def dirs (#'ensure-rev-dir 'org.clojure/spec.alpha
               (File. "/Users/alex/code/.clojure/.cpcache")
               "https://github.com/clojure/spec.alpha.git"
               "739c1af56dae621aedf1bb282025a0d676eff713"))
 
   (ext/compare-versions
+    'org.clojure/spec.alpha
     {:git/url "https://github.com/clojure/spec.alpha.git" :rev "739c1af56dae621aedf1bb282025a0d676eff713"}
     {:git/url "git@github.com:clojure/spec.alpha.git" :rev "a65fb3aceec67d1096105cab707e6ad7e5f063af"}
     {:deps/cache-dir "git"})
