@@ -1,6 +1,9 @@
 Changelog
 ===========
 
+* 0.3.231 on Dec 21, 2017
+  * Insert deps config at front of config chain rather than back
+  * Make deps manifest reader tolerant of missing deps.edn in project
 * 0.3.225 on Dec 21, 2017
   * Fix bug in cache dir configuration
 * 0.3.220 on Dec 20, 2017
