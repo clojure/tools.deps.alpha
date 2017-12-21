@@ -14,7 +14,10 @@
 
 (defn- deps-map
   [config dir]
-  (reader/merge-deps [config (reader/slurp-deps (jio/file dir "deps.edn"))]))
+  (let [f (jio/file dir "deps.edn")]
+    (if (.exists f)
+      (reader/merge-deps [config (reader/slurp-deps f)])
+      config)))
 
 (defmethod ext/coord-deps :deps
   [_lib {:keys [deps/root] :as coord} _mf config]
