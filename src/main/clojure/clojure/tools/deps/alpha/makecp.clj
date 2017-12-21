@@ -109,8 +109,8 @@
           ;; Read and combine deps files
           deps-map (reader/read-deps config-files)
 
-          ;; Inject deps config
-          deps-map (merge-with merge deps-map {:deps/config {:cache-dir cache-dir}})
+          ;; Include default deps config
+          deps-map (merge-with merge {:deps/config {:cache-dir cache-dir}} deps-map)
 
           ;; Read or compute+write libs map with resolve-deps
           libs (let [resolve-args (resolve-deps-aliases deps-map R)
