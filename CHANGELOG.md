@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* 0.3.225 on Dec 21, 2017
+  * Fix bug in cache dir configuration
 * 0.3.220 on Dec 20, 2017
   * Added support for git deps - see docs for details
   * Print warnings and messages to stderr rather than stdout
