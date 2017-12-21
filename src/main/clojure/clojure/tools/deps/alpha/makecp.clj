@@ -107,20 +107,21 @@
           {:keys [config-files libs-file cp-file cache-dir R C]} (parse-args args)
 
           ;; Read and combine deps files
-          deps (reader/read-deps config-files)
+          deps-map (reader/read-deps config-files)
+
+          ;; Inject deps config
+          deps-map (merge-with merge deps-map {:deps/config {:cache-dir cache-dir}})
 
           ;; Read or compute+write libs map with resolve-deps
-          libs (let [resolve-args (resolve-deps-aliases deps R)
-                     config (merge-with merge resolve-args
-                              {:deps/config {:cache-dir cache-dir}})
-                     libs (deps/resolve-deps deps config)]
+          libs (let [resolve-args (resolve-deps-aliases deps-map R)
+                     libs (deps/resolve-deps deps-map resolve-args)]
                  (jio/make-parents libs-file)
                  (spit libs-file (pr-str libs))
                  libs)
 
           ;; Compute classpath with make-classpath
-          cp-args (resolve-cp-aliases deps C)
-          cp (deps/make-classpath libs (:paths deps) cp-args)]
+          cp-args (resolve-cp-aliases deps-map C)
+          cp (deps/make-classpath libs (:paths deps-map) cp-args)]
 
       ;; Write cache file
       (jio/make-parents cp-file)
