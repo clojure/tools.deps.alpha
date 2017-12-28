@@ -41,9 +41,6 @@
     (str/starts-with? arg "--cp-file=")
     (assoc parsed :cp-file (jio/file (subs arg (count "--cp-file="))))
 
-    (str/starts-with? arg "--cache-dir=")
-    (assoc parsed :cache-dir (subs arg (count "--cache-dir=")))
-
     :else
     (merge parsed (parse-opt arg))))
 
@@ -93,7 +90,6 @@
     --config-paths=/install/deps.edn,... - comma-delimited list of deps.edn files to merge
     --libs-file=path - libs cache file to write
     --cp-file=path - cp cache file to write
-    --cache-dir=path - user cache root directory
   Options:
     -Rresolve-aliases - concatenated resolve-args alias names
     -Cmake-classpath-aliases - concatenated make-classpath alias names
@@ -104,13 +100,10 @@
   [& args]
   (try
     (let [;; Parse args
-          {:keys [config-files libs-file cp-file cache-dir R C]} (parse-args args)
+          {:keys [config-files libs-file cp-file R C]} (parse-args args)
 
           ;; Read and combine deps files
           deps-map (reader/read-deps config-files)
-
-          ;; Include default deps config
-          deps-map (merge-with merge {:deps/config {:cache-dir cache-dir}} deps-map)
 
           ;; Read or compute+write libs map with resolve-deps
           libs (let [resolve-args (resolve-deps-aliases deps-map R)

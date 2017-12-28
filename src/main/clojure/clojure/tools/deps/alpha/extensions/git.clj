@@ -101,7 +101,7 @@
 (defn- ensure-git-dir
   "Download the bare git dir for the specified url, return the cached git dir"
   ^File [^String cache-dir ^String url]
-  (let [git-dir (jio/file cache-dir "git" "repos" (clean-url url))]
+  (let [git-dir (jio/file cache-dir "_repos" (clean-url url))]
     (if (.exists git-dir)
       git-dir
       (git-clone-bare url git-dir))))
@@ -110,7 +110,7 @@
   "Download working tree for the specified url, return the cached rev dir"
   [lib ^String cache-dir ^String url ^String rev]
   (let [git-dir (ensure-git-dir cache-dir url)
-        rev-dir (jio/file cache-dir "git" "revs" (namespace lib) (name lib) rev)
+        rev-dir (jio/file cache-dir "libs" (namespace lib) (name lib) rev)
         dirs {:git-dir git-dir, :rev-dir rev-dir}]
     (when (not (.exists rev-dir))
       (git-checkout (git-fetch dirs url) rev url))
@@ -120,7 +120,7 @@
 
 (defmethod ext/canonicalize :git
   [lib {:keys [git/url rev] :as coord} config]
-  (let [cache-dir (-> config :deps/config :cache-dir)
+  (let [cache-dir (-> config :git/config :cache-dir)
         git-dir (ensure-git-dir cache-dir url)
         sha (full-commit git-dir rev)]
     [lib (assoc coord :rev sha)]))
@@ -131,7 +131,7 @@
 
 (defmethod ext/manifest-type :git
   [lib {:keys [git/url rev deps/manifest] :as coord} config]
-  (let [cache-dir (-> config :deps/config :cache-dir)
+  (let [cache-dir (-> config :git/config :cache-dir)
         {:keys [rev-dir]} (ensure-rev-dir lib cache-dir url rev)]
     (if manifest
       {:deps/manifest manifest, :deps/root rev-dir}
@@ -142,7 +142,7 @@
 ;; positive if y is parent of x (x derives from y)
 (defmethod ext/compare-versions [:git :git]
   [lib {x-url :git/url, x-rev :rev :as x} {y-url :git/url, y-rev :rev :as y} config]
-  (let [cache-dir (-> config :deps/config :cache-dir)]
+  (let [cache-dir (-> config :git/config :cache-dir)]
     (cond
       (= x-rev y-rev) 0
       (parent? x-rev y-rev (ensure-rev-dir lib cache-dir y-url y-rev)) -1
@@ -159,5 +159,5 @@
     'org.clojure/spec.alpha
     {:git/url "https://github.com/clojure/spec.alpha.git" :rev "739c1af56dae621aedf1bb282025a0d676eff713"}
     {:git/url "git@github.com:clojure/spec.alpha.git" :rev "a65fb3aceec67d1096105cab707e6ad7e5f063af"}
-    {:deps/config {:cache-dir "."}})
+    {:git/config {:cache-dir "./gitlibs"}})
   )
