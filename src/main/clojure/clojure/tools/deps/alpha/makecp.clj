@@ -83,6 +83,11 @@
         extra-paths (into [] (mapcat :extra-paths) cp-arg-maps)]
     (assoc combined :extra-paths extra-paths)))
 
+(defn- default-git-dir []
+  (let [home (System/getProperty "user.home")
+        gitlibs (jio/file home ".gitlibs")]
+    (.getAbsolutePath gitlibs)))
+
 (defn -main
   "Main entry point for makecp script.
 
@@ -104,6 +109,9 @@
 
           ;; Read and combine deps files
           deps-map (reader/read-deps config-files)
+
+          ;; Merge default config
+          deps-map (merge {:git/config {:cache-dir (default-git-dir))}} deps-map)
 
           ;; Read or compute+write libs map with resolve-deps
           libs (let [resolve-args (resolve-deps-aliases deps-map R)
