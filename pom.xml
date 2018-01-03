@@ -111,19 +111,9 @@
       <version>1.3.1</version>
     </dependency>
     <dependency>
-      <groupId>org.eclipse.jgit</groupId>
-      <artifactId>org.eclipse.jgit</artifactId>
-      <version>4.9.1.201712030800-r</version>
-    </dependency>
-    <dependency>
-      <groupId>com.jcraft</groupId>
-      <artifactId>jsch.agentproxy.connector-factory</artifactId>
-      <version>0.0.9</version>
-    </dependency>
-    <dependency>
-      <groupId>com.jcraft</groupId>
-      <artifactId>jsch.agentproxy.jsch</artifactId>
-      <version>0.0.9</version>
+      <groupId>org.clojure</groupId>
+      <artifactId>tools.gitlibs</artifactId>
+      <version>0.1.8</version>
     </dependency>
   </dependencies>
 
