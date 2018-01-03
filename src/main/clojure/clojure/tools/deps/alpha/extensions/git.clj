@@ -13,10 +13,7 @@
 
 (defmethod ext/canonicalize :git
   [lib {:keys [git/url rev] :as coord} config]
-  (let [git-opts (mapcat identity (:git/config config))
-        git-repo (apply gitlibs/ensure-git-dir url git-opts)
-        sha (gitlibs/full-sha git-repo rev)]
-    [lib (assoc coord :rev sha)]))
+  [lib (assoc coord :rev (gitlibs/resolve url rev))])
 
 (defmethod ext/dep-id :git
   [lib coord config]
@@ -24,9 +21,7 @@
 
 (defmethod ext/manifest-type :git
   [lib {:keys [git/url rev deps/manifest] :as coord} config]
-  (let [git-opts (mapcat identity (:git/config config))
-        git-repo (apply gitlibs/ensure-git-dir url git-opts)
-        rev-dir (apply gitlibs/ensure-working-tree git-repo lib rev git-opts)]
+  (let [rev-dir (gitlibs/procure url lib rev)]
     (if manifest
       {:deps/manifest manifest, :deps/root rev-dir}
       (ext/detect-manifest rev-dir))))
@@ -36,14 +31,15 @@
 ;; positive if y is parent of x (x derives from y)
 (defmethod ext/compare-versions [:git :git]
   [lib {x-url :git/url, x-rev :rev :as x} {y-url :git/url, y-rev :rev :as y} config]
-  (let [git-opts (mapcat identity (:git/config config))
-        x-repo (apply gitlibs/ensure-git-dir x-url git-opts)
-        y-repo (apply gitlibs/ensure-git-dir y-url git-opts)]
-    (cond
-      (= x-rev y-rev) 0
-      (gitlibs/ancestor? y-repo x-rev y-rev) -1
-      (gitlibs/ancestor? x-repo y-rev x-rev) 1
-      :else (throw (ex-info "No known relationship between git versions" {:x x :y y})))))
+  (if (= x-rev y-rev)
+    0
+    (let [desc (or
+                 (gitlibs/descendant x-url [x-rev y-rev])
+                 (gitlibs/descendant y-url [x-rev y-rev]))]
+      (cond
+        (nil? desc) (throw (ex-info "No known relationship between git versions" {:x x :y y}))
+        (= desc x-rev) 1
+        (= desc y-rev) -1))))
 
 (comment
   (ext/canonicalize 'org.clojure/spec.alpha
