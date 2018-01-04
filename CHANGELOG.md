@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* 0.3.254 on Jan 3, 2018
+  * Refactored gitlib out into library
 * 0.3.231 on Dec 21, 2017
   * Insert deps config at front of config chain rather than back
   * Make deps manifest reader tolerant of missing deps.edn in project
