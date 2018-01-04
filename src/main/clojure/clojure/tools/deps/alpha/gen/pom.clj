@@ -33,8 +33,19 @@
   [path]
   [::pom/sourceDirectory path])
 
+(defn- to-repo
+  [[name repo]]
+  [::pom/repository
+   [::pom/id name]
+   [::pom/url (:url repo)]])
+
+(defn- gen-repos
+  [repos]
+  [::pom/repositories
+   (map to-repo repos)])
+
 (defn- gen-pom
-  [deps [path & paths] project-name]
+  [deps [path & paths] repos project-name]
   (xml/sexp-as-element
     [::pom/project
      {:xmlns "http://maven.apache.org/POM/4.0.0"
@@ -48,7 +59,8 @@
      (gen-deps deps)
      (when path
        (when (seq paths) (apply printerrln "Skipping paths:" paths))
-       [::pom/build (gen-source-dir path)])]))
+       [::pom/build (gen-source-dir path)])
+     (gen-repos repos)]))
 
 (defn- make-xml-element
   [{:keys [tag attrs] :as node} children]
@@ -56,42 +68,53 @@
     (apply xml/element tag attrs children)
     (meta node)))
 
-(defn- xml-replace
-  [root tag replace-node]
+(defn- xml-update
+  [root tag-path replace-node]
   (let [z (zip/zipper xml/element? :content make-xml-element root)]
-    (loop [loc z]
-      (if (zip/end? loc)
-        (zip/root loc)
-        (if (= tag (:tag (zip/node loc)))
-          (recur (zip/next (zip/edit loc (constantly replace-node))))
-          (recur (zip/next loc)))))))
+    (zip/root
+      (loop [[tag & more-tags :as tags] tag-path, parent z, child (zip/down z)]
+        (if child
+          (if (= tag (:tag (zip/node child)))
+            (if (seq more-tags)
+              (recur more-tags child (zip/down child))
+              (zip/edit child (constantly replace-node)))
+            (recur tags parent (zip/right child)))
+          (zip/append-child parent replace-node))))))
 
 (defn- replace-deps
   [pom deps]
-  (xml-replace pom ::pom/dependencies (xml/sexp-as-element (gen-deps deps))))
+  (xml-update pom [::pom/dependencies] (xml/sexp-as-element (gen-deps deps))))
 
 (defn- replace-paths
   [pom [path & paths]]
   (when path
     (when (seq paths) (apply printerrln "Skipping paths:" paths))
-    (xml-replace pom ::pom/sourceDirectory (xml/sexp-as-element (gen-source-dir path)))))
+    (xml-update pom [::pom/build ::pom/sourceDirectory] (xml/sexp-as-element (gen-source-dir path)))))
+
+(defn- replace-repos
+  [pom repos]
+  (if (seq repos)
+    (xml-update pom [::pom/repositories] (xml/sexp-as-element (gen-repos repos)))
+    pom))
 
 (defn sync-pom
-  [{:keys [deps paths] :as c} ^File dir]
-  (let [pom-file (jio/file dir "pom.xml")
+  [{:keys [deps paths :mvn/repos] :as c} ^File dir]
+  (let [repos (remove #(= "https://repo1.maven.org/maven2/" (-> % val :url)) repos)
+        pom-file (jio/file dir "pom.xml")
         pom (if (.exists pom-file)
               (with-open [rdr (jio/reader pom-file)]
                 (-> rdr
                   (xml/parse :include-node? #{:element :characters :comment})
                   (replace-deps deps)
-                  (replace-paths paths)))
-              (gen-pom deps paths (.. dir getCanonicalFile getName)))]
+                  (replace-paths paths)
+                  (replace-repos repos)))
+              (gen-pom deps paths repos (.. dir getCanonicalFile getName)))]
     (spit pom-file (xml/indent-str pom))))
 
 (comment
   (require '[clojure.tools.deps.alpha.reader :as r])
   (sync-pom
-    (r/read-deps [(jio/file "/usr/local/Cellar/clojure/1.9.0-beta4.251/deps.edn")
+    (r/read-deps [(jio/file "/usr/local/Cellar/clojure/1.9.0.292/deps.edn")
                   (jio/file "deps.edn")])
     (jio/file "."))
   )
