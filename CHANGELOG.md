@@ -1,8 +1,11 @@
 Changelog
 ===========
 
+* 0.3.260 on Jan 4, 2018
+  * TDEPS-25 - pom gen will now sync repositories
+  * Update to latest version of gitlibs
 * 0.3.254 on Jan 3, 2018
-  * Refactored gitlib out into library
+  * Refactored gitlibs out into library
 * 0.3.231 on Dec 21, 2017
   * Insert deps config at front of config chain rather than back
   * Make deps manifest reader tolerant of missing deps.edn in project
