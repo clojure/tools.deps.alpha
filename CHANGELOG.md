@@ -3,6 +3,7 @@ Changelog
 
 * next
   * TDEPS-27 - pom gen works with no warning on Java 9
+  * Less confusing errors when a git dep has no deps.edn
 * 0.3.260 on Jan 4, 2018
   * TDEPS-25 - pom gen will now sync repositories
   * Update to latest version of gitlibs
