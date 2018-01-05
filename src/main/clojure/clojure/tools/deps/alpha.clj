@@ -187,4 +187,11 @@
   (resolve-deps {:deps {'bogus "1.2.3"}
                  :mvn/repos mvn/standard-repos} nil)
 
+  (require
+    '[clojure.tools.deps.alpha.extensions.git])
+
+  (resolve-deps
+    {:deps {'foo/bar {:git/url "https://github.com/clojure/core.async.git" :rev "840069e"}}}
+    nil)
+
   )

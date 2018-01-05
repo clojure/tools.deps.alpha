@@ -85,16 +85,22 @@
 
 ;; Methods switching on manifest type
 
+(defn- throw-bad-manifest
+  [lib coord manifest-type]
+  (if manifest-type
+    (throw (Exception. (str "Manifest type " manifest-type " not loaded when finding deps for " lib " in coordinate " (pr-str coord))))
+    (throw (Exception. (str "Manifest type not detected when finding deps for " lib " in coordinate " (pr-str coord))))))
+
 (defmulti coord-deps
   "Return coll of immediate [lib coord] external deps for this library."
   (fn [lib coord manifest-type config] manifest-type))
 
 (defmethod coord-deps :default [lib coord manifest-type config]
-  (throw (Exception. (str "Manifest type " manifest-type " not loaded when finding deps for " lib " in coordinate " (pr-str coord)))))
+  (throw-bad-manifest lib coord manifest-type))
 
 (defmulti coord-paths
   "Return coll of classpath roots for this library on disk."
   (fn [lib coord manifest-type config] manifest-type))
 
 (defmethod coord-paths :default [lib coord manifest-type config]
-  (throw (Exception. (str "Manifest type " manifest-type " not loaded when finding paths for " lib " in coordinate " (pr-str coord)))))
+  (throw-bad-manifest lib coord manifest-type))
