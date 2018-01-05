@@ -1,109 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+      
+  
   <modelVersion>4.0.0</modelVersion>
+      
+  
   <artifactId>tools.deps.alpha</artifactId>
+      
+  
   <version>0.3.261-SNAPSHOT</version>
+      
+  
   <name>tools.deps.alpha</name>
-
+      
+  
   <parent>
+            
+    
     <groupId>org.clojure</groupId>
+            
+    
     <artifactId>pom.contrib</artifactId>
+            
+    
     <version>0.2.2</version>
+          
+  
   </parent>
-
+      
+  
   <developers>
+            
+    
     <developer>
+                  
+      
       <id>puredanger</id>
+                  
+      
       <name>Alex Miller</name>
+                
+    
     </developer>
+          
+  
   </developers>
-
+      
+  
   <properties>
+            
+    
     <clojure.warnOnReflection>true</clojure.warnOnReflection>
+            
+    
     <clojure.version>1.8.0</clojure.version>
+            
+    
     <resolverVersion>1.1.0</resolverVersion>
+            
+    
     <mavenVersion>3.3.9</mavenVersion>
+            
+    
     <wagonVersion>2.12</wagonVersion>
+          
+  
   </properties>
-
+      
+  
   <dependencies>
     <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>clojure</artifactId>
-      <version>${clojure.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.maven.resolver</groupId>
-      <artifactId>maven-resolver-api</artifactId>
-      <version>${resolverVersion}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.maven.resolver</groupId>
-      <artifactId>maven-resolver-spi</artifactId>
-      <version>${resolverVersion}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.maven.resolver</groupId>
-      <artifactId>maven-resolver-impl</artifactId>
-      <version>${resolverVersion}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.maven.resolver</groupId>
-      <artifactId>maven-resolver-util</artifactId>
-      <version>${resolverVersion}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.maven.resolver</groupId>
-      <artifactId>maven-resolver-connector-basic</artifactId>
-      <version>${resolverVersion}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.maven.resolver</groupId>
-      <artifactId>maven-resolver-transport-file</artifactId>
-      <version>${resolverVersion}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.maven.resolver</groupId>
-      <artifactId>maven-resolver-transport-http</artifactId>
-      <version>${resolverVersion}</version>
+      <version>1.8.0</version>
     </dependency>
     <dependency>
       <groupId>org.apache.maven.resolver</groupId>
       <artifactId>maven-resolver-transport-wagon</artifactId>
-      <version>${resolverVersion}</version>
+      <version>1.1.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.resolver</groupId>
+      <artifactId>maven-resolver-transport-http</artifactId>
+      <version>1.1.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.resolver</groupId>
+      <artifactId>maven-resolver-transport-file</artifactId>
+      <version>1.1.0</version>
     </dependency>
     <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-aether-provider</artifactId>
-      <version>${mavenVersion}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.eclipse.aether</groupId>
-          <artifactId>aether-api</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.eclipse.aether</groupId>
-          <artifactId>aether-spi</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.eclipse.aether</groupId>
-          <artifactId>aether-util</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.eclipse.aether</groupId>
-          <artifactId>aether-impl</artifactId>
-        </exclusion>
-      </exclusions>
+      <version>3.3.9</version>
     </dependency>
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-nop</artifactId>
-      <version>1.6.2</version>
+      <groupId>org.apache.maven.resolver</groupId>
+      <artifactId>maven-resolver-api</artifactId>
+      <version>1.1.0</version>
     </dependency>
     <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>data.xml</artifactId>
       <version>0.2.0-alpha5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.resolver</groupId>
+      <artifactId>maven-resolver-spi</artifactId>
+      <version>1.1.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-nop</artifactId>
+      <version>1.6.2</version>
     </dependency>
     <dependency>
       <groupId>s3-wagon-private</groupId>
@@ -115,50 +124,136 @@
       <artifactId>tools.gitlibs</artifactId>
       <version>0.2.40</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.maven.resolver</groupId>
+      <artifactId>maven-resolver-connector-basic</artifactId>
+      <version>1.1.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.resolver</groupId>
+      <artifactId>maven-resolver-impl</artifactId>
+      <version>1.1.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.resolver</groupId>
+      <artifactId>maven-resolver-util</artifactId>
+      <version>1.1.0</version>
+    </dependency>
   </dependencies>
-
+      
+  
   <build>
+            
+    
     <plugins>
+                  
+      
       <plugin>
-      <!-- By default, compile everything as a sanity check, but do
+                      
+        
+        <!-- By default, compile everything as a sanity check, but do
            not include any AOT-compiled .class files in the
            JAR. Projects may override as needed. -->
-      <groupId>com.theoryinpractise</groupId>
-      <artifactId>clojure-maven-plugin</artifactId>
-      <version>1.7.1</version>
-      <extensions>true</extensions>
-      <configuration>
-        <warnOnReflection>${clojure.warnOnReflection}</warnOnReflection>
-        <temporaryOutputDirectory>true</temporaryOutputDirectory>
-      </configuration>
-      <executions>
-        <execution>
-          <id>clojure-compile</id>
-          <phase>none</phase>
-        </execution>
-        <execution>
-          <id>clojure-test</id>
-          <phase>test</phase>
-          <goals>
-            <goal>test</goal>
-          </goals>
-        </execution>
-      </executions>
+                      
+        
+        <groupId>com.theoryinpractise</groupId>
+                      
+        
+        <artifactId>clojure-maven-plugin</artifactId>
+                      
+        
+        <version>1.7.1</version>
+                      
+        
+        <extensions>true</extensions>
+                      
+        
+        <configuration>
+                            
+          
+          <warnOnReflection>${clojure.warnOnReflection}</warnOnReflection>
+                            
+          
+          <temporaryOutputDirectory>true</temporaryOutputDirectory>
+                          
+        
+        </configuration>
+                      
+        
+        <executions>
+                            
+          
+          <execution>
+                                  
+            
+            <id>clojure-compile</id>
+                                  
+            
+            <phase>none</phase>
+                                
+          
+          </execution>
+                            
+          
+          <execution>
+                                  
+            
+            <id>clojure-test</id>
+                                  
+            
+            <phase>test</phase>
+                                  
+            
+            <goals>
+                                        
+              
+              <goal>test</goal>
+                                      
+            
+            </goals>
+                                
+          
+          </execution>
+                          
+        
+        </executions>
+                      
+      
       </plugin>
+                
+    
     </plugins>
+          
+    
+    <sourceDirectory>src/main/clojure</sourceDirectory>
+      
   </build>
-
+      
+  
   <scm>
+            
+    
     <connection>scm:git:git@github.com:clojure/tools.deps.alpha.git</connection>
+            
+    
     <developerConnection>scm:git:git@github.com:clojure/tools.deps.alpha.git</developerConnection>
+            
+    
     <url>git@github.com:clojure/tools.deps.alpha.git</url>
+            
+    
     <tag>HEAD</tag>
+          
+  
   </scm>
-
+      
+  
   <repositories>
     <repository>
       <id>clojars</id>
-      <url>https://clojars.org/repo/</url>
+      <url>https://clojars.org/repo</url>
     </repository>
   </repositories>
+    
+
 </project>
