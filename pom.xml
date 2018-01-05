@@ -103,7 +103,7 @@
     <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>data.xml</artifactId>
-      <version>0.2.0-alpha3</version>
+      <version>0.2.0-alpha5</version>
     </dependency>
     <dependency>
       <groupId>s3-wagon-private</groupId>
