@@ -13,7 +13,12 @@
 
 ;; vector to control ordering
 (def manifest-types
-  ["deps.edn" :deps, "project.clj" :lein, "pom.xml" :pom])
+  ["deps.edn" :deps,
+
+   ;; Not available yet:
+   ;;"project.clj" :lein,
+   ;;"pom.xml" :pom
+   ])
 
 (defn detect-manifest
   "Given a directory, detect the manifest type and return the manifest info."
