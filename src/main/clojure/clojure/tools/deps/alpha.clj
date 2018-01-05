@@ -191,7 +191,7 @@
     '[clojure.tools.deps.alpha.extensions.git])
 
   (resolve-deps
-    {:deps {'foo/bar {:git/url "https://github.com/clojure/core.async.git" :rev "840069e"}}}
+    {:deps {'foo {:git/url "https://github.com/clojure/core.async.git" :rev "840069e"}}}
     nil)
 
   )

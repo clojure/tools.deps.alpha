@@ -13,7 +13,10 @@
 
 (defmethod ext/canonicalize :git
   [lib {:keys [git/url rev] :as coord} config]
-  [lib (assoc coord :rev (gitlibs/resolve url rev))])
+  (let [lib (if (nil? (namespace lib))
+              (symbol (name lib) (name lib))
+              lib)]
+    [lib (assoc coord :rev (gitlibs/resolve url rev))]))
 
 (defmethod ext/dep-id :git
   [lib coord config]
