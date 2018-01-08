@@ -12,54 +12,60 @@
     [clojure.tools.gitlibs :as gitlibs]))
 
 (defmethod ext/canonicalize :git
-  [lib {:keys [git/url rev] :as coord} config]
+  [lib {:keys [git/url sha tag rev] :as coord} config]
   (let [lib (if (nil? (namespace lib))
               (symbol (name lib) (name lib))
-              lib)]
-    [lib (assoc coord :rev (gitlibs/resolve url rev))]))
+              lib)
+        sha (when sha (gitlibs/resolve url sha))]
+    (when-not sha
+      (cond
+        tag (throw (RuntimeException. (str "Library " lib " has :tag but no :sha.\nAdd :sha or run `clj -Sresolve-tags` to update deps.edn.")))
+        rev (throw (RuntimeException. (str "Library " lib " has deprecated :rev attribute - use :sha or :tag instead.")))
+        :else (throw (RuntimeException. (str "Library " lib " has missing :sha in coordinate.")))))
+    [lib (assoc coord :sha sha)]))
 
 (defmethod ext/dep-id :git
   [lib coord config]
-  (select-keys coord [:git/url :rev]))
+  (select-keys coord [:git/url :sha]))
 
 (defmethod ext/manifest-type :git
-  [lib {:keys [git/url rev deps/manifest] :as coord} config]
-  (let [rev-dir (gitlibs/procure url lib rev)]
+  [lib {:keys [git/url sha deps/manifest] :as coord} config]
+  (let [sha-dir (gitlibs/procure url lib sha)]
     (if manifest
-      {:deps/manifest manifest, :deps/root rev-dir}
-      (ext/detect-manifest rev-dir))))
+      {:deps/manifest manifest, :deps/root sha-dir}
+      (ext/detect-manifest sha-dir))))
 
 ;; 0 if x and y are the same commit
 ;; negative if x is parent of y (y derives from x)
 ;; positive if y is parent of x (x derives from y)
 (defmethod ext/compare-versions [:git :git]
-  [lib {x-url :git/url, x-rev :rev :as x} {y-url :git/url, y-rev :rev :as y} config]
-  (if (= x-rev y-rev)
+  [lib {x-url :git/url, x-sha :sha :as x} {y-url :git/url, y-sha :sha :as y} config]
+  (if (= x-sha y-sha)
     0
     (let [desc (or
-                 (gitlibs/descendant x-url [x-rev y-rev])
-                 (gitlibs/descendant y-url [x-rev y-rev]))]
+                 (gitlibs/descendant x-url [x-sha y-sha])
+                 (gitlibs/descendant y-url [x-sha y-sha]))]
       (cond
         (nil? desc) (throw (ex-info "No known relationship between git versions" {:x x :y y}))
-        (= desc x-rev) 1
-        (= desc y-rev) -1))))
+        (= desc x-sha) 1
+        (= desc y-sha) -1))))
 
 (comment
   (ext/canonicalize 'org.clojure/spec.alpha
-    {:git/url "https://github.com/clojure/spec.alpha.git" :rev "739c1af5"}
+    {:git/url "https://github.com/clojure/spec.alpha.git" :sha "739c1af5"}
     nil)
 
   (ext/dep-id 'org.clojure/spec.alpha
-    {:git/url "https://github.com/clojure/spec.alpha.git" :rev "739c1af56dae621aedf1bb282025a0d676eff713"}
+    {:git/url "https://github.com/clojure/spec.alpha.git" :sha "739c1af56dae621aedf1bb282025a0d676eff713"}
     nil)
 
   (ext/manifest-type 'org.clojure/spec.alpha
-    {:git/url "https://github.com/clojure/spec.alpha.git" :rev "739c1af56dae621aedf1bb282025a0d676eff713"}
+    {:git/url "https://github.com/clojure/spec.alpha.git" :sha "739c1af56dae621aedf1bb282025a0d676eff713"}
     nil)
 
   (ext/compare-versions
     'org.clojure/spec.alpha
-    {:git/url "https://github.com/clojure/spec.alpha.git" :rev "739c1af56dae621aedf1bb282025a0d676eff713"}
-    {:git/url "git@github.com:clojure/spec.alpha.git" :rev "a65fb3aceec67d1096105cab707e6ad7e5f063af"}
+    {:git/url "https://github.com/clojure/spec.alpha.git" :sha "739c1af56dae621aedf1bb282025a0d676eff713"}
+    {:git/url "git@github.com:clojure/spec.alpha.git" :sha "a65fb3aceec67d1096105cab707e6ad7e5f063af"}
     nil)
   )
