@@ -113,7 +113,7 @@
     <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>tools.gitlibs</artifactId>
-      <version>0.2.40</version>
+      <version>0.2.47</version>
     </dependency>
   </dependencies>
 
