@@ -6,7 +6,7 @@
 ;   the terms of this license.
 ;   You must not remove this notice, or any other, from this software.
 
-(ns clojure.tools.deps.alpha.makecp
+(ns clojure.tools.deps.alpha.script.make-classpath
   (:require [clojure.java.io :as jio]
             [clojure.string :as str]
             [clojure.tools.deps.alpha :as deps]
@@ -84,7 +84,7 @@
     (assoc combined :extra-paths extra-paths)))
 
 (defn -main
-  "Main entry point for makecp script.
+  "Main entry point for make-classpath script.
 
   Required:
     --config-paths=/install/deps.edn,... - comma-delimited list of deps.edn files to merge
