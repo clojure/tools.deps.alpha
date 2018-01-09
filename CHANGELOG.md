@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* 0.4.276
+* 0.4.277
   * Add code for resolve-tags command
   * Git deps now use :sha and :tag rather than :rev
   * TDEPS-27 - pom gen reported warning when run on Java 9
