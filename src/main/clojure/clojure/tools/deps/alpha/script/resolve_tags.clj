@@ -67,7 +67,8 @@
           (spit deps-file
             (with-out-str
               (binding [pp/*print-right-margin* 100
-                        pp/*print-miser-width* 80]
+                        pp/*print-miser-width* 80
+                        clojure.core/*print-namespace-maps* false]
                 (pp/pprint resolved-map)))))))
     (catch Throwable t
       (printerrln "Error resolving tags." (.getMessage t))
