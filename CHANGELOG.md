@@ -3,6 +3,8 @@ Changelog
 
 * Next
   * Disallow prefix sha in git coord
+  * TDEPS-28 - -Spom - now supports -R and -C aliases (for top-level deps)
+  * TDEPS-18 - Internal refactoring for script arg handling
 * 0.4.277 on Jan 8, 2018
   * Add code for resolve-tags command
   * Git deps now use :sha and :tag rather than :rev
