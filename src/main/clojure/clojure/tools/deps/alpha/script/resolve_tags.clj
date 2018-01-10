@@ -15,21 +15,11 @@
     [clojure.tools.deps.alpha :as deps]
     [clojure.tools.deps.alpha.reader :as reader]
     [clojure.tools.deps.alpha.util.io :refer [printerrln]]
-    [clojure.tools.gitlibs :as gitlibs])
-  (:import
-    [java.io File]))
+    [clojure.tools.gitlibs :as gitlibs]
+    [clojure.tools.cli :as cli]))
 
-(set! *warn-on-reflection* true)
-
-(defn- parse-arg
-  [parsed arg]
-  (cond
-    (str/starts-with? arg "--deps-file=")
-    (assoc parsed :deps-file (subs arg (count "--deps-file=")))))
-
-(defn- parse-args
-  [args]
-  (->> args (remove nil?) (reduce parse-arg {})))
+(def ^:private opts
+  [[nil "--deps-file PATH" "deps.edn file to update"]])
 
 (defn- resolve-git-dep
   [counter {:keys [git/url sha tag] :as git-coord}]
@@ -47,17 +37,27 @@
       #(cond-> % (and (map? %) (:git/url %)) f)
       deps-map)))
 
+(defn- print-bindings []
+  ;; this is complicated because this conditionally includes
+  ;; *print-namespace-maps* if it exists (in Clojure 1.9)
+  (merge
+    {#'pp/*print-right-margin* 100
+     #'pp/*print-miser-width* 80}
+    (when-let [pnm (resolve 'clojure.core/*print-namespace-maps*)]
+      {pnm false})))
+
 (defn -main
   "Main entry point for resolve-tags script.
 
   Required:
-    --deps-file=deps.edn - deps.edn files in which to resolve git tags
+    --deps-file deps.edn - deps.edn files in which to resolve git tags
 
   Read deps.edn, find git coordinates with :tag but without :sha, resolve those
   tags to shas, and over-write the deps.edn."
   [& args]
   (try
-    (let [{:keys [deps-file]} (parse-args args)
+    (let [{:keys [options]} (cli/parse-opts args opts)
+          {:keys [deps-file]} options
           deps-map (reader/slurp-deps (jio/file deps-file))
           counter (atom 0)]
       (printerrln "Resolving git tags in" deps-file "...")
@@ -66,10 +66,12 @@
           (printerrln "No unresolved tags found.")
           (spit deps-file
             (with-out-str
-              (binding [pp/*print-right-margin* 100
-                        pp/*print-miser-width* 80
-                        clojure.core/*print-namespace-maps* false]
+              (with-bindings (print-bindings)
                 (pp/pprint resolved-map)))))))
     (catch Throwable t
       (printerrln "Error resolving tags." (.getMessage t))
       (System/exit 1))))
+
+(comment
+  (-main "--deps-file" "deps.edn")
+  )
