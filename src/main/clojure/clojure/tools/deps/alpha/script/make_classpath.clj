@@ -45,7 +45,7 @@
   The cp file is at <cachedir>/<resolve-aliases>/<cpaliases>.cp"
   [& args]
   (try
-    (let [{:keys [options arguments summary errors]} (cli/parse-opts args opts)]
+    (let [{:keys [options errors]} (cli/parse-opts args opts)]
       (when (seq errors)
         (run! println errors)
         (System/exit 1))

@@ -8,39 +8,50 @@
 
 (ns clojure.tools.deps.alpha.script.generate-manifest
   (:require [clojure.java.io :as jio]
-            [clojure.tools.deps.alpha.reader :as reader]
+            [clojure.string :as str]
+            [clojure.tools.cli :as cli]
+            [clojure.tools.deps.alpha :as deps]
             [clojure.tools.deps.alpha.gen.pom :as pom]
-            [clojure.tools.deps.alpha.util.io :refer [printerrln]]
-            [clojure.string :as str])
-  (:import [java.io File]))
+            [clojure.tools.deps.alpha.reader :as reader]
+            [clojure.tools.deps.alpha.script.parse :as parse]
+            [clojure.tools.deps.alpha.util.io :refer [printerrln]]))
 
-(set! *warn-on-reflection* true)
-
-(defn- parse-arg
-  [parsed arg]
-  (cond
-    ;; comma-delimited list of config paths -> split, turn into files, keep only existing
-    (str/starts-with? arg "--config-paths=")
-    (let [paths (str/split (subs arg (count "--config-paths=")) #",")]
-      (assoc parsed :config-files (->> paths (map jio/file) (filter #(.exists ^File %)))))
-
-    (str/starts-with? arg "--gen=")
-    (assoc parsed :gen (subs arg (count "--gen=")))))
-
-(defn- parse-args
-  [args]
-  (->> args (remove nil?) (reduce parse-arg {})))
+(def ^:private opts
+  [[nil "--config-files PATHS" "Comma delimited list of deps.edn files to merge" :parse-fn parse/parse-files]
+   [nil "--gen TYPE" "manifest type to generate" :parse-fn keyword]
+   ["-R" "--resolve-aliases ALIASES" "Concatenated resolve-deps alias names" :parse-fn parse/parse-kws]
+   ["-C" "--makecp-aliases ALIASES" "Concatenated make-classpath alias names" :parse-fn parse/parse-kws]])
 
 (defn -main
   "Main entry point for generating a manifest file.
 
   Required:
-    --config-paths=/install/deps.edn,... - comma-delimited list of deps.edn files to merge
-    --gen=pom - manifest type to generate"
+    --config-files DEP_FILES - comma-delimited list of deps.edn files to merge
+    --gen TYPE - manifest type to generate (currently only pom)
+    -R ALIASES - concated resolve-deps alias names, applied to the :deps"
   [& args]
-  (let [{:keys [config-files gen]} (parse-args args)]
-    (try
-      (pom/sync-pom (reader/read-deps config-files) (jio/file "."))
-      (catch Throwable t
-        (printerrln "Error generating" gen ":" (.getMessage t))
-        (System/exit 1)))))
+  (let [{:keys [options errors]} (cli/parse-opts args opts)]
+    (println "options" (pr-str options))
+    (when (seq errors)
+      (run! println errors)
+      (System/exit 1))
+    (let [{:keys [config-files gen resolve-aliases makecp-aliases]} options]
+      (try
+        (let [deps-map (reader/read-deps config-files)
+              resolve-args (deps/combine-aliases deps-map resolve-aliases)
+              {:keys [extra-deps override-deps]} resolve-args
+              cp-args (deps/combine-aliases deps-map makecp-aliases)
+              {:keys [extra-paths]} cp-args
+              mod-map (merge-with concat
+                        (merge-with merge deps-map {:deps override-deps} {:deps extra-deps})
+                        {:paths extra-paths})]
+          (pom/sync-pom mod-map (jio/file ".")))
+        (catch Throwable t
+          (printerrln "Error generating" (name gen) "manifest:" (.getMessage t))
+          (System/exit 1))))))
+
+(comment
+  (-main
+    "--config-files" "deps.edn"
+    "--gen" "pom")
+  )
