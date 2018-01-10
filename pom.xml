@@ -115,6 +115,11 @@
       <artifactId>tools.gitlibs</artifactId>
       <version>0.2.47</version>
     </dependency>
+    <dependency>
+      <groupId>org.clojure</groupId>
+      <artifactId>tools.cli</artifactId>
+      <version>0.3.5</version>
+    </dependency>
   </dependencies>
 
   <build>

@@ -15,6 +15,23 @@
     [clojure.lang PersistentQueue]
     [java.io File]))
 
+(defn lookup-alias
+  "Find alias in deps map or throw if invalid"
+  [deps alias]
+  (or
+    (get-in deps [:aliases alias])
+    (if (str/includes? alias ",")
+      (throw (RuntimeException. (str "Invalid alias: " alias ". If specifying multiple aliases, use concatenated keywords, like -R:1.9:bench")))
+      (throw (RuntimeException. (str "Alias not defined: " alias))))))
+
+(defn combine-aliases
+  "Find, read, and combine alias maps into a single args map."
+  [deps alias-kws]
+  (let [cp-arg-maps (->> alias-kws (map #(lookup-alias deps %)))
+        combined (apply merge-with merge cp-arg-maps)
+        extra-paths (into [] (mapcat :extra-paths) cp-arg-maps)]
+    (assoc combined :extra-paths extra-paths)))
+
 (defn- canonicalize-deps
   [deps config]
   (reduce
