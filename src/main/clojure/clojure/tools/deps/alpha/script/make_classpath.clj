@@ -20,7 +20,9 @@
     [clojure.tools.deps.alpha.extensions.maven]
     [clojure.tools.deps.alpha.extensions.local]
     [clojure.tools.deps.alpha.extensions.git]
-    [clojure.tools.deps.alpha.extensions.deps]))
+    [clojure.tools.deps.alpha.extensions.deps])
+  (:import
+    [clojure.lang ExceptionInfo]))
 
 (def ^:private opts
   [[nil "--config-files PATHS" "Comma delimited list of deps.edn files to merge" :parse-fn parse/parse-files]
@@ -63,6 +65,8 @@
         (spit cp-file cp)))
     (catch Throwable t
       (printerrln "Error building classpath." (.getMessage t))
+      (when-not (instance? ExceptionInfo t)
+        (.printStackTrace t))
       (System/exit 1))))
 
 (comment

@@ -16,7 +16,9 @@
     [clojure.tools.deps.alpha.reader :as reader]
     [clojure.tools.deps.alpha.util.io :refer [printerrln]]
     [clojure.tools.gitlibs :as gitlibs]
-    [clojure.tools.cli :as cli]))
+    [clojure.tools.cli :as cli])
+  (:import
+    [clojure.lang ExceptionInfo]))
 
 (def ^:private opts
   [[nil "--deps-file PATH" "deps.edn file to update"]])
@@ -70,6 +72,8 @@
                 (pp/pprint resolved-map)))))))
     (catch Throwable t
       (printerrln "Error resolving tags." (.getMessage t))
+      (when-not (instance? ExceptionInfo t)
+        (.printStackTrace t))
       (System/exit 1))))
 
 (comment

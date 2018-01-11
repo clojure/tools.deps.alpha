@@ -56,7 +56,8 @@
 
 (defn- throw-bad-coord
   [lib coord]
-  (throw (Exception. (str "Coordinate type " (coord-type coord) " not loaded for library " lib " in coordinate " (pr-str coord)))))
+  (throw (ex-info (str "Coordinate type " (coord-type coord) " not loaded for library " lib " in coordinate " (pr-str coord))
+           {:lib lib :coord coord})))
 
 (defmethod dep-id :default [lib coord config]
   (throw-bad-coord lib coord))
@@ -80,16 +81,18 @@
 
 (defmethod compare-versions :default
   [lib coord-x coord-y config]
-  (throw (Exception. (str "Unable to compare versions for " lib ": "
-                       (pr-str coord-x) " and " (pr-str coord-y)))))
+  (throw (ex-info (str "Unable to compare versions for " lib ": " (pr-str coord-x) " and " (pr-str coord-y))
+           {:lib lib :coord-x coord-x :coord-y coord-y})))
 
 ;; Methods switching on manifest type
 
 (defn- throw-bad-manifest
   [lib coord manifest-type]
   (if manifest-type
-    (throw (Exception. (str "Manifest type " manifest-type " not loaded when finding deps for " lib " in coordinate " (pr-str coord))))
-    (throw (Exception. (str "Manifest type not detected when finding deps for " lib " in coordinate " (pr-str coord))))))
+    (throw (ex-info (str "Manifest type " manifest-type " not loaded when finding deps for " lib " in coordinate " (pr-str coord))
+             {:lib lib :coord coord}))
+    (throw (ex-info (str "Manifest type not detected when finding deps for " lib " in coordinate " (pr-str coord))
+             {:lib lib :coord coord}))))
 
 (defmulti coord-deps
   "Return coll of immediate [lib coord] external deps for this library."

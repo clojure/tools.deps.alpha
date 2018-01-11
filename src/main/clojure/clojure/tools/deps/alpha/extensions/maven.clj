@@ -71,7 +71,7 @@
         exceptions (.getExceptions result)]
     (cond
       (.isResolved result) [(.. result getArtifact getFile getAbsolutePath)]
-      (.isMissing result) (throw (Exception. (str "Unable to download: [" lib (pr-str (:mvn/version coord)) "]")))
+      (.isMissing result) (throw (ex-info (str "Unable to download: [" lib (pr-str (:mvn/version coord)) "]") {:lib lib :coord coord}))
       :else (throw (first (.getExceptions result))))))
 
 (comment

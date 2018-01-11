@@ -18,10 +18,12 @@
               lib)]
     (cond
       (and sha (= 40 (count sha))) [lib coord]
-      sha (throw (RuntimeException. (str "Prefix sha not supported, use full sha for " lib)))
-      tag (throw (RuntimeException. (str "Library " lib " has :tag but no :sha.\nAdd :sha or run `clj -Sresolve-tags` to update deps.edn.")))
-      rev (throw (RuntimeException. (str "Library " lib " has deprecated :rev attribute - use :sha or :tag instead.")))
-      :else (throw (RuntimeException. (str "Library " lib " has missing :sha in coordinate."))))))
+      sha (throw (ex-info (str "Prefix sha not supported, use full sha for " lib) {:lib lib :coord coord}))
+      tag (throw (ex-info (str "Library " lib " has :tag but no :sha.\nAdd :sha or run `clj -Sresolve-tags` to update deps.edn.")
+                   {:lib lib :coord coord}))
+      rev (throw (ex-info (str "Library " lib " has deprecated :rev attribute - use :sha or :tag instead.")
+                   {:lib lib :coord coord}))
+      :else (throw (ex-info (str "Library " lib " has missing :sha in coordinate.") {:lib lib :coord coord})))))
 
 (defmethod ext/dep-id :git
   [lib coord config]

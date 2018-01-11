@@ -21,8 +21,8 @@
   (or
     (get-in deps [:aliases alias])
     (if (str/includes? alias ",")
-      (throw (RuntimeException. (str "Invalid alias: " alias ". If specifying multiple aliases, use concatenated keywords, like -R:1.9:bench")))
-      (throw (RuntimeException. (str "Alias not defined: " alias))))))
+      (throw (ex-info (str "Invalid alias: " alias ". If specifying multiple aliases, use concatenated keywords, like -R:1.9:bench") {:alias alias}))
+      (throw (ex-info (str "Alias not defined: " alias) {:alias alias})))))
 
 (defn combine-aliases
   "Find, read, and combine alias maps into a single args map."
@@ -132,8 +132,8 @@
     (str/join File/pathSeparator (concat paths extra-paths lib-paths))))
 
 (comment
-  (require
-    '[clojure.tools.deps.alpha.util.maven :as mvn])
+  (require '[clojure.tools.deps.alpha.util.maven :as mvn])
+  (require '[clojure.tools.deps.alpha.extensions.maven])
 
   (expand-deps {'org.clojure/clojure {:mvn/version "1.9.0-alpha17"}} nil nil
     {:mvn {:repos mvn/standard-repos}} true)
@@ -204,8 +204,7 @@
   (resolve-deps {:deps {'bogus "1.2.3"}
                  :mvn/repos mvn/standard-repos} nil)
 
-  (require
-    '[clojure.tools.deps.alpha.extensions.git])
+  (require '[clojure.tools.deps.alpha.extensions.git])
 
   (resolve-deps
     {:deps {'foo {:git/url "https://github.com/clojure/core.async.git" :rev "840069e"}}}

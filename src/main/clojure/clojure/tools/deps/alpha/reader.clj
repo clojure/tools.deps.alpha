@@ -13,8 +13,9 @@
   (:import [java.io File IOException FileReader PushbackReader]))
 
 (defn- io-err
-  ^IOException [fmt ^File f]
-  (IOException. (format fmt (.getAbsolutePath f))))
+  ^Throwable [fmt ^File f]
+  (let [path (.getAbsolutePath f)]
+    (ex-info (format fmt path) {:path path})))
 
 (defn- slurp-edn-map
   "Read the file specified by the path-segments, slurp it, and read it as edn."
@@ -25,7 +26,7 @@
         (cond
           (identical? val EOF) nil ;; empty file
           (map? val) val
-          :else (throw (io-err "Expected edn map: %s" f)))))))
+          :else (throw (io-err "Expected edn map in: %s" f)))))))
 
 (defn- canonicalize-sym [s]
   (if (and (symbol? s) (nil? (namespace s)))

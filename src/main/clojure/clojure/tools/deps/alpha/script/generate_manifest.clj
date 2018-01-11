@@ -14,7 +14,9 @@
             [clojure.tools.deps.alpha.gen.pom :as pom]
             [clojure.tools.deps.alpha.reader :as reader]
             [clojure.tools.deps.alpha.script.parse :as parse]
-            [clojure.tools.deps.alpha.util.io :refer [printerrln]]))
+            [clojure.tools.deps.alpha.util.io :refer [printerrln]])
+  (:import
+    [clojure.lang ExceptionInfo]))
 
 (def ^:private opts
   [[nil "--config-files PATHS" "Comma delimited list of deps.edn files to merge" :parse-fn parse/parse-files]
@@ -48,6 +50,8 @@
           (pom/sync-pom mod-map (jio/file ".")))
         (catch Throwable t
           (printerrln "Error generating" (name gen) "manifest:" (.getMessage t))
+          (when-not (instance? ExceptionInfo t)
+            (.printStackTrace t))
           (System/exit 1))))))
 
 (comment
