@@ -20,7 +20,8 @@
     [clojure.tools.deps.alpha.extensions.maven]
     [clojure.tools.deps.alpha.extensions.local]
     [clojure.tools.deps.alpha.extensions.git]
-    [clojure.tools.deps.alpha.extensions.deps])
+    [clojure.tools.deps.alpha.extensions.deps]
+    [clojure.tools.deps.alpha.extensions.pom])
   (:import
     [clojure.lang ExceptionInfo]))
 
