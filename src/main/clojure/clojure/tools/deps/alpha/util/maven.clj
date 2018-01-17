@@ -105,10 +105,11 @@
 
 (defn exclusions->data
   [exclusions]
-  (into #{}
-    (map (fn [^Exclusion exclusion]
-           (symbol (.getGroupId exclusion) (.getArtifactId exclusion))))
-    exclusions))
+  (when (and exclusions (pos? (count exclusions)))
+    (into #{}
+      (map (fn [^Exclusion exclusion]
+             (symbol (.getGroupId exclusion) (.getArtifactId exclusion))))
+      exclusions)))
 
 (defn dep->data
   [^Dependency dep]
@@ -124,7 +125,7 @@
        (not= "jar" ext) (assoc :extension ext)
        scope (assoc :scope scope)
        optional (assoc :optional true)
-       (seq exclusions) (assoc :exclusions exclusions))]))
+       exclusions (assoc :exclusions exclusions))]))
 
 (defn coord->artifact
   ^Artifact [lib {:keys [mvn/version classifier extension] :or {classifier "", extension "jar"}}]
