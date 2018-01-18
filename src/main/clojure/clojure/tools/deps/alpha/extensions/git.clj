@@ -8,6 +8,7 @@
 
 (ns clojure.tools.deps.alpha.extensions.git
   (:require
+    [clojure.java.io :as jio]
     [clojure.tools.deps.alpha.extensions :as ext]
     [clojure.tools.gitlibs :as gitlibs]))
 
@@ -30,11 +31,14 @@
   (select-keys coord [:git/url :sha]))
 
 (defmethod ext/manifest-type :git
-  [lib {:keys [git/url sha deps/manifest] :as coord} config]
-  (let [sha-dir (gitlibs/procure url lib sha)]
+  [lib {:keys [git/url sha deps/manifest deps/root] :as coord} config]
+  (let [sha-dir (gitlibs/procure url lib sha)
+        root-dir (if root
+                   (jio/file sha-dir root)
+                   sha-dir)]
     (if manifest
-      {:deps/manifest manifest, :deps/root sha-dir}
-      (ext/detect-manifest sha-dir))))
+      {:deps/manifest manifest, :deps/root root-dir}
+      (ext/detect-manifest root-dir))))
 
 ;; 0 if x and y are the same commit
 ;; negative if x is parent of y (y derives from x)
