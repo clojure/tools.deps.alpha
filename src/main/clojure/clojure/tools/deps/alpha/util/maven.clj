@@ -71,7 +71,7 @@
       (throw (ex-info (str "Unknown wagon provider: " role-hint) {:role-hint role-hint}))))
   (release [_ wagon]))
 
-;; Delay creation, but then cache Maven RepositorySystem instance
+;; Delay creation, but then cache Maven ServiceLocator instance
 (def the-locator
   (delay
     (doto (MavenRepositorySystemUtils/newServiceLocator)
@@ -81,8 +81,9 @@
       (.addService TransporterFactory WagonTransporterFactory)
       (.setService WagonProvider CustomProvider))))
 
-(def the-system
-  (delay (.getService ^ServiceLocator @the-locator RepositorySystem)))
+(defn make-system
+  ^RepositorySystem []
+  (.getService ^ServiceLocator @the-locator RepositorySystem))
 
 (def ^TransferListener console-listener
   (reify TransferListener
@@ -128,7 +129,7 @@
        (not= "jar" ext) (assoc :extension ext)
        scope (assoc :scope scope)
        optional (assoc :optional true)
-       exclusions (assoc :exclusions exclusions))]))
+       (seq exclusions) (assoc :exclusions exclusions))]))
 
 (defn coord->artifact
   ^Artifact [lib {:keys [mvn/version classifier extension] :or {classifier "", extension "jar"}}]

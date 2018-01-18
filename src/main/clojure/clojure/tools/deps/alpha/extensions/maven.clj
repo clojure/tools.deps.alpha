@@ -45,7 +45,7 @@
 (defmethod ext/coord-deps :mvn
   [lib coord _manifest {:keys [mvn/repos mvn/local-repo]}]
   (let [local-repo (or local-repo maven/default-local-repo)
-        system ^RepositorySystem @maven/the-system
+        system (maven/make-system)
         session (maven/make-session system local-repo)
         artifact (maven/coord->artifact lib coord)
         req (ArtifactDescriptorRequest. artifact (mapv maven/remote-repo repos) nil)
@@ -61,7 +61,7 @@
 (defmethod ext/coord-paths :mvn
   [lib coord _manifest {:keys [mvn/repos mvn/local-repo]}]
   (let [local-repo (or local-repo maven/default-local-repo)
-        system ^RepositorySystem @maven/the-system
+        system (maven/make-system)
         session (maven/make-session system local-repo)
         artifact (maven/coord->artifact lib coord)
         req (ArtifactRequest. artifact (mapv maven/remote-repo repos) nil)

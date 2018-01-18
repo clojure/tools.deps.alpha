@@ -14,13 +14,19 @@
     [clojure.tools.deps.alpha.util.maven :as maven])
   (:import
     [java.util List]
+    ;; maven-model
     [org.apache.maven.model Model Dependency Exclusion]
     [org.apache.maven.model.building DefaultModelBuildingRequest DefaultModelBuilderFactory]
+    ;; maven-model-builder
     [org.apache.maven.model.resolution ModelResolver]
+    ;; maven-aether-provider
     [org.apache.maven.repository.internal DefaultModelResolver DefaultVersionRangeResolver]
-    [org.eclipse.aether RepositorySystem RepositorySystemSession RequestTrace]
+    ;; maven-resolver-api
+    [org.eclipse.aether RepositorySystemSession RequestTrace]
+    ;; maven-resolver-impl
     [org.eclipse.aether.impl ArtifactResolver VersionRangeResolver RemoteRepositoryManager]
     [org.eclipse.aether.internal.impl DefaultRemoteRepositoryManager]
+    ;; maven-resolver-spi
     [org.eclipse.aether.spi.locator ServiceLocator]))
 
 (set! *warn-on-reflection* true)
@@ -29,7 +35,7 @@
   ^ModelResolver [{:keys [mvn/repos mvn/local-repo]}]
   (let [local-repo (or local-repo maven/default-local-repo)
         locator ^ServiceLocator @maven/the-locator
-        system ^RepositorySystem @maven/the-system
+        system (maven/make-system)
         session (maven/make-session system local-repo)
         artifact-resolver (.getService locator ArtifactResolver)
         version-range-resolver (doto (DefaultVersionRangeResolver.) (.initService locator))
@@ -37,7 +43,7 @@
         repos (mapv maven/remote-repo repos)
         ct (.getConstructor org.apache.maven.repository.internal.DefaultModelResolver
              (into-array [RepositorySystemSession RequestTrace String ArtifactResolver VersionRangeResolver RemoteRepositoryManager List]))]
-    (.setAccessible ct true)
+    (.setAccessible ct true) ;; turn away from the horror
     (.newInstance ct (object-array [session nil "compile" artifact-resolver version-range-resolver repo-mgr repos]))))
 
 (defn- read-model
@@ -52,10 +58,11 @@
 
 (defn- model-exclusions->data
   [exclusions]
-  (into #{}
-    (map (fn [^Exclusion exclusion]
-           (symbol (.getGroupId exclusion) (.getArtifactId exclusion))))
-    exclusions))
+  (when (and exclusions (pos? (count exclusions)))
+    (into #{}
+      (map (fn [^Exclusion exclusion]
+             (symbol (.getGroupId exclusion) (.getArtifactId exclusion))))
+      exclusions)))
 
 (defn- model-dep->data
   [^Dependency dep]
