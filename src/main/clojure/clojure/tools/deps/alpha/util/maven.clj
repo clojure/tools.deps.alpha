@@ -22,6 +22,7 @@
     ;; maven-resolver-spi
     [org.eclipse.aether.spi.connector RepositoryConnectorFactory]
     [org.eclipse.aether.spi.connector.transport TransporterFactory]
+    [org.eclipse.aether.spi.locator ServiceLocator]
 
     ;; maven-resolver-connector-basic
     [org.eclipse.aether.connector.basic BasicRepositoryConnectorFactory]
@@ -71,15 +72,17 @@
   (release [_ wagon]))
 
 ;; Delay creation, but then cache Maven RepositorySystem instance
-(def the-system
+(def the-locator
   (delay
-    (let [locator (doto (MavenRepositorySystemUtils/newServiceLocator)
-                    (.addService RepositoryConnectorFactory BasicRepositoryConnectorFactory)
-                    (.addService TransporterFactory FileTransporterFactory)
-                    (.addService TransporterFactory HttpTransporterFactory)
-                    (.addService TransporterFactory WagonTransporterFactory)
-                    (.setService WagonProvider CustomProvider))]
-      (.getService locator RepositorySystem))))
+    (doto (MavenRepositorySystemUtils/newServiceLocator)
+      (.addService RepositoryConnectorFactory BasicRepositoryConnectorFactory)
+      (.addService TransporterFactory FileTransporterFactory)
+      (.addService TransporterFactory HttpTransporterFactory)
+      (.addService TransporterFactory WagonTransporterFactory)
+      (.setService WagonProvider CustomProvider))))
+
+(def the-system
+  (delay (.getService ^ServiceLocator @the-locator RepositorySystem)))
 
 (def ^TransferListener console-listener
   (reify TransferListener

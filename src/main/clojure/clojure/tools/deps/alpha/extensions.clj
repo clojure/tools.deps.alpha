@@ -14,10 +14,8 @@
 ;; vector to control ordering
 (def manifest-types
   ["deps.edn" :deps,
-
-   ;; Not available yet:
-   ;;"project.clj" :lein,
-   ;;"pom.xml" :pom
+   "pom.xml" :pom
+   ;; "project.clj" :lein
    ])
 
 (defn detect-manifest
