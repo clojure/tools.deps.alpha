@@ -63,7 +63,7 @@
 ;; -> +a1 -> +d1
 ;; -> +b1 -> -e1 -> -d2
 ;; -> +c1 -> +e2
-(deftest test-dep-choice-cascade
+(deftest test-dep-parent-missing
   (fkn/with-libs
     {'ex/a {{:fkn/version "1"} [['ex/d {:fkn/version "1"}]]}
      'ex/b {{:fkn/version "1"} [['ex/e {:fkn/version "1"}]]}
@@ -76,7 +76,4 @@
                                             'ex/b {:fkn/version "1"}
                                             'ex/c {:fkn/version "1"}}} nil)
               (reduce-kv #(assoc %1 (-> %2 name keyword) (:fkn/version %3)) {}))]
-      (println "\n" r)
       (is (= r {:a "1", :b "1", :c "1", :d "1", :e "2"})))))
-
-(test-dep-choice-cascade)
