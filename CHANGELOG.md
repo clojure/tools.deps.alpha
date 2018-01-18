@@ -6,6 +6,7 @@ Changelog
   * TDEPS-32 git extension should use :deps/root if specified
   * Change error handling to dump stack on unexpected exception
   * Add pom file reader for local and git deps
+  * TDEPS-34 Emit exclusions and classifiers in pom gen
 * 0.4.295 on Jan 10, 2018
   * Disallow prefix sha in git coord
   * TDEPS-28 - -Spom - now supports -R and -C aliases (for top-level deps)
