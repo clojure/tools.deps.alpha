@@ -16,12 +16,24 @@
 (xml/alias-uri 'pom "http://maven.apache.org/POM/4.0.0")
 
 (defn- to-dep
-  [[lib coord]]
-  (if (:mvn/version coord)
-    [::pom/dependency
-     [::pom/groupId (or (namespace lib) (name lib))]
-     [::pom/artifactId (name lib)]
-     [::pom/version (:mvn/version coord)]]
+  [[lib {:keys [mvn/version classifier exclusions] :as coord}]]
+  (if version
+    (cond->
+      [::pom/dependency
+       [::pom/groupId (or (namespace lib) (name lib))]
+       [::pom/artifactId (name lib)]
+       [::pom/version version]]
+
+      classifier
+      (conj [::pom/classifier classifier])
+
+      (seq exclusions)
+      (conj [::pom/exclusions
+             (map (fn [excl]
+                    [::pom/exclusion
+                     [::pom/groupId (namespace excl)]
+                     [::pom/artifactId (name excl)]])
+               exclusions)]))
     (printerrln "Skipping coordinate:" coord)))
 
 (defn- gen-deps
@@ -114,7 +126,7 @@
 (comment
   (require '[clojure.tools.deps.alpha.reader :as r])
   (sync-pom
-    (r/read-deps [(jio/file "/usr/local/Cellar/clojure/1.9.0.292/deps.edn")
+    (r/read-deps [(jio/file "/usr/local/Cellar/clojure/1.9.0.302/deps.edn")
                   (jio/file "deps.edn")])
     (jio/file "."))
   )
