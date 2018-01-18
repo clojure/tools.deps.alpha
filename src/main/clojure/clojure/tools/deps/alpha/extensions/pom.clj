@@ -85,3 +85,8 @@
 (defmethod ext/coord-paths :pom
   [_lib {:keys [deps/root] :as coord} _mf config]
   nil)
+
+(comment
+  (ext/coord-deps 'org.clojure/core.async {:mvn/version "0.4.474"}
+    :pom {:mvn/repos maven/standard-repos})
+  )
