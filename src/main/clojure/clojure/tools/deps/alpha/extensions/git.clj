@@ -47,9 +47,13 @@
   [lib {x-url :git/url, x-sha :sha :as x} {y-url :git/url, y-sha :sha :as y} config]
   (if (= x-sha y-sha)
     0
-    (let [desc (or
-                 (gitlibs/descendant x-url [x-sha y-sha])
-                 (gitlibs/descendant y-url [x-sha y-sha]))]
+    (let [desc (if (= x-url y-url)
+                 (or
+                   (gitlibs/descendant x-url [x-sha y-sha])
+                   (gitlibs/descendant y-url [x-sha y-sha]))
+                 (and
+                   (gitlibs/descendant x-url [x-sha y-sha])
+                   (gitlibs/descendant y-url [x-sha y-sha])))]
       (cond
         (nil? desc) (throw (ex-info "No known relationship between git versions" {:x x :y y}))
         (= desc x-sha) 1
