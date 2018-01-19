@@ -33,7 +33,6 @@
     -R ALIASES - concated resolve-deps alias names, applied to the :deps"
   [& args]
   (let [{:keys [options errors]} (cli/parse-opts args opts)]
-    (println "options" (pr-str options))
     (when (seq errors)
       (run! println errors)
       (System/exit 1))
