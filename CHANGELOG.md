@@ -1,6 +1,9 @@
 Changelog
 ===========
 
+* 0.5.323 on Jan 18, 2018
+  * Remove stray debug print in -Spom
+  * Fix source paths in pom manifest reader
 * 0.5.317 on Jan 18, 2018
   * TDEPS-24 Major changes to expansion and version resolution
   * TDEPS-32 git extension should use :deps/root if specified
