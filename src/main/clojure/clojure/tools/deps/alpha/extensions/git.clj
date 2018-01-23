@@ -34,7 +34,7 @@
   [lib {:keys [git/url sha deps/manifest deps/root] :as coord} config]
   (let [sha-dir (gitlibs/procure url lib sha)
         root-dir (if root
-                   (jio/file sha-dir root)
+                   (.getCanonicalPath (jio/file sha-dir root))
                    sha-dir)]
     (if manifest
       {:deps/manifest manifest, :deps/root root-dir}
