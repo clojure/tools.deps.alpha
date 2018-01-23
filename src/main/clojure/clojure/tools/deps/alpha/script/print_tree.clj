@@ -10,7 +10,12 @@
   (:require
     [clojure.tools.deps.alpha :as deps]
     [clojure.tools.deps.alpha.util.io :as io :refer [printerrln]]
-    [clojure.tools.cli :as cli])
+    [clojure.tools.cli :as cli]
+
+    ;; Load extensions
+    [clojure.tools.deps.alpha.extensions.maven]
+    [clojure.tools.deps.alpha.extensions.local]
+    [clojure.tools.deps.alpha.extensions.git])
   (:import
     [clojure.lang ExceptionInfo]))
 
