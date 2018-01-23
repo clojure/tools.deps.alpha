@@ -69,6 +69,13 @@
 (defmethod manifest-type :default [lib coord config]
   (throw-bad-coord lib coord))
 
+(defmulti coord-summary
+  "Takes a coord, and returns a concise description, used when printing tree"
+  (fn [lib coord] (coord-type coord)))
+
+(defmethod coord-summary :default [lib coord]
+  (str lib " " (coord-type coord)))
+
 ;; Version comparison, either within or across coordinate types
 
 (defmulti compare-versions

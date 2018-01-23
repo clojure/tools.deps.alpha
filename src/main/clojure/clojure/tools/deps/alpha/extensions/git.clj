@@ -40,6 +40,9 @@
       {:deps/manifest manifest, :deps/root root-dir}
       (ext/detect-manifest root-dir))))
 
+(defmethod ext/coord-summary :git [lib {:keys [git/url sha]}]
+  (str lib " " url " " (subs sha 0 7)))
+
 ;; 0 if x and y are the same commit
 ;; negative if x is parent of y (y derives from x)
 ;; positive if y is parent of x (x derives from y)

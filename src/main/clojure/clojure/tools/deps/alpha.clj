@@ -183,6 +183,31 @@
       (expand-deps default-deps override-deps deps-map verbose)
       (lib-paths deps-map))))
 
+(defn- make-tree
+  [lib-map]
+  (let [{roots false, nonroots true} (group-by #(-> % val :dependents boolean) lib-map)]
+    (loop [q (into (PersistentQueue/EMPTY) roots)
+           remaining nonroots
+           tree {}]
+      (let [[lib coord :as node] (peek q)
+            q' (pop q)]
+        (if node
+          (let [{children true, not-used false} (group-by #(-> % val :dependents set (contains? lib)) remaining)]
+            (recur (into q' children) not-used (assoc tree lib (assoc coord :children (map key children)))))
+          tree)))))
+
+(defn print-tree
+  "Print lib-map tree"
+  [lib-map]
+  (let [tree (make-tree lib-map)]
+    (letfn [(print-node [lib indent]
+              (let [{:keys [children] :as coord} (get tree lib)]
+                (println (str indent (ext/coord-summary lib coord)))
+                (doseq [child-lib children]
+                  (print-node child-lib (str indent "  ")))))]
+      (doseq [[lib coord] tree :when (-> coord :dependents nil?)]
+        (print-node lib "")))))
+
 (defn make-classpath
   [lib-map paths {:keys [classpath-overrides extra-paths] :as classpath-args}]
   (let [libs (merge-with (fn [coord path] (assoc coord :paths [path])) lib-map classpath-overrides)
@@ -212,7 +237,7 @@
   (expand-deps {'org.clojure/tools.deps.alpha {:mvn/version "0.4.277"}}
     nil nil {:mvn/repos mvn/standard-repos} true)
 
-  (clojure.pprint/pprint
+  (print-tree
     (resolve-deps {:deps {'org.clojure/clojure {:mvn/version "1.8.0"}
                           'org.clojure/core.memoize {:mvn/version "0.5.8"}}
                    :mvn/repos mvn/standard-repos} nil))

@@ -23,6 +23,9 @@
     (.isFile (jio/file root)) {:deps/manifest :jar, :deps/root root}
     :else (ext/detect-manifest root)))
 
+(defmethod ext/coord-summary :local [lib {:keys [local/root]}]
+  (str lib " " root))
+
 (defmethod ext/coord-deps :jar
   [lib {:keys [local/root] :as coord} _manifest config]
   [])

@@ -33,6 +33,9 @@
   [lib coord config]
   {:deps/manifest :mvn})
 
+(defmethod ext/coord-summary :mvn [lib {:keys [mvn/version]}]
+  (str lib " " version))
+
 (defonce ^:private version-scheme (GenericVersionScheme.))
 
 (defn- parse-version [{version :mvn/version :as coord}]
@@ -82,5 +85,11 @@
   (parse-version {:mvn/version "1.1.0"})
 
   (ext/compare-versions {:mvn/version "1.1.0-alpha10"} {:mvn/version "1.1.0-beta1"})
+
+  (ext/coord-deps 'org.clojure/clojure {:mvn/version "1.10.0-master-SNAPSHOT"} :mvn
+    {:mvn/repos (merge maven/standard-repos
+                  {"sonatype-oss-public" {:url "https://oss.sonatype.org/content/groups/public/"}})})
+
+  (def rr (maven/remote-repo ["sonatype-oss-public" {:url "https://oss.sonatype.org/content/groups/public/"}]))
   )
 

@@ -30,7 +30,8 @@
    [nil "--libs-file PATH" "Libs cache file to write"]
    [nil "--cp-file PATH" "Classpatch cache file to write"]
    ["-R" "--resolve-aliases ALIASES" "Concatenated resolve-deps alias names" :parse-fn parse/parse-kws]
-   ["-C" "--makecp-aliases ALIASES" "Concatenated make-classpath alias names" :parse-fn parse/parse-kws]])
+   ["-C" "--makecp-aliases ALIASES" "Concatenated make-classpath alias names" :parse-fn parse/parse-kws]
+   [nil "--tree" "Print the dependency tree to stdout"]])
 
 (defn -main
   "Main entry point for make-classpath script.
@@ -42,6 +43,7 @@
   Options:
     -Rresolve-aliases - concatenated resolve-deps alias names
     -Cmakecp-aliases - concatenated make-classpath alias names
+    --tree - print the dependency tree to stdout
 
   Resolves the dependencies and updates the cached libs and/or classpath file.
   The libs file is at <cachedir>/<resolve-aliases>.libs
@@ -53,17 +55,19 @@
         (run! println errors)
         (System/exit 1))
 
-      (let [{:keys [config-files libs-file cp-file resolve-aliases makecp-aliases]} options
+      (let [{:keys [config-files libs-file cp-file resolve-aliases makecp-aliases tree]} options
             deps-map (reader/read-deps config-files)
             libs (let [resolve-args (deps/combine-aliases deps-map resolve-aliases)
                        libs (deps/resolve-deps deps-map resolve-args)]
                    (jio/make-parents libs-file)
                    (spit libs-file (pr-str libs))
-                   libs)
-            cp-args (deps/combine-aliases deps-map makecp-aliases)
-            cp (deps/make-classpath libs (:paths deps-map) cp-args)]
-        (jio/make-parents cp-file)
-        (spit cp-file cp)))
+                   libs)]
+        (if tree
+          (deps/print-tree libs)
+          (let [cp-args (deps/combine-aliases deps-map makecp-aliases)
+                cp (deps/make-classpath libs (:paths deps-map) cp-args)]
+            (jio/make-parents cp-file)
+            (spit cp-file cp)))))
     (catch Throwable t
       (printerrln "Error building classpath." (.getMessage t))
       (when-not (instance? ExceptionInfo t)
