@@ -1,6 +1,10 @@
 Changelog
 ===========
 
+* 0.5.342 on Jan 23, 2018
+  * TDEPS-19 Add support for command line deps config data
+  * Add print-tree script
+  * Fix bug with git deps with :deps/root
 * 0.5.323 on Jan 18, 2018
   * Remove stray debug print in -Spom
   * Fix source paths in pom manifest reader
