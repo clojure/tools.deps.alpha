@@ -1,7 +1,9 @@
 (ns clojure.tools.deps.alpha.script.parse
   (:require
     [clojure.java.io :as jio]
-    [clojure.string :as str])
+    [clojure.string :as str]
+    [clojure.edn :as edn]
+    [clojure.tools.deps.alpha.reader :as reader])
   (:import
     [java.io File]))
 
@@ -23,3 +25,9 @@
       #(if-let [i (str/index-of % \/)]
          (keyword (subs % 0 i) (subs % (inc i)))
          (keyword %)))))
+
+(defn parse-config
+  "Parses a string of edn into a deps map."
+  [s]
+  (#'reader/canonicalize-all-syms  ;; to be removed in the future
+    (edn/read-string s)))
