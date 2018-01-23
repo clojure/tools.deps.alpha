@@ -9,7 +9,8 @@
 (ns clojure.tools.deps.alpha.reader
   (:require [clojure.edn :as edn]
             [clojure.walk :as walk]
-            [clojure.tools.deps.alpha.util.coll :as coll])
+            [clojure.tools.deps.alpha.util.coll :as coll]
+            [clojure.tools.deps.alpha.util.io :as io])
   (:import [java.io File IOException FileReader PushbackReader]))
 
 (defn- io-err
@@ -20,13 +21,10 @@
 (defn- slurp-edn-map
   "Read the file specified by the path-segments, slurp it, and read it as edn."
   [^File f]
-  (let [EOF (Object.)]
-    (with-open [rdr (PushbackReader. (FileReader. f))]
-      (let [val (edn/read {:eof EOF} rdr)]
-        (cond
-          (identical? val EOF) nil ;; empty file
-          (map? val) val
-          :else (throw (io-err "Expected edn map in: %s" f)))))))
+  (let [val (io/slurp-edn f)]
+    (if (map? val)
+      val
+      (throw (io-err "Expected edn map in: %s" f)))))
 
 (defn- canonicalize-sym [s]
   (if (and (symbol? s) (nil? (namespace s)))

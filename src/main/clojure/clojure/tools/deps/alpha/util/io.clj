@@ -6,8 +6,27 @@
 ;   the terms of this license.
 ;   You must not remove this notice, or any other, from this software.
 
-(ns clojure.tools.deps.alpha.util.io)
+(ns clojure.tools.deps.alpha.util.io
+  (:require
+    [clojure.edn :as edn]
+    [clojure.java.io :as jio])
+  (:import
+    [java.io FileReader PushbackReader]))
 
-(defn printerrln [& msgs]
+(defn printerrln
+  "println to *err*"
+  [& msgs]
   (binding [*out* *err*]
     (apply println msgs)))
+
+(defn slurp-edn
+  "Read the edn file specified by f, a string or File.
+  An empty file will return nil."
+  [f]
+  (let [EOF (Object.)
+        fi (jio/file f)]
+    (with-open [rdr (PushbackReader. (FileReader. fi))]
+      (let [val (edn/read {:eof EOF} rdr)]
+        (if (identical? val EOF)
+          nil
+          val)))))
