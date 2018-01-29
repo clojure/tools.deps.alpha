@@ -84,8 +84,9 @@
 
 (defmethod ext/coord-paths :pom
   [_lib {:keys [deps/root] :as coord} _mf config]
-  (let [src (.. (read-model root config) getBuild getSourceDirectory)]
-    [(.getCanonicalPath (jio/file src))]))
+  (let [srcs [(.getCanonicalPath (jio/file (.. (read-model root config) getBuild getSourceDirectory)))
+              (.getCanonicalPath (jio/file root "src/main/clojure"))]]
+    (distinct srcs)))
 
 (comment
   (ext/coord-deps 'org.clojure/core.async {:deps/root "../core.async" :deps/manifest :pom}
