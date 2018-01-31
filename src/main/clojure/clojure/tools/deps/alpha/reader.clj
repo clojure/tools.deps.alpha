@@ -43,12 +43,20 @@
   [dep-file]
   (-> dep-file slurp-edn-map canonicalize-all-syms))
 
+(defn- merge-or-replace
+  "If maps, merge, otherwise replace"
+  [& vals]
+  (when (some identity vals)
+    (reduce (fn [ret val]
+              (if (and (map? ret) (map? val))
+                (merge ret val)
+                (or val ret)))
+      nil vals)))
+
 (defn merge-deps
   "Merge multiple deps maps from left to right into a single deps map."
   [deps-maps]
-  (let [combined (apply merge-with merge deps-maps)
-        paths (last (->> deps-maps (map :paths) (remove nil?)))]
-    (assoc combined :paths paths)))
+  (apply merge-with merge-or-replace deps-maps))
 
 (defn read-deps
   "Read a set of user deps.edn files and merge them left to right into a single deps map."
