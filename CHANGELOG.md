@@ -2,6 +2,8 @@ Changelog
 ===========
 
 * Next release
+  * Alias support for main, jvm opts, and generic aliases
+  * TDEPS-38 Fix issues with merging non-maps at top-level
   * Automatically add src/main/clojure as a source path in pom manifest reader
 * 0.5.342 on Jan 23, 2018
   * TDEPS-19 Add support for command line deps config data
