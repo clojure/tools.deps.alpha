@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* Next release
+* 0.5.351 on Feb 2, 2018 
   * Alias support for main, jvm opts, and generic aliases
   * TDEPS-38 Fix issues with merging non-maps at top-level
   * Automatically add src/main/clojure as a source path in pom manifest reader
