@@ -4,6 +4,24 @@
     [clojure.tools.deps.alpha :as deps]
     [clojure.tools.deps.alpha.extensions.faken :as fkn]))
 
+(deftest merge-alias-maps
+  (are [m1 m2 out]
+    (= out (#'deps/merge-alias-maps m1 m2))
+
+    {} {} {}
+    {} {:extra-deps {:a 1}} {:extra-deps {:a 1}}
+    {:extra-deps {:a 1 :b 1}} {:extra-deps {:b 2}} {:extra-deps {:a 1 :b 2}}
+    {} {:default-deps {:a 1}} {:default-deps {:a 1}}
+    {:default-deps {:a 1 :b 1}} {:default-deps {:b 2}} {:default-deps {:a 1 :b 2}}
+    {} {:override-deps {:a 1}} {:override-deps {:a 1}}
+    {:override-deps {:a 1 :b 1}} {:override-deps {:b 2}} {:override-deps {:a 1 :b 2}}
+    {} {:extra-paths ["a" "b"]} {:extra-paths ["a" "b"]}
+    {:extra-paths ["a" "b"]} {:extra-paths ["c" "d"]} {:extra-paths ["a" "b" "c" "d"]}
+    {} {:jvm-opts ["-Xms100m" "-Xmx200m"]} {:jvm-opts ["-Xms100m" "-Xmx200m"]}
+    {:jvm-opts ["-Xms100m" "-Xmx200m"]} {:jvm-opts ["-Dfoo=bar"]} {:jvm-opts ["-Xms100m" "-Xmx200m" "-Dfoo=bar"]}
+    {} {:main-opts ["foo.bar" "1"]} {:main-opts ["foo.bar" "1"]}
+    {:main-opts ["foo.bar" "1"]} {:main-opts ["foo.baz" "2"]} {:main-opts ["foo.baz" "2"]}))
+
 (def repo
   ;; "real"
   {'org.clojure/clojure {{:fkn/version "1.9.0"}
