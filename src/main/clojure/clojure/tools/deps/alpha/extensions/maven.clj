@@ -28,8 +28,9 @@
 (defmethod ext/lib-location :mvn
   [lib {:keys [mvn/version]} {:keys [mvn/repos mvn/local-repo]}]
   {:base (or local-repo maven/default-local-repo)
-   :path (-> (str/replace (str lib) "." "/")
-             (str "/" version))
+   :path (str (str/replace (namespace lib) "." "/")
+              "/" (name lib)
+              "/" version)
    :type :mvn})
 
 (defmethod ext/dep-id :mvn
