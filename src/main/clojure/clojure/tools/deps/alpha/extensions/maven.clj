@@ -15,7 +15,7 @@
   (:import
     ;; maven-resolver-api
     [org.eclipse.aether RepositorySystem]
-    [org.eclipse.aether.resolution ArtifactRequest ArtifactDescriptorRequest]
+    [org.eclipse.aether.resolution ArtifactRequest ArtifactDescriptorRequest VersionRangeRequest]
 
     ;; maven-resolver-util
     [org.eclipse.aether.util.version GenericVersionScheme]
@@ -24,6 +24,20 @@
 (set! *warn-on-reflection* true)
 
 ;; Main extension points for using Maven deps
+
+(defmethod ext/canonicalize :mvn
+  [lib {:keys [:mvn/version] :as coord} {:keys [mvn/repos mvn/local-repo]}]
+  (println "canonicalize" version)
+  (if (re-find #"\[|\(" version)
+    (let [local-repo (or local-repo maven/default-local-repo)
+          system (maven/make-system)
+          session (maven/make-session system local-repo)
+          artifact (maven/coord->artifact lib coord)
+          req (VersionRangeRequest. artifact (mapv maven/remote-repo repos) nil)
+          result (.resolveVersionRange system session req)
+          newest (.getHighestVersion result)]
+      [lib (assoc coord :mvn/version (.toString newest))])
+    [lib coord]))
 
 (defmethod ext/dep-id :mvn
   [lib coord config]
@@ -80,6 +94,7 @@
   (ext/coord-deps 'org.clojure/clojure {:mvn/version "1.9.0-alpha17"} :mvn {:mvn/repos maven/standard-repos})
 
   (ext/coord-deps 'cider/cider-nrepl {:mvn/version "0.17.0-SNAPSHOT"} :mvn {:mvn/repos maven/standard-repos})
+  (ext/canonicalize 'joda-time/joda-time {:mvn/version "[2.2,)"} {:mvn/repos maven/standard-repos})
 
   ;; give a dep, download just that dep (not transitive - that's handled by the core algorithm)
   (ext/coord-paths 'org.clojure/clojure {:mvn/version "1.9.0-alpha17"} :mvn {:mvn/repos maven/standard-repos})
