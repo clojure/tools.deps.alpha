@@ -25,6 +25,13 @@
 
 ;; Main extension points for using Maven deps
 
+(defmethod ext/lib-location :mvn
+  [lib {:keys [mvn/version]} {:keys [mvn/repos mvn/local-repo]}]
+  {:base (or local-repo maven/default-local-repo)
+   :path (-> (str/replace (str lib) "." "/")
+             (str "/" version))
+   :type :mvn})
+
 (defmethod ext/dep-id :mvn
   [lib coord config]
   (select-keys coord [:mvn/version :classifier]))
@@ -76,6 +83,8 @@
       :else (throw (first (.getExceptions result))))))
 
 (comment
+  (ext/lib-location 'org.clojure/clojure {:mvn/version "1.8.0"} {})
+  
   ;; given a dep, find the child deps
   (ext/coord-deps 'org.clojure/clojure {:mvn/version "1.9.0-alpha17"} :mvn {:mvn/repos maven/standard-repos})
 

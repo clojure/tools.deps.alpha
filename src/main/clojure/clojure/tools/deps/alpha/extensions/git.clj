@@ -10,7 +10,8 @@
   (:require
     [clojure.java.io :as jio]
     [clojure.tools.deps.alpha.extensions :as ext]
-    [clojure.tools.gitlibs :as gitlibs]))
+    [clojure.tools.gitlibs :as gitlibs]
+    [clojure.tools.gitlibs.impl :as impl]))
 
 (defmethod ext/canonicalize :git
   [lib {:keys [git/url sha tag rev] :as coord} config]
@@ -25,6 +26,12 @@
       rev (throw (ex-info (str "Library " lib " has deprecated :rev attribute - use :sha or :tag instead.")
                    {:lib lib :coord coord}))
       :else (throw (ex-info (str "Library " lib " has missing :sha in coordinate.") {:lib lib :coord coord})))))
+
+(defmethod ext/lib-location :git
+  [lib {:keys [sha]} _]
+  {:base (str (impl/cache-dir) "/libs") ;; gitlibs repo location is not in a public API...
+   :path (str lib "/" sha)
+   :type :git})
 
 (defmethod ext/dep-id :git
   [lib coord config]
@@ -63,6 +70,10 @@
         (= desc y-sha) -1))))
 
 (comment
+  (ext/lib-location 'foo/foo
+                    {:git/url "https://github.com/clojure/core.async.git"
+                     :sha "ecea2539a724a415b15e50f12815b4ab115cfd35"} {})
+
   (ext/canonicalize 'org.clojure/spec.alpha
     {:git/url "https://github.com/clojure/spec.alpha.git" :sha "739c1af5"}
     nil)

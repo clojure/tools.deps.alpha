@@ -29,13 +29,21 @@
           (recur others))))))
 
 ;; Methods switching on coordinate type
-
 (defn coord-type
   "The namespace (as a keyword) of the only qualified key in the coordinate,
    excluding the reserved deps namespace."
   [coord]
   (when (map? coord)
     (->> coord keys (keep namespace) (remove #(= "deps" %)) first keyword)))
+
+(defmulti lib-location
+  "Takes a coordinate and returns the location where the lib would be
+installed locally. Location keys:
+
+:base     local repo base path
+:path     path within local repo
+:type     coordinate type"
+  (fn [lib coord config] (coord-type coord)))
 
 (defmulti canonicalize
   "Takes a lib and coordinate and returns a canonical form.
@@ -112,3 +120,4 @@
 
 (defmethod coord-paths :default [lib coord manifest-type config]
   (throw-bad-manifest lib coord manifest-type))
+
