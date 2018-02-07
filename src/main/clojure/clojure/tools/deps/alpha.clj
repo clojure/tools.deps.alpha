@@ -22,7 +22,8 @@
    :classpath-overrides merge
    :extra-paths (comp vec distinct concat)
    :jvm-opts (comp vec concat)
-   :main-opts (comp last #(remove nil? %) vector)})
+   :main-opts (comp last #(remove nil? %) vector)
+   :verbose #(or %1 %2)})
 
 (defn- merge-alias-maps
   "Like merge-with, but using custom per-alias-key merge function"
