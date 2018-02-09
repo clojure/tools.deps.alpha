@@ -10,8 +10,7 @@
   (:require
     [clojure.java.io :as jio]
     [clojure.tools.deps.alpha.extensions :as ext]
-    [clojure.tools.gitlibs :as gitlibs]
-    [clojure.tools.gitlibs.impl :as impl]))
+    [clojure.tools.gitlibs :as gitlibs]))
 
 (defmethod ext/canonicalize :git
   [lib {:keys [git/url sha tag rev] :as coord} config]
@@ -29,7 +28,7 @@
 
 (defmethod ext/lib-location :git
   [lib {:keys [sha]} _]
-  {:base (str (impl/cache-dir) "/libs") ;; gitlibs repo location is not in a public API...
+  {:base (str (gitlibs/cache-dir) "/libs") ;; gitlibs repo location is not in a public API...
    :path (str lib "/" sha)
    :type :git})
 
