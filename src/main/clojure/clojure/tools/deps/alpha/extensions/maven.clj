@@ -27,7 +27,6 @@
 
 (defmethod ext/canonicalize :mvn
   [lib {:keys [:mvn/version] :as coord} {:keys [mvn/repos mvn/local-repo]}]
-  (println "canonicalize" version)
   (if (re-find #"\[|\(" version)
     (let [local-repo (or local-repo maven/default-local-repo)
           system (maven/make-system)
