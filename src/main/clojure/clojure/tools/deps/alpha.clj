@@ -10,7 +10,14 @@
   (:require
     [clojure.pprint :refer [pprint]]
     [clojure.string :as str]
-    [clojure.tools.deps.alpha.extensions :as ext])
+    [clojure.tools.deps.alpha.extensions :as ext]
+
+    ;; Load extensions
+    [clojure.tools.deps.alpha.extensions.maven]
+    [clojure.tools.deps.alpha.extensions.local]
+    [clojure.tools.deps.alpha.extensions.git]
+    [clojure.tools.deps.alpha.extensions.deps]
+    [clojure.tools.deps.alpha.extensions.pom])
   (:import
     [clojure.lang PersistentQueue]
     [java.io File]))
@@ -22,7 +29,8 @@
    :classpath-overrides merge
    :extra-paths (comp vec distinct concat)
    :jvm-opts (comp vec concat)
-   :main-opts (comp last #(remove nil? %) vector)})
+   :main-opts (comp last #(remove nil? %) vector)
+   :verbose #(or %1 %2)})
 
 (defn- merge-alias-maps
   "Like merge-with, but using custom per-alias-key merge function"
@@ -224,7 +232,6 @@
 
 (comment
   (require '[clojure.tools.deps.alpha.util.maven :as mvn])
-  (require '[clojure.tools.deps.alpha.extensions.maven])
 
   (expand-deps {'org.clojure/clojure {:mvn/version "1.9.0"}}
     nil nil {:mvn/repos mvn/standard-repos} true)

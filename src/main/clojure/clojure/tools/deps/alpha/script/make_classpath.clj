@@ -14,14 +14,7 @@
     [clojure.tools.deps.alpha.reader :as reader]
     [clojure.tools.deps.alpha.script.parse :as parse]
     [clojure.tools.deps.alpha.util.io :refer [printerrln]]
-    [clojure.tools.cli :as cli]
-
-    ;; Load extensions
-    [clojure.tools.deps.alpha.extensions.maven]
-    [clojure.tools.deps.alpha.extensions.local]
-    [clojure.tools.deps.alpha.extensions.git]
-    [clojure.tools.deps.alpha.extensions.deps]
-    [clojure.tools.deps.alpha.extensions.pom])
+    [clojure.tools.cli :as cli])
   (:import
     [clojure.lang ExceptionInfo]))
 
