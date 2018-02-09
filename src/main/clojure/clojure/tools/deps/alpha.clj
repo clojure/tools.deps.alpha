@@ -42,7 +42,8 @@
     {} ms))
 
 (defn combine-aliases
-  "Find, read, and combine alias maps into a single args map."
+  "Find, read, and combine alias maps identified by alias keywords from
+  a deps configuration into a single args map."
   [deps alias-kws]
   (->> alias-kws
     (map #(get-in deps [:aliases %]))
@@ -188,6 +189,15 @@
     {} version-map))
 
 (defn resolve-deps
+  "Takes a deps configuration map and resolves the transitive dependency graph
+  from the initial set of deps. args-map is a map with several keys (all
+  optional) that can modify the results of the transitive expansion:
+
+    :extra-deps - a map from lib to coord of extra deps to include
+    :override-deps - a map from lib to coord of coord to use instead of those in the graph
+    :default-deps - a map from lib to coord of deps to use if no coord specified
+
+  Returns a lib map (map of lib to coordinate chosen)."
   [{:keys [deps] :as deps-map} args-map]
   (let [{:keys [extra-deps default-deps override-deps verbose]} args-map
         deps (merge (:deps deps-map) extra-deps)]
@@ -213,7 +223,7 @@
           tree)))))
 
 (defn print-tree
-  "Print lib-map tree"
+  "Print lib-map tree to the console"
   [lib-map]
   (let [tree (make-tree lib-map)]
     (letfn [(print-node [lib indent]
@@ -225,10 +235,19 @@
         (print-node lib "")))))
 
 (defn make-classpath
+  "Takes a lib map, and a set of explicit paths. Extracts the paths for each chosen
+  lib coordinate, and assembles a classpath string using the system path separator.
+  The classpath-args is a map with keys that can be used to modify the classpath
+  building operation:
+
+    :classpath-overrides - a map of lib to path, where path is used instead of the coord's paths
+    :extra-paths - extra classpath paths to add to the classpath
+
+  Returns the classpath as a string."
   [lib-map paths {:keys [classpath-overrides extra-paths] :as classpath-args}]
   (let [libs (merge-with (fn [coord path] (assoc coord :paths [path])) lib-map classpath-overrides)
         lib-paths (mapcat :paths (vals libs))]
-    (str/join File/pathSeparator (concat paths extra-paths lib-paths))))
+    (str/join File/pathSeparator (concat extra-paths paths lib-paths))))
 
 (comment
   (require '[clojure.tools.deps.alpha.util.maven :as mvn])
