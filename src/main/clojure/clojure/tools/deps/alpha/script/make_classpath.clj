@@ -27,6 +27,7 @@
    [nil "--cp-file PATH" "Classpatch cache file to write"]
    [nil "--jvm-file PATH" "JVM options file"]
    [nil "--main-file PATH" "Main options file"]
+   [nil "--skip-cp" "Skip writing .cp and .libs files"]
    ;; aliases
    ["-R" "--resolve-aliases ALIASES" "Concatenated resolve-deps alias names" :parse-fn parse/parse-kws]
    ["-C" "--makecp-aliases ALIASES" "Concatenated make-classpath alias names" :parse-fn parse/parse-kws]
@@ -36,26 +37,26 @@
 
 (defn run
   "Run make-classpath script. See -main for details."
-  [{:keys [config-files config-data ;; input deps.edn data
+  [{:keys [config-files config-data             ;; input deps.edn data
            libs-file cp-file jvm-file main-file ;; output files
+           skip-cp                              ;; flags
            resolve-aliases makecp-aliases jvmopt-aliases main-aliases aliases]
     :as opts}]
   (let [deps-map (reader/read-deps config-files)
-        deps-map (if config-data (reader/merge-deps [deps-map config-data]) deps-map)
-        resolve-args (deps/combine-aliases deps-map (concat aliases resolve-aliases))
-        cp-args (deps/combine-aliases deps-map (concat aliases makecp-aliases))
-        jvm-opts (get (deps/combine-aliases deps-map (concat aliases jvmopt-aliases)) :jvm-opts)
-        main-opts (get (deps/combine-aliases deps-map (concat aliases main-aliases)) :main-opts)
-        libs (deps/resolve-deps deps-map resolve-args)
-        cp (deps/make-classpath libs (:paths deps-map) cp-args)]
-    (jio/make-parents libs-file)
-    (spit libs-file (pr-str libs))
-    (jio/make-parents cp-file)
-    (spit cp-file cp)
-    (when (seq jvm-opts)
+        deps-map (if config-data (reader/merge-deps [deps-map config-data]) deps-map)]
+    (when-not skip-cp
+      (let [resolve-args (deps/combine-aliases deps-map (concat aliases resolve-aliases))
+            cp-args (deps/combine-aliases deps-map (concat aliases makecp-aliases))
+            libs (deps/resolve-deps deps-map resolve-args)
+            cp (deps/make-classpath libs (:paths deps-map) cp-args)]
+        (jio/make-parents libs-file)
+        (spit libs-file (pr-str libs))
+        (jio/make-parents cp-file)
+        (spit cp-file cp)))
+    (when-let [jvm-opts (seq (get (deps/combine-aliases deps-map (concat aliases jvmopt-aliases)) :jvm-opts))]
       (jio/make-parents jvm-file)
       (spit jvm-file (str/join " " jvm-opts)))
-    (when (seq main-opts)
+    (when-let [main-opts (seq (get (deps/combine-aliases deps-map (concat aliases main-aliases)) :main-opts))]
       (jio/make-parents main-file)
       (spit main-file (str/join " " main-opts)))))
 
