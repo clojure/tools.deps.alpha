@@ -38,11 +38,11 @@
 
 (defmulti lib-location
   "Takes a coordinate and returns the location where the lib would be
-installed locally. Location keys:
+  installed locally. Location keys:
 
-:base     local repo base path
-:path     path within local repo
-:type     coordinate type"
+  :base     local repo base directory path
+  :path     path within base dir
+  :type     coordinate type"
   (fn [lib coord config] (coord-type coord)))
 
 (defmulti canonicalize

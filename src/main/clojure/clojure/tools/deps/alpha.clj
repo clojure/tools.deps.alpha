@@ -49,6 +49,12 @@
     (map #(get-in deps [:aliases %]))
     (apply merge-alias-maps)))
 
+(defn lib-location
+  "Find the file path location of where a lib/coord would be located if procured
+  without actually doing the procuring!"
+  [lib coord deps-config]
+  (ext/lib-location lib coord deps-config))
+
 (defn- canonicalize-deps
   [deps config]
   (reduce
@@ -348,4 +354,5 @@
     {:deps {'foo {:git/url "https://github.com/clojure/core.async.git"
                   :sha "ecea2539a724a415b15e50f12815b4ab115cfd35"}}}
     nil)
+
   )

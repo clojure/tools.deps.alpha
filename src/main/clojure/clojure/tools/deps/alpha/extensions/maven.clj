@@ -13,6 +13,8 @@
     [clojure.tools.deps.alpha.extensions :as ext]
     [clojure.tools.deps.alpha.util.maven :as maven])
   (:import
+    [java.io File]
+
     ;; maven-resolver-api
     [org.eclipse.aether RepositorySystem]
     [org.eclipse.aether.resolution ArtifactRequest ArtifactDescriptorRequest VersionRangeRequest]
@@ -39,9 +41,10 @@
 (defmethod ext/lib-location :mvn
   [lib {:keys [mvn/version]} {:keys [mvn/repos mvn/local-repo]}]
   {:base (or local-repo maven/default-local-repo)
-   :path (str (str/replace (namespace lib) "." "/")
-              "/" (name lib)
-              "/" version)
+   :path (.getPath ^File
+           (apply jio/file
+             (concat (str/split (or (namespace lib) (name lib)) #"\.")
+               [(name lib) version])))
    :type :mvn})
 
 (defmethod ext/dep-id :mvn
