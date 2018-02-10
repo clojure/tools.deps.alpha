@@ -16,6 +16,12 @@
   {:lib lib
    :root root})
 
+(defmethod ext/lib-location :local
+  [lib {:keys [local/root]} config]
+  {:base root
+   :path ""
+   :type :local})
+
 (defmethod ext/manifest-type :local
   [lib {:keys [local/root deps/manifest] :as coord} config]
   (cond
