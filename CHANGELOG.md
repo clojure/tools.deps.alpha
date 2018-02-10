@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* Next
+* 0.5.373 on Feb 10, 2018 
   * Add tools.deps.alpha/lib-location method
   * Load all extensions in tools.deps.alpha
   * Add support in make-classpath for skipping classpath and lib writing
