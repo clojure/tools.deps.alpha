@@ -17,14 +17,19 @@
 (s/def ::path string?)
 
 (s/def :mvn/version string?)
-(s/def ::exclusions (s/coll-of ::lib :kind set? :into #{}))
+(s/def ::exclusions (s/coll-of ::lib))
 (s/def :mvn/coord (s/keys :req [:mvn/version] :opt-un [::path ::exclusions]))
 
 (s/def :local/root string?)
 (s/def :local/coord (s/keys :req-un [:local/root] :opt-un [::path]))
 
+(s/def :git/url string?)
+(s/def :git/coord (s/keys :req [:git/url]))
+
+;; should this become a multipec?
 (s/def ::coord (s/or :mvn :mvn/coord
-                     :local :local/coord))
+                     :local :local/coord
+                     :git :git/coord))
 
 ;; resolve-deps args
 ;;   used to modify the expanded deps tree
