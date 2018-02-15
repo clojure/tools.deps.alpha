@@ -62,6 +62,11 @@
 (s/def ::resolved-coord (s/merge ::coord (s/keys :req-un [::paths] :opt-un [::dependents])))
 (s/def ::lib-map (s/map-of ::lib ::resolved-coord))
 
+;; classpath
+(s/def ::classpath string?)
+
+(s/def ::run (s/keys :req-un [::deps-map ::lib-map ::classpath]))
+
 ;; Procurers
 
 ;; maven 
@@ -80,6 +85,10 @@
 (s/fdef clojure.tools.deps.alpha/make-classpath
   :args (s/cat :libs ::lib-map :paths ::paths :classpath-args ::classpath-args)
   :ret string?)
+
+(s/fdef clojure.tools.deps.alpha.cli/prepare-run
+        :args (s/coll-of string?)
+        :ret ::run)
 
 (comment
   (require '[clojure.spec.test.alpha :as stest])

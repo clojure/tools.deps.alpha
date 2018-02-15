@@ -11,29 +11,11 @@
     [clojure.java.io :as jio]
     [clojure.string :as str]
     [clojure.tools.deps.alpha :as deps]
+    [clojure.tools.deps.alpha.cli :as deps-cli]
     [clojure.tools.deps.alpha.reader :as reader]
-    [clojure.tools.deps.alpha.script.parse :as parse]
-    [clojure.tools.deps.alpha.util.io :refer [printerrln]]
-    [clojure.tools.cli :as cli])
+    [clojure.tools.deps.alpha.util.io :refer [printerrln]])
   (:import
     [clojure.lang ExceptionInfo]))
-
-(def ^:private opts
-  [;; deps.edn inputs
-   [nil "--config-files PATHS" "Comma delimited list of deps.edn files to merge" :parse-fn parse/parse-files]
-   [nil "--config-data EDN" "Final deps.edn data to treat as the last deps.edn file" :parse-fn parse/parse-config]
-   ;; output files
-   [nil "--libs-file PATH" "Libs cache file to write"]
-   [nil "--cp-file PATH" "Classpatch cache file to write"]
-   [nil "--jvm-file PATH" "JVM options file"]
-   [nil "--main-file PATH" "Main options file"]
-   [nil "--skip-cp" "Skip writing .cp and .libs files"]
-   ;; aliases
-   ["-R" "--resolve-aliases ALIASES" "Concatenated resolve-deps alias names" :parse-fn parse/parse-kws]
-   ["-C" "--makecp-aliases ALIASES" "Concatenated make-classpath alias names" :parse-fn parse/parse-kws]
-   ["-J" "--jvmopt-aliases ALIASES" "Concatenated jvm option alias names" :parse-fn parse/parse-kws]
-   ["-M" "--main-aliases ALIASES" "Concatenated main option alias names" :parse-fn parse/parse-kws]
-   ["-A" "--aliases ALIASES" "Concatenated generic alias names" :parse-fn parse/parse-kws]])
 
 (defn run
   "Run make-classpath script. See -main for details."
@@ -85,7 +67,7 @@
   The cp file is at <cachedir>/<resolve-aliases>/<cpaliases>.cp"
   [& args]
   (try
-    (let [{:keys [options errors]} (cli/parse-opts args opts)]
+    (let [{:keys [options errors]} (deps-cli/parse args)]
       (when (seq errors)
         (run! println errors)
         (System/exit 1))
