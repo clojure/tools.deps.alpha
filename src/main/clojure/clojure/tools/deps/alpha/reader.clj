@@ -8,10 +8,26 @@
 
 (ns clojure.tools.deps.alpha.reader
   (:require [clojure.edn :as edn]
+            [clojure.java.shell :as sh]
+            [clojure.string :as str]
             [clojure.walk :as walk]
             [clojure.tools.deps.alpha.util.coll :as coll]
             [clojure.tools.deps.alpha.util.io :as io])
   (:import [java.io File IOException FileReader PushbackReader]))
+
+;; workaround until scripts return programmatic edn
+(defn- scrape-clojure-env
+  []
+  (let [{:keys [out exit] :as result} (sh/sh "clojure" "-Sverbose" "-e" ":ran")]
+    (if (zero? exit)
+      (let [paths (-> (re-find #"config_paths = ([^\n]+)" out) second (str/split #" ") vec)]
+        {:config-files paths})
+      (throw (ex-info "Unable to locate Clojure's edn files" result)))))
+
+(def clojure-env
+  "Returns a map describing the environment known to clj/clojure:
+  {:config-files [ ... ]}"
+  (memoize scrape-clojure-env))
 
 (defn- io-err
   ^Throwable [fmt ^File f]

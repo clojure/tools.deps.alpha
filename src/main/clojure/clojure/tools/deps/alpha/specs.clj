@@ -86,10 +86,6 @@
   :args (s/cat :libs ::lib-map :paths ::paths :classpath-args ::classpath-args)
   :ret string?)
 
-(s/fdef clojure.tools.deps.alpha.cli/prepare-run
-        :args (s/coll-of string?)
-        :ret ::run)
-
 (comment
   (require '[clojure.spec.test.alpha :as stest])
   (stest/instrument (stest/enumerate-namespace 'clojure.tools.deps.alpha))
