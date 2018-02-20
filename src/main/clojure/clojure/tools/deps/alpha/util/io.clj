@@ -30,3 +30,14 @@
         (if (identical? val EOF)
           nil
           val)))))
+
+(defn write-file
+  "Write the string s to file f. Creates parent directories for f if they don't exist."
+  [s f]
+  (let [the-file (jio/file f)
+        parent (.getParentFile the-file)]
+    (when-not (.exists parent)
+      (when-not (.mkdirs parent)
+        (let [parent-name (.getCanonicalPath parent)]
+          (throw (ex-info (str "Can't create directory: " parent-name) {:dir parent-name})))))
+    (spit the-file s)))

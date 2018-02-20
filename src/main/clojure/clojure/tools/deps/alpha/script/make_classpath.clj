@@ -13,7 +13,7 @@
     [clojure.tools.cli :as cli]
     [clojure.tools.deps.alpha :as deps]
     [clojure.tools.deps.alpha.reader :as reader]
-    [clojure.tools.deps.alpha.util.io :refer [printerrln]]
+    [clojure.tools.deps.alpha.util.io :as io :refer [printerrln]]
     [clojure.tools.deps.alpha.script.parse :as parse])
   (:import
     [clojure.lang ExceptionInfo]))
@@ -61,11 +61,6 @@
     {:lib-map libs
      :classpath cp}))
 
-(defn- write-file
-  [f s]
-  (jio/make-parents f)
-  (spit f s))
-
 (defn run
   "Run make-classpath script. See -main for details."
   [{:keys [libs-file cp-file jvm-file main-file skip-cp
@@ -73,12 +68,12 @@
   (let [deps-map (combine-deps-files opts)]
     (when-not skip-cp
       (let [{:keys [lib-map classpath]} (create-classpath deps-map opts)]
-        (write-file libs-file (pr-str lib-map))
-        (write-file cp-file classpath)))
+        (io/write-file libs-file (pr-str lib-map))
+        (io/write-file cp-file classpath)))
     (when-let [jvm-opts (seq (get (deps/combine-aliases deps-map (concat aliases jvmopt-aliases)) :jvm-opts))]
-      (write-file jvm-file (str/join " " jvm-opts)))
+      (io/write-file jvm-file (str/join " " jvm-opts)))
     (when-let [main-opts (seq (get (deps/combine-aliases deps-map (concat aliases main-aliases)) :main-opts))]
-      (write-file main-file (str/join " " main-opts)))))
+      (io/write-file main-file (str/join " " main-opts)))))
 
 (defn -main
   "Main entry point for make-classpath script.
