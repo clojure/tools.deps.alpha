@@ -31,12 +31,12 @@
   [version]
   (boolean (re-find #"\[|\(" version)))
 
-(defmethod ext/canonicalize :mvn
-  [lib {:keys [:mvn/version] :as coord} {:keys [mvn/repos mvn/local-repo]}]
-  (if (version-range? version)
-    (throw (ex-info (str "In the dependency graph, library " lib " specifies version range "  (pr-str version) " - please specify a version in your configuration.")
-             {:lib lib :coord coord}))
-    [lib coord]))
+;(defmethod ext/canonicalize :mvn
+;  [lib {:keys [:mvn/version] :as coord} {:keys [mvn/repos mvn/local-repo]}]
+;  (if (version-range? version)
+;    (throw (ex-info (str "In the dependency graph, library " lib " specifies version range "  (pr-str version) " - please specify a version in your configuration.")
+;             {:lib lib :coord coord}))
+;    [lib coord]))
 
 (defmethod ext/lib-location :mvn
   [lib {:keys [mvn/version]} {:keys [mvn/repos mvn/local-repo]}]
@@ -99,7 +99,7 @@
 
 (comment
   (ext/lib-location 'org.clojure/clojure {:mvn/version "1.8.0"} {})
-  
+
   ;; given a dep, find the child deps
   (ext/coord-deps 'org.clojure/clojure {:mvn/version "1.9.0-alpha17"} :mvn {:mvn/repos maven/standard-repos})
 
