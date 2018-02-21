@@ -33,7 +33,7 @@
 
 (defn write-file
   "Write the string s to file f. Creates parent directories for f if they don't exist."
-  [s f]
+  [f s]
   (let [the-file (jio/file f)
         parent (.getParentFile the-file)]
     (when-not (.exists parent)
