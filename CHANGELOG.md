@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* 0.5.383 on Feb 20, 2018
+* 0.5.388 on Feb 20, 2018
   * Better error if cache dir can't be created
   * API additions and refactoring
 * 0.5.373 on Feb 10, 2018 
