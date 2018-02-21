@@ -17,7 +17,7 @@
 
 (defn- scrape-clojure-env
   []
-  (let [{:keys [out exit] :as result} (sh/sh "clojure" "-Senv")]
+  (let [{:keys [out exit] :as result} (sh/sh "clojure" "-Sdescribe")]
     (if (zero? exit)
       (read-string out)
       (throw (ex-info "Unable to locate Clojure's edn files" result)))))
