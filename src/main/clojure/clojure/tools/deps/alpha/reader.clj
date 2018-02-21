@@ -15,13 +15,11 @@
             [clojure.tools.deps.alpha.util.io :as io])
   (:import [java.io File IOException FileReader PushbackReader]))
 
-;; workaround until scripts return programmatic edn
 (defn- scrape-clojure-env
   []
-  (let [{:keys [out exit] :as result} (sh/sh "clojure" "-Sverbose" "-e" ":ran")]
+  (let [{:keys [out exit] :as result} (sh/sh "clojure" "-Senv")]
     (if (zero? exit)
-      (let [paths (-> (re-find #"config_paths = ([^\n]+)" out) second (str/split #" ") vec)]
-        {:config-files paths})
+      (read-string out)
       (throw (ex-info "Unable to locate Clojure's edn files" result)))))
 
 (def clojure-env
