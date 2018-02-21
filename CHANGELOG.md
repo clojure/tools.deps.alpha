@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* 0.5.393 on Feb 21, 2018
+  * Change call to clojure -Senv to -Sdescribe
 * 0.5.388 on Feb 20, 2018
   * Better error if cache dir can't be created
   * API additions and refactoring
