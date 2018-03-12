@@ -26,6 +26,7 @@ Also see:
 * [Deps and CLI Guide](https://clojure.org/guides/deps_and_cli)
 * [Deps and CLI Reference](https://clojure.org/reference/deps_and_cli)
 * [Dependency Heaven](http://cdn.cognitect.com/presentations/2017/dependency_heaven.pdf) from EuroClojure 2017 - [video](https://youtube.com/watch?v=sStlTye-Kjk)
+* [Projects that use or work with tools.deps and clj](https://github.com/clojure/tools.deps.alpha/wiki/Tools)
 
 # Release Information
 
