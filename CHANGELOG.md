@@ -1,6 +1,9 @@
 Changelog
 ===========
 
+* next release
+  * TDEPS-55 fix pom sync for xml file with comment before root node
+  * TDEPS-40 clean up log dependencies
 * 0.5.398 on Feb 22, 2018
   * Update dependency versions to latest
 * 0.5.393 on Feb 21, 2018
