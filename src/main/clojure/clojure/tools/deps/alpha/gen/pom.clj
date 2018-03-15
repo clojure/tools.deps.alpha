@@ -9,9 +9,14 @@
 (ns clojure.tools.deps.alpha.gen.pom
   (:require [clojure.java.io :as jio]
             [clojure.data.xml :as xml]
+            [clojure.data.xml.tree :as tree]
+            [clojure.data.xml.event :as event]
             [clojure.zip :as zip]
             [clojure.tools.deps.alpha.util.io :refer [printerrln]])
-  (:import [java.io File]))
+  (:import [java.io File Reader]
+           [clojure.data.xml.node Element]))
+
+(set! *warn-on-reflection* true)
 
 (xml/alias-uri 'pom "http://maven.apache.org/POM/4.0.0")
 
@@ -109,6 +114,12 @@
     (xml-update pom [::pom/repositories] (xml/sexp-as-element (gen-repos repos)))
     pom))
 
+(defn- parse-xml
+  [^Reader rdr]
+  (let [roots (tree/seq-tree event/event-element event/event-exit? event/event-node
+                (xml/event-seq rdr {:include-node? #{:element :characters :comment}}))]
+    (first (filter #(instance? Element %) (first roots)))))
+
 (defn sync-pom
   [{:keys [deps paths :mvn/repos] :as c} ^File dir]
   (let [repos (remove #(= "https://repo1.maven.org/maven2/" (-> % val :url)) repos)
@@ -116,7 +127,7 @@
         pom (if (.exists pom-file)
               (with-open [rdr (jio/reader pom-file)]
                 (-> rdr
-                  (xml/parse :include-node? #{:element :characters :comment})
+                  parse-xml
                   (replace-deps deps)
                   (replace-paths paths)
                   (replace-repos repos)))
