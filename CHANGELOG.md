@@ -5,6 +5,7 @@ Changelog
   * TDEPS-54 add -Sdeps and -A support to -Spom
   * TDEPS-55 fix -Spom for xml file with comment before root node
   * TDEPS-40 clean up log dependencies
+  * Update to tools.gitlibs 0.2.64
 * 0.5.398 on Feb 22, 2018
   * Update dependency versions to latest
 * 0.5.393 on Feb 21, 2018
