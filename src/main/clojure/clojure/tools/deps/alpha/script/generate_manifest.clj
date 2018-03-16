@@ -14,34 +14,41 @@
             [clojure.tools.deps.alpha.gen.pom :as pom]
             [clojure.tools.deps.alpha.reader :as reader]
             [clojure.tools.deps.alpha.script.parse :as parse]
+            [clojure.tools.deps.alpha.script.make-classpath :as makecp]
             [clojure.tools.deps.alpha.util.io :refer [printerrln]])
   (:import
     [clojure.lang ExceptionInfo]))
 
 (def ^:private opts
   [[nil "--config-files PATHS" "Comma delimited list of deps.edn files to merge" :parse-fn parse/parse-files]
+   [nil "--config-data EDN" "Final deps.edn data to treat as the last deps.edn file" :parse-fn parse/parse-config]
    [nil "--gen TYPE" "manifest type to generate" :parse-fn keyword]
    ["-R" "--resolve-aliases ALIASES" "Concatenated resolve-deps alias names" :parse-fn parse/parse-kws]
-   ["-C" "--makecp-aliases ALIASES" "Concatenated make-classpath alias names" :parse-fn parse/parse-kws]])
+   ["-C" "--makecp-aliases ALIASES" "Concatenated make-classpath alias names" :parse-fn parse/parse-kws]
+   ["-A" "--aliases ALIASES" "Concatenated generic alias names" :parse-fn parse/parse-kws]])
 
 (defn -main
   "Main entry point for generating a manifest file.
 
   Required:
     --config-files DEP_FILES - comma-delimited list of deps.edn files to merge
+    --config-data={...} - deps.edn as data
     --gen TYPE - manifest type to generate (currently only pom)
-    -R ALIASES - concated resolve-deps alias names, applied to the :deps"
+
+  Options:
+    -Raliases - concated resolve-deps alias names, applied to the :deps
+    -Aaliases - concatenated generic alias names"
   [& args]
   (let [{:keys [options errors]} (cli/parse-opts args opts)]
     (when (seq errors)
       (run! println errors)
       (System/exit 1))
-    (let [{:keys [config-files gen resolve-aliases makecp-aliases]} options]
+    (let [{:keys [gen resolve-aliases makecp-aliases aliases]} options]
       (try
-        (let [deps-map (reader/read-deps config-files)
-              resolve-args (deps/combine-aliases deps-map resolve-aliases)
+        (let [deps-map (makecp/combine-deps-files options)
+              resolve-args (deps/combine-aliases deps-map (concat resolve-aliases aliases))
               {:keys [extra-deps override-deps]} resolve-args
-              cp-args (deps/combine-aliases deps-map makecp-aliases)
+              cp-args (deps/combine-aliases deps-map (concat makecp-aliases aliases))
               {:keys [extra-paths]} cp-args
               mod-map (merge-with concat
                         (merge-with merge deps-map {:deps override-deps} {:deps extra-deps})
