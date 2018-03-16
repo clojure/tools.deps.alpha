@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* next release
+* 0.5.410 on Mar 16, 2018
   * TDEPS-54 add -Sdeps and -A support to -Spom
   * TDEPS-55 fix -Spom for xml file with comment before root node
   * TDEPS-40 clean up log dependencies
