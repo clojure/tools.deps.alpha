@@ -96,3 +96,18 @@
                                             'ex/c {:fkn/version "1"}}} nil)
               (reduce-kv #(assoc %1 (-> %2 name keyword) (:fkn/version %3)) {}))]
       (is (= r {:a "1", :b "1", :c "1", :d "1", :e "2"})))))
+
+;; +a1 -> +b1 -> +x2 -> +y1
+;; +c1 -> -x1 -> -z1
+(deftest test-dep-choice
+  (fkn/with-libs
+    {'ex/a {{:fkn/version "1"} [['ex/b {:fkn/version "1"}]]}
+     'ex/b {{:fkn/version "1"} [['ex/x {:fkn/version "2"}]]}
+     'ex/c {{:fkn/version "1"} [['ex/x {:fkn/version "1"}]]}
+     'ex/x {{:fkn/version "2"} [['ex/y {:fkn/version "1"}]]
+            {:fkn/version "1"} [['ex/z {:fkn/version "1"}]]}
+     'ex/y {{:fkn/version "1"} nil}
+     'ex/z {{:fkn/version "1"} nil}}
+    (is (= {:a "1", :b "1", :c "1", :x "2", :y "1"}
+          (let [res (deps/resolve-deps {:deps {'ex/a {:fkn/version "1"}, 'ex/c {:fkn/version "1"}}} nil)]
+            (reduce-kv #(assoc %1 (-> %2 name keyword) (:fkn/version %3)) {} res))))))
