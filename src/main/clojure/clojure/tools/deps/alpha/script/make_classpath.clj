@@ -70,10 +70,16 @@
       (let [{:keys [lib-map classpath]} (create-classpath deps-map opts)]
         (io/write-file libs-file (pr-str lib-map))
         (io/write-file cp-file classpath)))
-    (when-let [jvm-opts (seq (get (deps/combine-aliases deps-map (concat aliases jvmopt-aliases)) :jvm-opts))]
-      (io/write-file jvm-file (str/join " " jvm-opts)))
-    (when-let [main-opts (seq (get (deps/combine-aliases deps-map (concat aliases main-aliases)) :main-opts))]
-      (io/write-file main-file (str/join " " main-opts)))))
+    (if-let [jvm-opts (seq (get (deps/combine-aliases deps-map (concat aliases jvmopt-aliases)) :jvm-opts))]
+      (io/write-file jvm-file (str/join " " jvm-opts))
+      (let [jf (jio/file jvm-file)]
+        (when (.exists jf)
+          (.delete jf))))
+    (if-let [main-opts (seq (get (deps/combine-aliases deps-map (concat aliases main-aliases)) :main-opts))]
+      (io/write-file main-file (str/join " " main-opts))
+      (let [mf (jio/file main-file)]
+        (when (.exists mf)
+          (.delete mf))))))
 
 (defn -main
   "Main entry point for make-classpath script.
