@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* next release
+* 0.5.417 on Mar 23, 2018
   * TDEPS-59 clear cached jvm and main opts if stale
 * 0.5.410 on Mar 16, 2018
   * TDEPS-54 add -Sdeps and -A support to -Spom
