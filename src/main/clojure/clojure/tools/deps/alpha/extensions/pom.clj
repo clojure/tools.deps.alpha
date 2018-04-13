@@ -44,7 +44,7 @@
         ct (.getConstructor org.apache.maven.repository.internal.DefaultModelResolver
              (into-array [RepositorySystemSession RequestTrace String ArtifactResolver VersionRangeResolver RemoteRepositoryManager List]))]
     (.setAccessible ct true) ;; turn away from the horror
-    (.newInstance ct (object-array [session nil "compile" artifact-resolver version-range-resolver repo-mgr repos]))))
+    (.newInstance ct (object-array [session nil "runtime" artifact-resolver version-range-resolver repo-mgr repos]))))
 
 (defn- read-model
   ^Model [dir config]

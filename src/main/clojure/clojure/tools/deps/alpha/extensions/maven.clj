@@ -78,7 +78,7 @@
     (into []
       (comp
         (map maven/dep->data)
-        (filter #(= (:scope (second %)) "compile"))
+        (filter #(contains? #{"compile" "runtime"} (:scope (second %))))
         (remove (comp :optional second))
         (map #(update-in % [1] dissoc :scope :optional)))
       (.getDependencies result))))
