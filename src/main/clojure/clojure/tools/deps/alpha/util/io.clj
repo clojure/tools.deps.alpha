@@ -27,9 +27,13 @@
         fi (jio/file f)]
     (with-open [rdr (PushbackReader. (FileReader. fi))]
       (let [val (edn/read {:eof EOF} rdr)]
-        (if (identical? val EOF)
+        (if (identical? EOF val)
           nil
-          val)))))
+          (if (not (identical? EOF (edn/read {:eof EOF} rdr)))
+            (let [file-name (.getCanonicalPath fi)]
+              (throw (ex-info (str "Invalid file, expected edn to contain a single map: " file-name)
+                       {:file file-name})))
+            val))))))
 
 (defn write-file
   "Write the string s to file f. Creates parent directories for f if they don't exist."
@@ -41,3 +45,7 @@
         (let [parent-name (.getCanonicalPath parent)]
           (throw (ex-info (str "Can't create directory: " parent-name) {:dir parent-name})))))
     (spit the-file s)))
+
+(comment
+  (slurp-edn "deps.edn")
+  )
