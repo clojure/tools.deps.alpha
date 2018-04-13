@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* next
+* 0.5.425 on Apr 13, 2018 
   * TDEPS-73 detect invalid deps.edn file and error
   * TDEPS-61 use Clojars CDN repo
   * TDEPS-26 include transitive runtime deps in addition to compile deps
