@@ -1,6 +1,10 @@
 Changelog
 ===========
 
+* next
+  * TDEPS-73 detect invalid deps.edn file and error
+  * TDEPS-61 use Clojars CDN repo
+  * TDEPS-26 include transitive runtime deps in addition to compile deps
 * 0.5.417 on Mar 23, 2018
   * TDEPS-59 clear cached jvm and main opts if stale
 * 0.5.410 on Mar 16, 2018
