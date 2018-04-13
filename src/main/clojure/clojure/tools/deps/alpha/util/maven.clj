@@ -45,7 +45,7 @@
 ;; Remote repositories
 
 (def standard-repos {"central" {:url "https://repo1.maven.org/maven2/"}
-                     "clojars" {:url "https://clojars.org/repo/"}})
+                     "clojars" {:url "https://repo.clojars.org/"}})
 
 (defn remote-repo
   ^RemoteRepository [[name {:keys [url]}]]
