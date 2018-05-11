@@ -13,11 +13,12 @@
     [clojure.tools.deps.alpha.extensions :as ext]
     [clojure.tools.deps.alpha.util.maven :as maven])
   (:import
+    [java.io File]
     [java.util List]
     ;; maven-model
     [org.apache.maven.model Model Dependency Exclusion]
-    [org.apache.maven.model.building DefaultModelBuildingRequest DefaultModelBuilderFactory]
     ;; maven-model-builder
+    [org.apache.maven.model.building DefaultModelBuildingRequest DefaultModelBuilderFactory ModelSource FileModelSource]
     [org.apache.maven.model.resolution ModelResolver]
     ;; maven-aether-provider
     [org.apache.maven.repository.internal DefaultModelResolver DefaultVersionRangeResolver]
@@ -46,15 +47,19 @@
     (.setAccessible ct true) ;; turn away from the horror
     (.newInstance ct (object-array [session nil "runtime" artifact-resolver version-range-resolver repo-mgr repos]))))
 
-(defn- read-model
-  ^Model [dir config]
-  (let [pom (jio/file dir "pom.xml")
-        req (doto (DefaultModelBuildingRequest.)
-              (.setPomFile pom)
+;; pom (jio/file dir "pom.xml")
+(defn read-model
+  ^Model [^ModelSource source config]
+  (let [req (doto (DefaultModelBuildingRequest.)
+              (.setModelSource source)
               (.setModelResolver (model-resolver config)))
         builder (.newInstance (DefaultModelBuilderFactory.))
         result (.build builder req)]
     (.getEffectiveModel result)))
+
+(defn- read-model-file
+  ^Model [^File file config]
+  (read-model (FileModelSource. file) config))
 
 (defn- model-exclusions->data
   [exclusions]
@@ -77,14 +82,21 @@
        optional (assoc :optional true)
        (seq exclusions) (assoc :exclusions exclusions))]))
 
+(defn model-deps
+  [^Model model]
+  (map model-dep->data (.getDependencies model)))
+
 (defmethod ext/coord-deps :pom
   [_lib {:keys [deps/root] :as coord} _mf config]
-  (let [model (read-model root config)]
-    (map model-dep->data (.getDependencies model))))
+  (let [pom (jio/file root "pom.xml")
+        model (read-model-file pom config)]
+    (model-deps model)))
 
 (defmethod ext/coord-paths :pom
   [_lib {:keys [deps/root] :as coord} _mf config]
-  (let [srcs [(.getCanonicalPath (jio/file (.. (read-model root config) getBuild getSourceDirectory)))
+  (let [pom (jio/file root "pom.xml")
+        model (read-model-file pom config)
+        srcs [(.getCanonicalPath (jio/file (.. model getBuild getSourceDirectory)))
               (.getCanonicalPath (jio/file root "src/main/clojure"))]]
     (distinct srcs)))
 

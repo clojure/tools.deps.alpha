@@ -9,7 +9,15 @@
 (ns clojure.tools.deps.alpha.extensions.local
   (:require
     [clojure.java.io :as jio]
-    [clojure.tools.deps.alpha.extensions :as ext]))
+    [clojure.string :as str]
+    [clojure.tools.deps.alpha.extensions :as ext]
+    [clojure.tools.deps.alpha.extensions.pom :as pom])
+  (:import
+    [java.io File IOException]
+    [java.net URL]
+    [java.util.jar JarFile JarEntry]
+    ;; maven-builder-support
+    [org.apache.maven.model.building UrlModelSource]))
 
 (defmethod ext/dep-id :local
   [lib {:keys [local/root] :as coord} config]
@@ -32,11 +40,29 @@
 (defmethod ext/coord-summary :local [lib {:keys [local/root]}]
   (str lib " " root))
 
+(defn find-pom
+  "Find path of pom file in jar file, or nil if it doesn't exist"
+  [^JarFile jar-file]
+  (try
+    (loop [[^JarEntry entry & entries] (enumeration-seq (.entries jar-file))]
+      (when entry
+        (let [name (.getName entry)]
+          (if (and (str/starts-with? name "META-INF/")
+                (str/ends-with? name "pom.xml"))
+            name
+            (recur entries)))))
+    (catch IOException t nil)))
+
 (defmethod ext/coord-deps :jar
   [lib {:keys [local/root] :as coord} _manifest config]
-  [])
+  (let [jar (JarFile. (jio/file root))]
+    (if-let [path (find-pom jar)]
+      (let [url (URL. (str "jar:file:" root "!/" path))
+            src (UrlModelSource. url)
+            model (pom/read-model src config)]
+        (pom/model-deps model))
+      [])))
 
 (defmethod ext/coord-paths :jar
   [lib coord _manifest config]
   [(:local/root coord)])
-
