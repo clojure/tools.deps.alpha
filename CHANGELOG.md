@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* next
+  * Use embedded pom to traverse transitive deps for a local dep jar
 * 0.5.425 on Apr 13, 2018 
   * TDEPS-73 detect invalid deps.edn file and error
   * TDEPS-61 use Clojars CDN repo
