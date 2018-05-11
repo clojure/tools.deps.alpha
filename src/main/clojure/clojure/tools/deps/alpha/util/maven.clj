@@ -38,6 +38,15 @@
 
     ;; maven-aether-provider
     [org.apache.maven.repository.internal MavenRepositorySystemUtils]
+
+    ;; maven-resolver-util
+    [org.eclipse.aether.util.repository AuthenticationBuilder]
+
+    ;; maven-core
+    [org.apache.maven.settings DefaultMavenSettingsBuilder]
+
+    ;; maven-settings-builder
+    [org.apache.maven.settings.building DefaultSettingsBuilderFactory]
     ))
 
 (set! *warn-on-reflection* true)
@@ -47,9 +56,36 @@
 (def standard-repos {"central" {:url "https://repo1.maven.org/maven2/"}
                      "clojars" {:url "https://repo.clojars.org/"}})
 
+(defn- set-settings-builder
+  [^DefaultMavenSettingsBuilder default-builder settings-builder]
+  (doto (.. default-builder getClass (getDeclaredField "settingsBuilder"))
+    (.setAccessible true)
+    (.set default-builder settings-builder)))
+
+(defn- get-settings
+  ^org.apache.maven.settings.Settings []
+  (.buildSettings
+    (doto (new DefaultMavenSettingsBuilder)
+      (set-settings-builder (.newInstance (new DefaultSettingsBuilderFactory))))))
+
 (defn remote-repo
-  ^RemoteRepository [[name {:keys [url]}]]
-  (.build (RemoteRepository$Builder. name "default" url)))
+  ^RemoteRepository [[^String name {:keys [url]}]]
+  (let [repository (RemoteRepository$Builder. name "default" url)
+        ^org.apache.maven.settings.Server server-setting
+        (first (filter
+                 #(.equalsIgnoreCase name
+                                     (.getId ^org.apache.maven.settings.Server %))
+                 (.getServers (get-settings))))]
+    (cond-> repository
+      server-setting
+      (.setAuthentication (-> (new AuthenticationBuilder)
+                              (.addUsername (.getUsername server-setting))
+                              (.addPassword (.getPassword server-setting))
+                              (.addPrivateKey (.getPrivateKey server-setting)
+                                              (.getPassphrase server-setting))
+                              (.build)))
+      true
+      (.build))))
 
 ;; Local repository
 
