@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* next
+* 0.5.435 on May 11, 2018 
   * TDEPS-9 support Maven deps in authenticated repositories
   * Use embedded pom to traverse transitive deps for a local dep jar
 * 0.5.425 on Apr 13, 2018 
