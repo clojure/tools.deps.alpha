@@ -27,16 +27,18 @@
 
 ;; Main extension points for using Maven deps
 
-(defn- version-range?
-  [version]
-  (boolean (re-find #"\[|\(" version)))
-
-;(defmethod ext/canonicalize :mvn
-;  [lib {:keys [:mvn/version] :as coord} {:keys [mvn/repos mvn/local-repo]}]
-;  (if (version-range? version)
-;    (throw (ex-info (str "In the dependency graph, library " lib " specifies version range "  (pr-str version) " - please specify a version in your configuration.")
-;             {:lib lib :coord coord}))
-;    [lib coord]))
+(defmethod ext/canonicalize :mvn
+  [lib {:keys [:mvn/version] :as coord} {:keys [mvn/repos mvn/local-repo]}]
+  (if (maven/version-range? version)
+    (let [local-repo (or local-repo maven/default-local-repo)
+          system (maven/make-system)
+          session (maven/make-session system local-repo)
+          artifact (maven/coord->artifact lib coord)
+          req (VersionRangeRequest. artifact (mapv maven/remote-repo repos) nil)
+          result (.resolveVersionRange system session req)
+          newest (.getHighestVersion result)]
+      [lib (assoc coord :mvn/version (.toString newest))])
+    [lib coord]))
 
 (defmethod ext/lib-location :mvn
   [lib {:keys [mvn/version]} {:keys [mvn/repos mvn/local-repo]}]

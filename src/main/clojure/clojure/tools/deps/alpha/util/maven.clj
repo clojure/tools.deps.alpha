@@ -174,3 +174,7 @@
         groupId (or (namespace lib) artifactId)
         artifact (DefaultArtifact. groupId artifactId classifier extension version)]
     artifact))
+
+(defn version-range?
+  [version]
+  (boolean (re-find #"\[|\(" version)))
