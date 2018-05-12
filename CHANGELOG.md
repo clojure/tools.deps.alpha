@@ -2,6 +2,7 @@ Changelog
 ===========
 
 * next
+  * TDEPS-9 support Maven deps in authenticated repositories
   * Use embedded pom to traverse transitive deps for a local dep jar
 * 0.5.425 on Apr 13, 2018 
   * TDEPS-73 detect invalid deps.edn file and error
