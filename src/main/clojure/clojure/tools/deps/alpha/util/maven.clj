@@ -65,8 +65,8 @@
 (defn- get-settings
   ^org.apache.maven.settings.Settings []
   (.buildSettings
-    (doto (new DefaultMavenSettingsBuilder)
-      (set-settings-builder (.newInstance (new DefaultSettingsBuilderFactory))))))
+    (doto (DefaultMavenSettingsBuilder.)
+      (set-settings-builder (.newInstance (DefaultSettingsBuilderFactory.))))))
 
 (defn remote-repo
   ^RemoteRepository [[^String name {:keys [url]}]]
@@ -78,7 +78,7 @@
                  (.getServers (get-settings))))]
     (cond-> repository
       server-setting
-      (.setAuthentication (-> (new AuthenticationBuilder)
+      (.setAuthentication (-> (AuthenticationBuilder.)
                               (.addUsername (.getUsername server-setting))
                               (.addPassword (.getPassword server-setting))
                               (.addPrivateKey (.getPrivateKey server-setting)
