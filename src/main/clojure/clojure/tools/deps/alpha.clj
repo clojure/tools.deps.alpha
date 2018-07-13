@@ -41,11 +41,20 @@
        %1 %2)
     {} ms))
 
+(defn- check-aliases
+  "Check that all aliases are known and error if aliases are undeclared"
+  [deps aliases]
+  (if-let [unknown (seq (remove #(contains? (:aliases deps) %) aliases))]
+    (throw (ex-info (str "Specified aliases are undeclared: " (vec unknown))
+             {:aliases (vec unknown), :available (-> deps :aliases keys vec)}))
+    aliases))
+
 (defn combine-aliases
   "Find, read, and combine alias maps identified by alias keywords from
   a deps configuration into a single args map."
   [deps alias-kws]
   (->> alias-kws
+    (check-aliases deps)
     (map #(get-in deps [:aliases %]))
     (apply merge-alias-maps)))
 
