@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* next
+  * TDEPS-85 error on unknown aliases
 * 0.5.435 on May 11, 2018 
   * TDEPS-9 support Maven deps in authenticated repositories
   * Use embedded pom to traverse transitive deps for a local dep jar
