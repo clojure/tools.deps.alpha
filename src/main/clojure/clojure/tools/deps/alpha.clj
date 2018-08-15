@@ -32,12 +32,16 @@
    :main-opts (comp last #(remove nil? %) vector)
    :verbose #(or %1 %2)})
 
+(defn- choose-rule [alias-key]
+  (or (merge-alias-rules alias-key)
+    (throw (ex-info (format "Unknown alias key: %s" alias-key) {:key alias-key}))))
+
 (defn- merge-alias-maps
   "Like merge-with, but using custom per-alias-key merge function"
   [& ms]
   (reduce
     #(reduce
-       (fn [m [k v]] (update m k (merge-alias-rules k) v))
+       (fn [m [k v]] (update m k (choose-rule k) v))
        %1 %2)
     {} ms))
 
