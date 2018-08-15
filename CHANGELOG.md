@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* next
+  * TDEPS-92 error and report on unknown alias key
 * 0.5.442 on July 19, 2018
   * TDEPS-85 error on unknown aliases
 * 0.5.435 on May 11, 2018 
