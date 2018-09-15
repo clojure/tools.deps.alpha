@@ -178,7 +178,7 @@
             coord-id (ext/dep-id lib use-coord config)]
         (when verbose (println "Expanding" lib coord-id))
         (if-let [action (include-coord? version-map lib use-coord coord-id parents exclusions verbose)]
-          (let [{manifest-type :deps/manifest :as manifest-info} (ext/manifest-type lib coord config)
+          (let [{manifest-type :deps/manifest :as manifest-info} (ext/manifest-type lib use-coord config)
                 use-coord (merge use-coord manifest-info)
                 children (canonicalize-deps (ext/coord-deps lib use-coord manifest-type config) config)
                 use-path (conj parents lib)
