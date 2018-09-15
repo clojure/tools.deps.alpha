@@ -69,7 +69,18 @@
                {:override-deps {'org.clojure/spec.alpha {:fkn/version "0.1.1"}}})
              (get 'org.clojure/spec.alpha)
              :fkn/version)
-          "0.1.1"))))
+           "0.1.1"))))
+
+(deftest test-default-deps
+  (fkn/with-libs repo
+    ;; default dep wins if none provided
+    (is (= (-> {:deps {'org.clojure/clojure nil}}
+               (deps/resolve-deps
+                {:default-deps
+                 {'org.clojure/clojure {:fkn/version "2.0.0"}}})
+               (get 'org.clojure/clojure)
+               :fkn/version)
+           "2.0.0"))))
 
 ;; +a1 -> +b1 -> -c1
 ;;     -> +c2
