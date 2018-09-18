@@ -38,3 +38,17 @@ Returns:
 
 * a classpath string
 
+## Example usage
+
+```clojure
+(require '[clojure.tools.deps.alpha :as deps])
+
+(->
+  '{:deps {org.clojure/clojure {:mvn/version "1.9.0"}
+           org.clojure/core.async {:mvn/version "0.4.474"}}
+    :mvn/repos {"central" {:url "https://repo1.maven.org/maven2/"}
+                "clojars" {:url "https://repo.clojars.org/"}}}
+  (deps/resolve-deps nil)
+  (deps/make-classpath nil nil))
+```
+
