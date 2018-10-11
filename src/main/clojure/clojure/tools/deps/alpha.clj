@@ -162,37 +162,50 @@
 
 ;; expand-deps
 
+(defn- use-dep [default-deps override-deps [lib coord]]
+  (vector lib
+          (or (get override-deps lib)
+              coord
+              (get default-deps lib))))
+
 (defn- expand-deps
   [deps default-deps override-deps config verbose]
-  (loop [q (into (PersistentQueue/EMPTY) (map vector deps))
-         version-map nil
-         exclusions nil] ;; path to set of exclusions at path
-    (if-let [path (peek q)] ;; path from root dep to dep being expanded
-      (let [q' (pop q)
-            [lib coord] (peek path)
-            parents (pop path)
-            override-coord (get override-deps lib)
-            use-coord (cond override-coord override-coord
-                            coord coord
-                            :else (get default-deps lib))
-            coord-id (ext/dep-id lib use-coord config)]
-        (when verbose (println "Expanding" lib coord-id))
-        (if-let [action (include-coord? version-map lib use-coord coord-id parents exclusions verbose)]
-          (let [{manifest-type :deps/manifest :as manifest-info} (ext/manifest-type lib use-coord config)
-                use-coord (merge use-coord manifest-info)
-                children (canonicalize-deps (ext/coord-deps lib use-coord manifest-type config) config)
-                use-path (conj parents lib)
-                child-paths (map #(conj use-path %) children)]
-            (recur
-              (into q' child-paths)
-              (add-coord version-map lib coord-id use-coord parents action config verbose)
-              (if-let [excl (:exclusions use-coord)]
-                (add-exclusion exclusions use-path excl)
-                exclusions)))
-          (recur q' version-map exclusions)))
-      (do
-        (when verbose (println) (println "Version map:") (pprint version-map))
-        version-map))))
+  (let [use-dep (partial use-dep default-deps override-deps)
+        deps (map use-dep deps)]
+    (loop [q (into (PersistentQueue/EMPTY) (map vector deps))
+           seen (into #{} deps)
+           version-map nil
+           exclusions nil] ;; path to set of exclusions at path
+      (if-let [path (peek q)] ;; path from root dep to dep being expanded
+        (let [q' (pop q)
+              [lib use-coord :as coord] (peek path)
+              parents (pop path)
+              coord-id (ext/dep-id lib use-coord config)]
+          (when verbose (println "Expanding" lib coord-id))
+          (if-let [action (include-coord? version-map lib use-coord coord-id parents exclusions verbose)]
+            (let [{manifest-type :deps/manifest :as manifest-info} (ext/manifest-type lib use-coord config)
+                  use-coord (merge use-coord manifest-info)
+                  children (->> (canonicalize-deps (ext/coord-deps lib use-coord manifest-type config) config)
+                                (map use-dep)
+                                (remove (fn [[lib coord :as dep]]
+                                          (when (contains? seen dep)
+                                            (when verbose
+                                              (println "Skipping" lib (ext/dep-id lib coord config)))
+                                           true)))
+                                doall)
+                  use-path (conj parents lib)
+                  child-paths (map #(conj use-path %) children)]
+              (recur
+               (into q' child-paths)
+               (into seen children)
+               (add-coord version-map lib coord-id use-coord parents action config verbose)
+               (if-let [excl (:exclusions use-coord)]
+                 (add-exclusion exclusions use-path excl)
+                 exclusions)))
+            (recur q' seen version-map exclusions)))
+        (do
+          (when verbose (println) (println "Version map:") (pprint version-map))
+          version-map)))))
 
 (defn- lib-paths
   [version-map config]
