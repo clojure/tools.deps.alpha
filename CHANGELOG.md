@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* next
+  * Use newer version of aws-maven under s3-wagon-private
 * 0.5.452 on Sept 15, 2018 
   * TDEPS-92 error and report on unknown alias key
   * TDEPS-12 add support for multiple classifiers in libs
