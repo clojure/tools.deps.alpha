@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* next
+* 0.5.460 on Oct 17, 2018
   * Use newer version of aws-maven under s3-wagon-private
 * 0.5.452 on Sept 15, 2018 
   * TDEPS-92 error and report on unknown alias key
