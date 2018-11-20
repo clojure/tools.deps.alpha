@@ -36,7 +36,7 @@
       (conj [::pom/exclusions
              (map (fn [excl]
                     [::pom/exclusion
-                     [::pom/groupId (namespace excl)]
+                     [::pom/groupId (or (namespace excl) (name excl))]
                      [::pom/artifactId (name excl)]])
                exclusions)]))
     (printerrln "Skipping coordinate:" coord)))
