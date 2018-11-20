@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* next
+  * TDEPS-107 canonicalized exclusion groupIds in pom gen
 * 0.5.460 on Oct 17, 2018
   * Use newer version of aws-maven under s3-wagon-private
 * 0.5.452 on Sept 15, 2018 
