@@ -15,7 +15,7 @@
     ;; maven-resolver-api
     [org.eclipse.aether RepositorySystem RepositorySystemSession]
     [org.eclipse.aether.artifact Artifact DefaultArtifact]
-    [org.eclipse.aether.repository LocalRepository RemoteRepository RemoteRepository$Builder]
+    [org.eclipse.aether.repository LocalRepository Proxy RemoteRepository RemoteRepository$Builder]
     [org.eclipse.aether.graph Dependency Exclusion]
     [org.eclipse.aether.transfer TransferListener TransferEvent TransferResource]
 
@@ -40,10 +40,10 @@
     [org.apache.maven.repository.internal MavenRepositorySystemUtils]
 
     ;; maven-resolver-util
-    [org.eclipse.aether.util.repository AuthenticationBuilder]
+    [org.eclipse.aether.util.repository AuthenticationBuilder DefaultProxySelector]
 
     ;; maven-core
-    [org.apache.maven.settings DefaultMavenSettingsBuilder]
+    [org.apache.maven.settings DefaultMavenSettingsBuilder Settings]
 
     ;; maven-settings-builder
     [org.apache.maven.settings.building DefaultSettingsBuilderFactory]
@@ -63,19 +63,40 @@
     (.set default-builder settings-builder)))
 
 (defn- get-settings
-  ^org.apache.maven.settings.Settings []
+  ^Settings []
   (.buildSettings
     (doto (DefaultMavenSettingsBuilder.)
       (set-settings-builder (.newInstance (DefaultSettingsBuilderFactory.))))))
 
+(defn- select-proxy
+  ^Proxy [^Settings settings ^RemoteRepository repo]
+  (->> (.getProxies settings)
+    (keep (fn [^org.apache.maven.settings.Proxy proxy-setting]
+            (when (.isActive proxy-setting)
+              (.. (DefaultProxySelector.)
+                (add (Proxy. (.getProtocol proxy-setting)
+                             (.getHost proxy-setting)
+                             (.getPort proxy-setting)
+                             (.. (AuthenticationBuilder.)
+                               (addUsername (.getUsername proxy-setting))
+                               (addPassword (.getPassword proxy-setting))
+                               build))
+                     (.getNonProxyHosts proxy-setting))
+                (getProxy repo)))))
+    first))
+
 (defn remote-repo
   ^RemoteRepository [[^String name {:keys [url]}]]
   (let [repository (RemoteRepository$Builder. name "default" url)
+        settings (get-settings)
         ^org.apache.maven.settings.Server server-setting
         (first (filter
                  #(.equalsIgnoreCase name
                                      (.getId ^org.apache.maven.settings.Server %))
-                 (.getServers (get-settings))))]
+                 (.getServers settings)))
+        ;; Need to build RemoteRepository preliminarily here in order to use
+        ;; ProxySelector to take nonProxyHosts setting into account
+        proxy (select-proxy settings (.build repository))]
     (cond-> repository
       server-setting
       (.setAuthentication (-> (AuthenticationBuilder.)
@@ -84,6 +105,8 @@
                               (.addPrivateKey (.getPrivateKey server-setting)
                                               (.getPassphrase server-setting))
                               (.build)))
+      proxy
+      (.setProxy proxy)
       true
       (.build))))
 
