@@ -122,3 +122,15 @@
     (is (= {:a "1", :b "1", :c "1", :x "2", :y "1"}
           (let [res (deps/resolve-deps {:deps {'ex/a {:fkn/version "1"}, 'ex/c {:fkn/version "1"}}} nil)]
             (reduce-kv #(assoc %1 (-> %2 name keyword) (:fkn/version %3)) {} res))))))
+
+;; +a1 -> +b1 -> +c1 -> a1
+;;     -> -c2 -> a1
+(deftest test-circular-deps
+  (fkn/with-libs {'ex/a {{:fkn/version "1"} [['ex/b {:fkn/version "1"}]
+                                             ['ex/c {:fkn/version "2"}]]}
+                  'ex/b {{:fkn/version "1"} [['ex/c {:fkn/version "1"}]]}
+                  'ex/c {{:fkn/version "1"} [['ex/a {:fkn/version "1"}]]
+                         {:fkn/version "2"} [['ex/a {:fkn/version "1"}]]}}
+    (is (= {:a "1", :b "1", :c "2"}
+           (let [res (deps/resolve-deps {:deps {'ex/a {:fkn/version "1"}}} nil)]
+             (reduce-kv #(assoc %1 (-> %2 name keyword) (:fkn/version %3)) {} res))))))

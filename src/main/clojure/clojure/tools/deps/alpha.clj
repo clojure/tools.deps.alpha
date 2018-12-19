@@ -131,6 +131,12 @@
   [lib new-coord old-coord config]
   (pos? (ext/compare-versions lib new-coord old-coord config)))
 
+(defmacro ^:private with-log
+  [verbose msg & body]
+  `(do
+     (when ~verbose (println "\t=> " ~msg))
+     ~@body))
+
 (defn- add-coord
   [vmap lib coord-id coord path action config verbose]
   (let [vmap' (-> (or vmap {})
@@ -139,26 +145,23 @@
                   (fn [coord-paths]
                     (merge-with into {coord-id #{path}} coord-paths))))]
     (if (= action :pin)
-      (do
-        (when verbose (println "\t=> include, pin top dep"))
+      (with-log verbose "include, pin top dep"
         (update-in vmap' [lib] merge {:select coord-id :pin true}))
       (let [select-id (get-in vmap' [lib :select])]
         (if (not select-id)
-          (do
-            (when verbose (println "\t=> include, new dep"))
+          (with-log verbose "include, new dep"
             (assoc-in vmap' [lib :select] coord-id))
           (let [select-coord (get-in vmap' [lib :versions select-id])]
-            (if (= select-id coord-id)
-              (do
-                (when verbose (println "\t=> skip, same as current selection"))
-                vmap')
-              (if (dominates? lib coord select-coord config)
-                (do
-                  (when verbose (println "\t=> include, replace" select-id))
-                  (assoc-in vmap' [lib :select] coord-id))
-                (do
-                  (when verbose (println "\t=> skip, current is newer" select-id))
-                  vmap')))))))))
+            (cond
+              (= select-id coord-id)
+              (with-log verbose "skip, same as current selection")
+
+              (dominates? lib coord select-coord config)
+              (with-log verbose (str "include, replace" select-id)
+                (assoc-in vmap' [lib :select] coord-id))
+
+              :else
+              (with-log verbose (str "current is newer" select-id)))))))))
 
 ;; expand-deps
 
@@ -178,17 +181,20 @@
             coord-id (ext/dep-id lib use-coord config)]
         (when verbose (println "Expanding" lib coord-id))
         (if-let [action (include-coord? version-map lib use-coord coord-id parents exclusions verbose)]
-          (let [{manifest-type :deps/manifest :as manifest-info} (ext/manifest-type lib use-coord config)
+          (let [use-path (conj parents lib)
+                {manifest-type :deps/manifest :as manifest-info} (ext/manifest-type lib use-coord config)
                 use-coord (merge use-coord manifest-info)
                 children (canonicalize-deps (ext/coord-deps lib use-coord manifest-type config) config)
-                use-path (conj parents lib)
-                child-paths (map #(conj use-path %) children)]
-            (recur
-              (into q' child-paths)
-              (add-coord version-map lib coord-id use-coord parents action config verbose)
-              (if-let [excl (:exclusions use-coord)]
-                (add-exclusion exclusions use-path excl)
-                exclusions)))
+                child-paths (map #(conj use-path %) children)
+                vmap' (add-coord version-map lib coord-id use-coord parents action config verbose)]
+            (if vmap'
+              (recur
+                (into q' child-paths)
+                vmap'
+                (if-let [excl (:exclusions use-coord)]
+                  (add-exclusion exclusions use-path excl)
+                  exclusions))
+              (recur q' version-map exclusions)))
           (recur q' version-map exclusions)))
       (do
         (when verbose (println) (println "Version map:") (pprint version-map))
@@ -273,6 +279,9 @@
 
   (expand-deps {'org.clojure/clojure {:mvn/version "1.9.0"}}
     nil nil {:mvn/repos mvn/standard-repos} true)
+
+  (expand-deps {'org.apache.xmlgraphics/batik-transcoder {:mvn/version "1.7"}}
+               nil nil {:mvn/repos mvn/standard-repos} true)
 
   (expand-deps {'org.clojure/clojure {:mvn/version "1.9.0"}
                 'org.clojure/core.memoize {:mvn/version "0.5.8"}}
