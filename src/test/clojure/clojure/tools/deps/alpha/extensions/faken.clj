@@ -29,7 +29,7 @@
 
 (defmethod ext/dep-id :fkn
   [lib coord config]
-  (select-keys coord [:fkn/version :classifier]))
+  (select-keys coord [:fkn/version]))
 
 (defmethod ext/manifest-type :fkn
   [lib coord config]
@@ -50,7 +50,11 @@
 
 (defn make-path
   [lib {:keys [fkn/version]}]
-  (str "REPO/" (namespace lib) "/" (name lib) "/" version "/" (name lib) "-" version ".jar"))
+  (let [[n c] (str/split (name lib) #"\$")]
+    (str "REPO/" (namespace lib)
+         "/" n
+         "/" version
+         "/" n (if c (str "-" c) "") "-" version ".jar")))
 
 (defmethod ext/coord-paths :fkn
   [lib coord _manifest _config]

@@ -12,6 +12,7 @@
             [clojure.data.xml.tree :as tree]
             [clojure.data.xml.event :as event]
             [clojure.zip :as zip]
+            [clojure.tools.deps.alpha.util.maven :as maven]
             [clojure.tools.deps.alpha.util.io :refer [printerrln]])
   (:import [java.io File Reader]
            [clojure.data.xml.node Element]))
@@ -21,25 +22,26 @@
 (xml/alias-uri 'pom "http://maven.apache.org/POM/4.0.0")
 
 (defn- to-dep
-  [[lib {:keys [mvn/version classifier exclusions] :as coord}]]
-  (if version
-    (cond->
-      [::pom/dependency
-       [::pom/groupId (or (namespace lib) (name lib))]
-       [::pom/artifactId (name lib)]
-       [::pom/version version]]
+  [[lib {:keys [mvn/version exclusions] :as coord}]]
+  (let [[artifact-id group-id classifier] (maven/lib->names lib)]
+    (if version
+      (cond->
+        [::pom/dependency
+         [::pom/groupId group-id]
+         [::pom/artifactId artifact-id]
+         [::pom/version version]]
 
-      classifier
-      (conj [::pom/classifier classifier])
+        classifier
+        (conj [::pom/classifier classifier])
 
-      (seq exclusions)
-      (conj [::pom/exclusions
-             (map (fn [excl]
-                    [::pom/exclusion
-                     [::pom/groupId (or (namespace excl) (name excl))]
-                     [::pom/artifactId (name excl)]])
-               exclusions)]))
-    (printerrln "Skipping coordinate:" coord)))
+        (seq exclusions)
+        (conj [::pom/exclusions
+               (map (fn [excl]
+                      [::pom/exclusion
+                       [::pom/groupId (or (namespace excl) (name excl))]
+                       [::pom/artifactId (name excl)]])
+                    exclusions)]))
+      (printerrln "Skipping coordinate:" coord))))
 
 (defn- gen-deps
   [deps]

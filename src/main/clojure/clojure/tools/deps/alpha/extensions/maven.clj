@@ -42,12 +42,13 @@
 
 (defmethod ext/lib-location :mvn
   [lib {:keys [mvn/version]} {:keys [mvn/repos mvn/local-repo]}]
-  {:base (or local-repo maven/default-local-repo)
-   :path (.getPath ^File
-           (apply jio/file
-             (concat (str/split (or (namespace lib) (name lib)) #"\.")
-               [(name lib) version])))
-   :type :mvn})
+  (let [[group-id artifact-id classifier] (maven/lib->names lib)]
+    {:base (or local-repo maven/default-local-repo)
+     :path (.getPath ^File
+             (apply jio/file
+               (concat (str/split group-id #"\.") [artifact-id version])))
+     :classifier classifier
+     :type :mvn}))
 
 (defmethod ext/dep-id :mvn
   [lib coord config]
@@ -74,10 +75,7 @@
   (let [local-repo (or local-repo maven/default-local-repo)
         system (maven/make-system)
         session (maven/make-session system local-repo)
-        ;; if multiple classifiers, just use first to lookup dep
-        classifier (:classifier coord)
-        lookup-coord (cond-> coord (coll? classifier) (assoc :classifier (first classifier)))
-        artifact (maven/coord->artifact lib lookup-coord)
+        artifact (maven/coord->artifact lib coord)
         req (ArtifactDescriptorRequest. artifact (mapv maven/remote-repo repos) nil)
         result (.readArtifactDescriptor system session req)]
     (into []
@@ -104,12 +102,8 @@
   (let [local-repo (or local-repo maven/default-local-repo)
         mvn-repos (mapv maven/remote-repo repos)
         system (maven/make-system)
-        session (maven/make-session system local-repo)
-        classifier (:classifier coord)]
-    (if (coll? classifier)
-      (for [c classifier]
-        (get-artifact lib (assoc coord :classifier c) system session mvn-repos))
-      [(get-artifact lib coord system session mvn-repos)])))
+        session (maven/make-session system local-repo)]
+    [(get-artifact lib coord system session mvn-repos)]))
 
 (comment
   (ext/lib-location 'org.clojure/clojure {:mvn/version "1.8.0"} {})
@@ -124,20 +118,12 @@
   (ext/coord-paths 'org.clojure/clojure {:mvn/version "1.9.0-alpha17"} :mvn {:mvn/repos maven/standard-repos})
 
   ;; get specific classifier
-  (ext/coord-paths 'org.jogamp.gluegen/gluegen-rt {:mvn/version "2.3.2" :classifier "natives-linux-amd64"}
-    :mvn {:mvn/repos maven/standard-repos})
-
-  ;; get multiple classifiers
-  (ext/coord-paths 'org.jogamp.gluegen/gluegen-rt {:mvn/version "2.3.2" :classifier ["" "natives-linux-amd64"]}
-    :mvn {:mvn/repos maven/standard-repos})
-
-  ;; deps for multiple classifier
-  (ext/coord-deps 'org.clojure/tools.reader {:mvn/version "1.3.0" :classifier ["" "aot"]}
+  (ext/coord-paths 'org.jogamp.gluegen/gluegen-rt$natives-linux-amd64 {:mvn/version "2.3.2"}
     :mvn {:mvn/repos maven/standard-repos})
 
   (parse-version {:mvn/version "1.1.0"})
 
-  (ext/compare-versions {:mvn/version "1.1.0-alpha10"} {:mvn/version "1.1.0-beta1"})
+  (ext/compare-versions 'org.clojure/clojure {:mvn/version "1.1.0-alpha10"} {:mvn/version "1.1.0-beta1"} {})
 
   (ext/coord-deps 'org.clojure/clojure {:mvn/version "1.10.0-master-SNAPSHOT"} :mvn
     {:mvn/repos (merge maven/standard-repos

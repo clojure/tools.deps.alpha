@@ -157,22 +157,27 @@
         optional (.isOptional dep)
         exclusions (exclusions->data (.getExclusions dep))
         ^Artifact artifact (.getArtifact dep)
+        artifact-id (.getArtifactId artifact)
         classifier (.getClassifier artifact)
         ext (.getExtension artifact)]
-    [(symbol (.getGroupId artifact) (.getArtifactId artifact))
+    [(symbol (.getGroupId artifact) (if (str/blank? classifier) artifact-id (str artifact-id "$" classifier)))
      (cond-> {:mvn/version (.getVersion artifact)}
-       (not (str/blank? classifier)) (assoc :classifier classifier)
        (not= "jar" ext) (assoc :extension ext)
        scope (assoc :scope scope)
        optional (assoc :optional true)
        (seq exclusions) (assoc :exclusions exclusions))]))
 
+(defn lib->names
+  "Split lib symbol into [group-id artifact-id classifier]"
+  [lib]
+  (let [[artifact-id classifier] (str/split (name lib) #"\$")]
+    [(or (namespace lib) artifact-id) artifact-id classifier]))
+
 (defn coord->artifact
-  ^Artifact [lib {:keys [mvn/version classifier extension] :or {classifier "", extension "jar"}}]
-  (let [version (or version "LATEST")
-        artifactId (name lib)
-        groupId (or (namespace lib) artifactId)
-        artifact (DefaultArtifact. groupId artifactId classifier extension version)]
+  ^Artifact [lib {:keys [mvn/version extension] :or {extension "jar"}}]
+  (let [[group-id artifact-id classifier] (lib->names lib)
+        version (or version "LATEST")
+        artifact (DefaultArtifact. group-id artifact-id classifier extension version)]
     artifact))
 
 (defn version-range?

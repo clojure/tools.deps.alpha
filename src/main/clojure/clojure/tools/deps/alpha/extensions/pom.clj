@@ -74,10 +74,10 @@
   (let [scope (.getScope dep)
         optional (.isOptional dep)
         exclusions (model-exclusions->data (.getExclusions dep))
+        artifact-id (.getArtifactId dep)
         classifier (.getClassifier dep)]
-    [(symbol (.getGroupId dep) (.getArtifactId dep))
+    [(symbol (.getGroupId dep) (if (str/blank? classifier) artifact-id (str artifact-id "$" classifier)))
      (cond-> {:mvn/version (.getVersion dep)}
-       (not (str/blank? classifier)) (assoc :classifier classifier)
        scope (assoc :scope scope)
        optional (assoc :optional true)
        (seq exclusions) (assoc :exclusions exclusions))]))
