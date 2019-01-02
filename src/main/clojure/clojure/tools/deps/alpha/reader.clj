@@ -13,7 +13,8 @@
             [clojure.walk :as walk]
             [clojure.tools.deps.alpha.util.coll :as coll]
             [clojure.tools.deps.alpha.util.io :as io])
-  (:import [java.io File IOException FileReader PushbackReader]))
+  (:import [java.io File IOException FileReader PushbackReader]
+           [clojure.lang EdnReader$ReaderException]))
 
 (defn- scrape-clojure-env
   []
@@ -35,7 +36,12 @@
 (defn- slurp-edn-map
   "Read the file specified by the path-segments, slurp it, and read it as edn."
   [^File f]
-  (let [val (io/slurp-edn f)]
+  (let [val (try (io/slurp-edn f)
+              (catch EdnReader$ReaderException e (throw (io-err (str (.getMessage e) " (%s)") f)))
+              (catch RuntimeException t
+                (if (str/starts-with? (.getMessage t) "EOF while reading")
+                  (throw (io-err "Error reading edn, delimiter unmatched (%s)" f))
+                  (throw (io-err (str "Error reading edn. " (.getMessage t) " (%s)") f)))))]
     (if (map? val)
       val
       (throw (io-err "Expected edn map in: %s" f)))))
