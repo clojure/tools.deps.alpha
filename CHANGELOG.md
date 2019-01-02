@@ -1,9 +1,14 @@
 Changelog
 ===========
 
-* next
+* 0.6.474 on Jan 2, 2019
+  * Error handling improvements when Maven artifact is not found
+  * Error handling improvements for invalid deps.edn
+  * TDEPS-50, TDEPS-109 Fixed handling of Maven classifiers
+    * Specify classifier in lib name: groupId/artifactId$classifier
+	* :classifier in coordinate map will now error
+  * TDEPS-79, TDEPS-109 fix infinite loop in resolving deps tree
   * TDEPS-107 canonicalized exclusion groupIds in pom gen
-  * TDEPS-79 fix infinite loop in resolving deps tree
 * 0.5.460 on Oct 17, 2018
   * Use newer version of aws-maven under s3-wagon-private
 * 0.5.452 on Sept 15, 2018 
