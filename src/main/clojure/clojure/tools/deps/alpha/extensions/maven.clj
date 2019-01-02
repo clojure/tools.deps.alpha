@@ -17,7 +17,8 @@
 
     ;; maven-resolver-api
     [org.eclipse.aether RepositorySystem RepositorySystemSession]
-    [org.eclipse.aether.resolution ArtifactRequest ArtifactDescriptorRequest VersionRangeRequest]
+    [org.eclipse.aether.resolution ArtifactRequest ArtifactDescriptorRequest VersionRangeRequest
+                                   ArtifactResolutionException]
 
     ;; maven-resolver-util
     [org.eclipse.aether.util.version GenericVersionScheme]
@@ -88,14 +89,17 @@
 
 (defn- get-artifact
   [lib coord ^RepositorySystem system ^RepositorySystemSession session mvn-repos]
-  (let [artifact (maven/coord->artifact lib coord)
-        req (ArtifactRequest. artifact mvn-repos nil)
-        result (.resolveArtifact system session req)
-        exceptions (.getExceptions result)]
-    (cond
-      (.isResolved result) (.. result getArtifact getFile getAbsolutePath)
-      (.isMissing result) (throw (ex-info (str "Unable to download: [" lib (pr-str (:mvn/version coord)) "]") {:lib lib :coord coord}))
-      :else (throw (first (.getExceptions result))))))
+  (try
+    (let [artifact (maven/coord->artifact lib coord)
+          req (ArtifactRequest. artifact mvn-repos nil)
+          result (.resolveArtifact system session req)
+          exceptions (.getExceptions result)]
+      (cond
+        (.isResolved result) (.. result getArtifact getFile getAbsolutePath)
+        (.isMissing result) (throw (ex-info (str "Unable to download: [" lib (pr-str (:mvn/version coord)) "]") {:lib lib :coord coord}))
+        :else (throw (first (.getExceptions result)))))
+    (catch ArtifactResolutionException e
+      (throw (ex-info (.getMessage e) {:lib lib, :coord coord})))))
 
 (defmethod ext/coord-paths :mvn
   [lib coord _manifest {:keys [mvn/repos mvn/local-repo]}]
