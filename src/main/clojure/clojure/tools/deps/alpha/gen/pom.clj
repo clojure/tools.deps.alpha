@@ -23,7 +23,7 @@
 
 (defn- to-dep
   [[lib {:keys [mvn/version exclusions] :as coord}]]
-  (let [[artifact-id group-id classifier] (maven/lib->names lib)]
+  (let [[group-id artifact-id classifier] (maven/lib->names lib)]
     (if version
       (cond->
         [::pom/dependency
