@@ -174,7 +174,13 @@
     [(or (namespace lib) artifact-id) artifact-id classifier]))
 
 (defn coord->artifact
-  ^Artifact [lib {:keys [mvn/version extension] :or {extension "jar"}}]
+  ^Artifact [lib {:keys [mvn/version classifier extension] :or {extension "jar"} :as coord}]
+  (when classifier
+    (throw (ex-info (str "Invalid library spec:\n"
+                         (format "  %s %s\n" lib (dissoc coord :deps/manifest))
+                         ":classifier in Maven coordinates is no longer supported.\n"
+                         "Use groupId/artifactId$classifier in lib names instead.")
+                    {:lib lib, :coord coord})))
   (let [[group-id artifact-id classifier] (lib->names lib)
         version (or version "LATEST")
         artifact (DefaultArtifact. group-id artifact-id classifier extension version)]
