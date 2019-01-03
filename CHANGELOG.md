@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* next
+  * Make exclusions classifier aware
 * 0.6.474 on Jan 2, 2019
   * Error handling improvements when Maven artifact is not found
   * Error handling improvements for invalid deps.edn

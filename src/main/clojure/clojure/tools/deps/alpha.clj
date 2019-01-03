@@ -82,11 +82,13 @@
 
 (defn- excluded?
   [exclusions path lib]
-  (loop [search path]
-    (when (seq search)
-      (if (get-in exclusions [search lib])
-        true
-        (recur (pop search))))))
+  (let [lib-name (first (str/split (name lib) #"\$"))
+        base-lib (symbol (namespace lib) lib-name)]
+    (loop [search path]
+      (when (seq search)
+        (if (get-in exclusions [search base-lib])
+          true
+          (recur (pop search)))))))
 
 ;; version map
 
