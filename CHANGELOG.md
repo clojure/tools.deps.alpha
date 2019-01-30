@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* next
+  * TDEPS-114 Canonicalize Maven RELEASE or LATEST version marker
 * 0.6.480 on Jan 4, 2019
   * TDEPS-112 Make exclusions classifier aware
 * 0.6.474 on Jan 2, 2019
