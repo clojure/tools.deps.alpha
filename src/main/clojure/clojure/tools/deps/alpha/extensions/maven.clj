@@ -18,7 +18,7 @@
     ;; maven-resolver-api
     [org.eclipse.aether RepositorySystem RepositorySystemSession]
     [org.eclipse.aether.resolution ArtifactRequest ArtifactDescriptorRequest VersionRangeRequest
-                                   ArtifactResolutionException]
+                                   VersionRequest ArtifactResolutionException]
 
     ;; maven-resolver-util
     [org.eclipse.aether.util.version GenericVersionScheme]
@@ -30,7 +30,17 @@
 
 (defmethod ext/canonicalize :mvn
   [lib {:keys [:mvn/version] :as coord} {:keys [mvn/repos mvn/local-repo]}]
-  (if (maven/version-range? version)
+  (cond
+    (contains? #{"RELEASE" "LATEST"} version)
+    (let [local-repo (or local-repo maven/default-local-repo)
+          system (maven/make-system)
+          session (maven/make-session system local-repo)
+          artifact (maven/coord->artifact lib coord)
+          req (VersionRequest. artifact (mapv maven/remote-repo repos) nil)
+          result (.resolveVersion system session req)]
+      [lib (assoc coord :mvn/version (.getVersion result))])
+
+    (maven/version-range? version)
     (let [local-repo (or local-repo maven/default-local-repo)
           system (maven/make-system)
           session (maven/make-session system local-repo)
@@ -39,6 +49,8 @@
           result (.resolveVersionRange system session req)
           newest (.getHighestVersion result)]
       [lib (assoc coord :mvn/version (.toString newest))])
+
+    :else
     [lib coord]))
 
 (defmethod ext/lib-location :mvn
