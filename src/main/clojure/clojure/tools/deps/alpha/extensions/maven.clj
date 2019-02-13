@@ -38,7 +38,9 @@
           artifact (maven/coord->artifact lib coord)
           req (VersionRequest. artifact (mapv maven/remote-repo repos) nil)
           result (.resolveVersion system session req)]
-      [lib (assoc coord :mvn/version (.getVersion result))])
+      (if result
+        [lib (assoc coord :mvn/version (.getVersion result))]
+        (throw (ex-info (str "Unable to resolve " lib " version: " version) {:lib lib :coord coord}))))
 
     (maven/version-range? version)
     (let [local-repo (or local-repo maven/default-local-repo)
@@ -46,9 +48,10 @@
           session (maven/make-session system local-repo)
           artifact (maven/coord->artifact lib coord)
           req (VersionRangeRequest. artifact (mapv maven/remote-repo repos) nil)
-          result (.resolveVersionRange system session req)
-          newest (.getHighestVersion result)]
-      [lib (assoc coord :mvn/version (.toString newest))])
+          result (.resolveVersionRange system session req)]
+      (if (and result (.getHighestVersion result))
+        [lib (assoc coord :mvn/version (.toString (.getHighestVersion result)))]
+        (throw (ex-info (str "Unable to resolve " lib " version: " version) {:lib lib :coord coord}))))
 
     :else
     [lib coord]))
