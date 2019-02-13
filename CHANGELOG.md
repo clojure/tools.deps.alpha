@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* next
+* 0.6.488 on Feb 13, 2019
   * TDEPS-114 Canonicalize Maven RELEASE or LATEST version marker
   * Add error handling for unresolvable Maven version
 * 0.6.480 on Jan 4, 2019
