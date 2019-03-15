@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* next
+  * TDEPS-74 Fix resolution of relative paths in transitive local deps
 * 0.6.488 on Feb 13, 2019
   * TDEPS-114 Canonicalize Maven RELEASE or LATEST version marker
   * Add error handling for unresolvable Maven version
