@@ -2,7 +2,11 @@
   (:require
     [clojure.test :refer :all]
     [clojure.tools.deps.alpha :as deps]
-    [clojure.tools.deps.alpha.extensions.faken :as fkn]))
+    [clojure.tools.deps.alpha.extensions :as ext]
+    [clojure.tools.deps.alpha.extensions.faken :as fkn]
+    [clojure.tools.deps.alpha.util.dir :as dir])
+  (:import
+    [java.io File]))
 
 (deftest merge-alias-maps
   (are [m1 m2 out]
@@ -134,3 +138,14 @@
     (is (= {:a "1", :b "1", :c "2"}
            (let [res (deps/resolve-deps {:deps {'ex/a {:fkn/version "1"}}} nil)]
              (reduce-kv #(assoc %1 (-> %2 name keyword) (:fkn/version %3)) {} res))))))
+
+(deftest test-local-root
+  (let [base (.getCanonicalFile (File. "."))]
+    (testing "a relative local root canonicalizes relative to parent dep"
+      (binding [dir/*the-dir* base]
+        (is (= ['ex/b {:local/root (.getPath (.getCanonicalFile (File. base "b")))}]
+               (ext/canonicalize 'ex/b {:local/root "b"} {})))))
+    (testing "an absolute local root canonicalizes to itself"
+      (binding [dir/*the-dir* base]
+        (is (= ['ex/b {:local/root "/b"}]
+               (ext/canonicalize 'ex/b {:local/root "/b"} {})))))))

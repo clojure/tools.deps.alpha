@@ -8,8 +8,10 @@
 
 (ns clojure.tools.deps.alpha
   (:require
+    [clojure.java.io :as jio]
     [clojure.pprint :refer [pprint]]
     [clojure.string :as str]
+    [clojure.tools.deps.alpha.util.dir :as dir]
     [clojure.tools.deps.alpha.extensions :as ext]
 
     ;; Load extensions
@@ -184,9 +186,10 @@
         (when verbose (println "Expanding" lib coord-id))
         (if-let [action (include-coord? version-map lib use-coord coord-id parents exclusions verbose)]
           (let [use-path (conj parents lib)
-                {manifest-type :deps/manifest :as manifest-info} (ext/manifest-type lib use-coord config)
+                {:deps/keys [manifest root] :as manifest-info} (ext/manifest-type lib use-coord config)
                 use-coord (merge use-coord manifest-info)
-                children (canonicalize-deps (ext/coord-deps lib use-coord manifest-type config) config)
+                children (dir/with-dir (if root (jio/file root) dir/*the-dir*)
+                           (canonicalize-deps (ext/coord-deps lib use-coord manifest config) config))
                 child-paths (map #(conj use-path %) children)
                 vmap' (add-coord version-map lib coord-id use-coord parents action config verbose)]
             (if vmap'

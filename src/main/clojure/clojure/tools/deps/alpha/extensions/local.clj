@@ -11,7 +11,8 @@
     [clojure.java.io :as jio]
     [clojure.string :as str]
     [clojure.tools.deps.alpha.extensions :as ext]
-    [clojure.tools.deps.alpha.extensions.pom :as pom])
+    [clojure.tools.deps.alpha.extensions.pom :as pom]
+    [clojure.tools.deps.alpha.util.dir :as dir])
   (:import
     [java.io File IOException]
     [java.net URL]
@@ -23,6 +24,10 @@
   [lib {:keys [local/root] :as coord} config]
   {:lib lib
    :root root})
+
+(defmethod ext/canonicalize :local
+  [lib {:keys [local/root] :as coord} config]
+  [lib (assoc coord :local/root (.getCanonicalPath (dir/canonicalize (jio/file root))))])
 
 (defmethod ext/lib-location :local
   [lib {:keys [local/root]} config]
