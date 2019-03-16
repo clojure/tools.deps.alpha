@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* next
+* 0.6.496 on Mar 16, 2019
   * TDEPS-74 Fix resolution of relative paths in transitive local deps
   * TDEPS-20 Support Maven proxy settings
 * 0.6.488 on Feb 13, 2019
