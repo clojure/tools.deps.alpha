@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* next on June 28, 2019
+* 0.7.505 on June 28, 2019
   * TDEPS-52 Embed install deps.edn, fix path gen on deps with no paths
   * TDEPS-96 Generate pom source path relative to transitive root dir
   * TDEPS-88 Resolve meaning of -Srepro (include install deps, ignore ~/.clojure)
