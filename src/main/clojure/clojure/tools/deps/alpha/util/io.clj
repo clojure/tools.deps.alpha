@@ -11,7 +11,7 @@
     [clojure.edn :as edn]
     [clojure.java.io :as jio])
   (:import
-    [java.io FileReader PushbackReader]))
+    [java.io Reader FileReader PushbackReader]))
 
 (defn printerrln
   "println to *err*"
@@ -19,21 +19,25 @@
   (binding [*out* *err*]
     (apply println msgs)))
 
-(defn slurp-edn
-  "Read the edn file specified by f, a string or File.
-  An empty file will return nil."
-  [f]
-  (let [EOF (Object.)
-        fi (jio/file f)]
-    (with-open [rdr (PushbackReader. (FileReader. fi))]
+(defn read-edn
+  "Read the edn file from the specified `reader`.
+  This file should contain a single edn value. Empty files return nil.
+  The reader will be read to EOF and closed."
+  [^Reader reader]
+  (let [EOF (Object.)]
+    (with-open [rdr (PushbackReader. reader)]
       (let [val (edn/read {:eof EOF} rdr)]
         (if (identical? EOF val)
           nil
           (if (not (identical? EOF (edn/read {:eof EOF} rdr)))
-            (let [file-name (.getCanonicalPath fi)]
-              (throw (ex-info (str "Invalid file, expected edn to contain a single map: " file-name)
-                       {:file file-name})))
+            (throw (ex-info "Invalid file, expected edn to contain a single value." {}))
             val))))))
+
+(defn slurp-edn
+  "Read the edn file specified by f, a string or File.
+  An empty file will return nil."
+  [f]
+  (read-edn (FileReader. (jio/file f))))
 
 (defn write-file
   "Write the string s to file f. Creates parent directories for f if they don't exist."

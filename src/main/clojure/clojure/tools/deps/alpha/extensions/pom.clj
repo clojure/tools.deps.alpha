@@ -96,7 +96,7 @@
   [_lib {:keys [deps/root] :as coord} _mf config]
   (let [pom (jio/file root "pom.xml")
         model (read-model-file pom config)
-        srcs [(.getCanonicalPath (jio/file (.. model getBuild getSourceDirectory)))
+        srcs [(.getCanonicalPath (jio/file root (.. model getBuild getSourceDirectory)))
               (.getCanonicalPath (jio/file root "src/main/clojure"))]]
     (distinct srcs)))
 

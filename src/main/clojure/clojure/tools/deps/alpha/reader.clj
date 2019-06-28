@@ -8,13 +8,16 @@
 
 (ns clojure.tools.deps.alpha.reader
   (:require [clojure.edn :as edn]
+            [clojure.java.io :as jio]
             [clojure.java.shell :as sh]
             [clojure.string :as str]
             [clojure.walk :as walk]
             [clojure.tools.deps.alpha.util.coll :as coll]
             [clojure.tools.deps.alpha.util.io :as io])
-  (:import [java.io File IOException FileReader PushbackReader]
+  (:import [java.io File InputStreamReader BufferedReader]
            [clojure.lang EdnReader$ReaderException]))
+
+(set! *warn-on-reflection* true)
 
 (defn- scrape-clojure-env
   []
@@ -78,8 +81,20 @@
   [deps-maps]
   (apply merge-with merge-or-replace deps-maps))
 
-(defn read-deps
-  "Read a set of user deps.edn files and merge them left to right into a single deps map."
-  [deps-files]
-  (->> deps-files (map slurp-deps) merge-deps))
+(def ^:const install-deps-path
+  "Resource path to the install deps.edn resource"
+  "clojure/tools/deps/deps.edn")
 
+(defn install-deps
+  "Read the install deps.edn resource from the classpath"
+  []
+  (let [url (jio/resource install-deps-path)]
+    (io/read-edn (BufferedReader. (InputStreamReader. (.openStream url))))))
+
+(defn read-deps
+  "Read the built-in clojure/tools/deps/deps.edn resource, and a set of deps-files,
+  and merge them left to right into a single deps map."
+  [deps-files]
+  (let [built-in (install-deps)
+        dep-maps (map slurp-deps deps-files)]
+    (merge-deps (into [built-in] dep-maps))))

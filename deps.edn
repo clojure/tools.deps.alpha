@@ -1,4 +1,4 @@
-{:paths ["src/main/clojure"]
+{:paths ["src/main/clojure" "src/main/resources"]
  :deps {
    org.clojure/clojure {:mvn/version "1.9.0"}
    org.apache.maven.resolver/maven-resolver-api {:mvn/version "1.1.1"}
