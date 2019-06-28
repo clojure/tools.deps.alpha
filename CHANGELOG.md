@@ -1,6 +1,10 @@
 Changelog
 ===========
 
+* next on June 28, 2019
+  * TDEPS-52 Embed install deps.edn, fix path gen on deps with no paths
+  * TDEPS-96 Generate pom source path relative to transitive root dir
+  * TDEPS-88 Resolve meaning of -Srepro (include install deps, ignore ~/.clojure)
 * 0.6.496 on Mar 16, 2019
   * TDEPS-74 Fix resolution of relative paths in transitive local deps
   * TDEPS-20 Support Maven proxy settings
