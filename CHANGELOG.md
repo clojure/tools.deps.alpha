@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* next on June 29, 2019
+  * Fix regression on default clojure version in install
 * 0.7.505 on June 28, 2019
   * TDEPS-52 Embed install deps.edn, fix path gen on deps with no paths
   * TDEPS-96 Generate pom source path relative to transitive root dir
