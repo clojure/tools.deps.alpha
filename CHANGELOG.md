@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* next
+  * Add ctda.reader/default-deps to duplicate the deps.edn file logic in clj
 * 0.7.511 on June 29, 2019
   * Fix regression on default clojure version in install
 * 0.7.505 on June 28, 2019

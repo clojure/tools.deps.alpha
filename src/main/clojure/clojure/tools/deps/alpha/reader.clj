@@ -12,6 +12,7 @@
             [clojure.java.shell :as sh]
             [clojure.string :as str]
             [clojure.walk :as walk]
+            [clojure.tools.deps.alpha.util.dir :as dir]
             [clojure.tools.deps.alpha.util.coll :as coll]
             [clojure.tools.deps.alpha.util.io :as io])
   (:import [java.io File InputStreamReader BufferedReader]
@@ -98,3 +99,18 @@
   (let [built-in (install-deps)
         dep-maps (map slurp-deps deps-files)]
     (merge-deps (into [built-in] dep-maps))))
+
+(defn default-deps
+  "Use the same logic as clj to build the set of deps.edn files to load.
+  These can be passed to read-deps to replicate what clj does."
+  []
+  (let [config-env (System/getenv "CLJ_CONFIG")
+        xdg-env (System/getenv "XDG_CONFIG_HOME")
+        home (System/getProperty "user.home")
+        config-dir (cond config-env config-env
+                         xdg-env (str xdg-env File/separator "clojure")
+                         :else (str home File/separator ".clojure"))
+        config-deps (str config-dir File/separator "deps.edn")
+        project-deps (str dir/*the-dir* File/separator "deps.edn")]
+    (->> [config-deps project-deps]
+      (filterv #(-> % jio/file .exists)))))
