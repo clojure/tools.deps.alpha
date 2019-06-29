@@ -22,14 +22,17 @@
 
 (defn- scrape-clojure-env
   []
+  (io/printerrln "WARNING: clojure-env has been deprecated and will be removed.")
   (let [{:keys [out exit] :as result} (sh/sh "clojure" "-Sdescribe")]
     (if (zero? exit)
       (read-string out)
       (throw (ex-info "Unable to locate Clojure's edn files" result)))))
 
-(def clojure-env
+(def ^{:deprecated "0.7.516"} clojure-env
   "Returns a map describing the environment known to clj/clojure:
-  {:config-files [ ... ]}"
+  {:config-files [ ... ]}.
+
+  DEPRECATED - use (reader/default-deps) instead!"
   (memoize scrape-clojure-env))
 
 (defn- io-err
