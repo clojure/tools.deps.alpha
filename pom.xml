@@ -18,10 +18,14 @@
   </developers>
 
   <properties>
+    <!-- used for build -->
     <clojure.warnOnReflection>true</clojure.warnOnReflection>
     <clojure.version>1.9.0</clojure.version>
     <resolverVersion>1.1.1</resolverVersion>
     <mavenVersion>3.5.2</mavenVersion>
+
+    <!-- default published in install deps.edn -->
+    <clojure.default>1.10.1</clojure.default>
   </properties>
 
   <dependencies>
