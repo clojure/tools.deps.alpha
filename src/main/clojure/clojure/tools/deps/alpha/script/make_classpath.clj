@@ -61,11 +61,18 @@
     {:lib-map libs
      :classpath cp}))
 
+(defn- check-aliases
+  "Check that all aliases are known and warn if aliases are undeclared"
+  [deps aliases]
+  (when-let [unknown (seq (remove #(contains? (:aliases deps) %) (distinct aliases)))]
+    (printerrln "WARNING: Specified aliases are undeclared:" (vec unknown))))
+
 (defn run
   "Run make-classpath script. See -main for details."
   [{:keys [libs-file cp-file jvm-file main-file skip-cp
-           jvmopt-aliases main-aliases aliases] :as opts}]
+           resolve-aliases makecp-aliases jvmopt-aliases main-aliases aliases] :as opts}]
   (let [deps-map (combine-deps-files opts)]
+    (check-aliases deps-map (concat resolve-aliases makecp-aliases jvmopt-aliases main-aliases aliases))
     (when-not skip-cp
       (let [{:keys [lib-map classpath]} (create-classpath deps-map opts)]
         (io/write-file libs-file (pr-str lib-map))

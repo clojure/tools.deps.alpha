@@ -4,6 +4,7 @@ Changelog
 * next
   * Deprecate and warn for clojure.tools.deps.alpha.reader/clojure-env
   * TDEPS-134 - use Maven mirrors
+  * Change unknown aliases from error to warning
 * 0.7.516 on June 29, 2019
   * Add ctda.reader/default-deps to duplicate the deps.edn file logic in clj
 * 0.7.511 on June 29, 2019
