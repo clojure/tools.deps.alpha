@@ -40,10 +40,10 @@
     [org.apache.maven.repository.internal MavenRepositorySystemUtils]
 
     ;; maven-resolver-util
-    [org.eclipse.aether.util.repository AuthenticationBuilder DefaultProxySelector]
+    [org.eclipse.aether.util.repository AuthenticationBuilder DefaultProxySelector DefaultMirrorSelector]
 
     ;; maven-core
-    [org.apache.maven.settings DefaultMavenSettingsBuilder Settings]
+    [org.apache.maven.settings DefaultMavenSettingsBuilder Settings Server Mirror]
 
     ;; maven-settings-builder
     [org.apache.maven.settings.building DefaultSettingsBuilderFactory]
@@ -68,6 +68,20 @@
     (doto (DefaultMavenSettingsBuilder.)
       (set-settings-builder (.newInstance (DefaultSettingsBuilderFactory.))))))
 
+(defn- select-mirror
+  ^RemoteRepository [^Settings settings ^RemoteRepository repo]
+  (let [mirrors (.getMirrors settings)
+        selector (DefaultMirrorSelector.)]
+    (run! (fn [^Mirror mirror] (.add selector
+                                 (.getName mirror)
+                                 (.getUrl mirror)
+                                 (.getLayout mirror)
+                                 false
+                                 (.getMirrorOf mirror)
+                                 (.getMirrorOfLayouts mirror)))
+      mirrors)
+    (.getMirror selector repo)))
+
 (defn- select-proxy
   ^Proxy [^Settings settings ^RemoteRepository repo]
   (->> (.getProxies settings)
@@ -87,27 +101,22 @@
 
 (defn remote-repo
   ^RemoteRepository [[^String name {:keys [url]}]]
-  (let [repository (RemoteRepository$Builder. name "default" url)
-        settings (get-settings)
-        ^org.apache.maven.settings.Server server-setting
-        (first (filter
-                 #(.equalsIgnoreCase name
-                                     (.getId ^org.apache.maven.settings.Server %))
-                 (.getServers settings)))
-        ;; Need to build RemoteRepository preliminarily here in order to use
-        ;; ProxySelector to take nonProxyHosts setting into account
-        proxy (select-proxy settings (.build repository))]
-    (cond-> repository
-      server-setting
-      (.setAuthentication (-> (AuthenticationBuilder.)
-                              (.addUsername (.getUsername server-setting))
-                              (.addPassword (.getPassword server-setting))
-                              (.addPrivateKey (.getPrivateKey server-setting)
-                                              (.getPassphrase server-setting))
-                              (.build)))
-      proxy
-      (.setProxy proxy)
-      true
+  (let [^Settings settings (get-settings)
+        builder (RemoteRepository$Builder. name "default" url)
+        maybe-repo (.build builder)
+        mirror (select-mirror settings maybe-repo)
+        proxy (select-proxy settings (or mirror maybe-repo))
+        ^Server server-setting (->> (.getServers settings) (filter #(= name (.getId ^Server %))) first)]
+    (->
+      (cond-> builder
+        mirror (.setUrl (.getUrl mirror))
+        server-setting (.setAuthentication
+                         (-> (AuthenticationBuilder.)
+                           (.addUsername (.getUsername server-setting))
+                           (.addPassword (.getPassword server-setting))
+                           (.addPrivateKey (.getPrivateKey server-setting) (.getPassphrase server-setting))
+                           (.build)))
+        proxy (.setProxy proxy))
       (.build))))
 
 ;; Local repository
