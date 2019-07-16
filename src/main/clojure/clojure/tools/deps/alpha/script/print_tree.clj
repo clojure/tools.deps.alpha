@@ -24,7 +24,7 @@
     (deps/print-tree lib-map)))
 
 (defn -main
-  "Main entry point for make-classpath script.
+  "Main entry point for print-tree script.
 
   Required:
     --libs-file=path - libs file
