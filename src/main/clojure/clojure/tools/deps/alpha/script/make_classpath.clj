@@ -61,7 +61,7 @@
     {:lib-map libs
      :classpath cp}))
 
-(defn- check-aliases
+(defn check-aliases
   "Check that all aliases are known and warn if aliases are undeclared"
   [deps aliases]
   (when-let [unknown (seq (remove #(contains? (:aliases deps) %) (distinct aliases)))]
