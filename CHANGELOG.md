@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* next
+* 0.7.527 on July 17, 2019
   * Deprecate and warn for clojure.tools.deps.alpha.reader/clojure-env
   * TDEPS-134 - use Maven mirrors
   * Change unknown aliases from error to warning
