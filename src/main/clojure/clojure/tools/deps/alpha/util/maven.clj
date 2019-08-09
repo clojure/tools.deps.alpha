@@ -13,7 +13,7 @@
     [clojure.tools.deps.alpha.util.io :refer [printerrln]])
   (:import
     ;; maven-resolver-api
-    [org.eclipse.aether RepositorySystem RepositorySystemSession]
+    [org.eclipse.aether RepositorySystem RepositorySystemSession DefaultRepositoryCache]
     [org.eclipse.aether.artifact Artifact DefaultArtifact]
     [org.eclipse.aether.repository LocalRepository Proxy RemoteRepository RemoteRepository$Builder]
     [org.eclipse.aether.graph Dependency Exclusion]
@@ -173,6 +173,7 @@
         local-repo-mgr (.newLocalRepositoryManager system session (make-local-repo local-repo))]
     (.setLocalRepositoryManager session local-repo-mgr)
     (.setTransferListener session console-listener)
+    (.setCache session (DefaultRepositoryCache.))
     session))
 
 (defn exclusions->data

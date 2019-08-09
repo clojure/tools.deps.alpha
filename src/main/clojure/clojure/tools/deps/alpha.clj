@@ -374,4 +374,15 @@
                   :sha "ecea2539a724a415b15e50f12815b4ab115cfd35"}}}
     nil)
 
+  (require '[clojure.tools.deps.alpha.util.session :as session])
+  (time
+    (do
+      (session/with-session
+        (resolve-deps
+          {:deps {'com.google.cloud/google-cloud-monitoring {:mvn/version "1.78.0"}}
+           :mvn/repos (merge mvn/standard-repos
+                        {"datomic-cloud" {:url "s3://datomic-releases-1fc2183a/maven/releases"}})}
+          nil))
+      nil))
+
   )
