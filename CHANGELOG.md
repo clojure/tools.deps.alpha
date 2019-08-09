@@ -3,6 +3,7 @@ Changelog
 
 * next
   * Fix: exclusions were not canonicalized and may fail to match and exclude
+  * Perf: cache Maven resources and use Maven repository cache
 * 0.7.527 on July 17, 2019
   * Deprecate and warn for clojure.tools.deps.alpha.reader/clojure-env
   * TDEPS-134 - use Maven mirrors
