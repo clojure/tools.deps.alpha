@@ -69,6 +69,10 @@
              (symbol (.getGroupId exclusion) (.getArtifactId exclusion))))
       exclusions)))
 
+(defn- is-compile
+  [^Dependency dep]
+  (contains? #{"compile" "runtime"} (.getScope dep)))
+
 (defn- model-dep->data
   [^Dependency dep]
   (let [scope (.getScope dep)
@@ -84,7 +88,9 @@
 
 (defn model-deps
   [^Model model]
-  (map model-dep->data (.getDependencies model)))
+  (->> (.getDependencies model)
+    (filter is-compile)
+    (map model-dep->data)))
 
 (defmethod ext/coord-deps :pom
   [_lib {:keys [deps/root] :as coord} _mf config]

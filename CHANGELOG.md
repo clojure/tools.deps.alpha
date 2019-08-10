@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* next
+  * Fix: pom deps should include only compile and runtime deps
 * 0.7.537 on Aug 9, 2019 
   * Fix: exclusions were not canonicalized and may fail to match and exclude
   * Perf: cache Maven resources and use Maven repository cache
