@@ -12,7 +12,6 @@
    org.apache.maven/maven-resolver-provider {:mvn/version "3.5.2"}
    org.apache.maven/maven-core {:mvn/version "3.5.2"}
    org.apache.maven/maven-settings-builder {:mvn/version "3.5.2"}
-   org.slf4j/slf4j-nop {:mvn/version "1.6.2"}
    org.clojure/data.xml {:mvn/version "0.2.0-alpha5"}
    s3-wagon-private/s3-wagon-private {:mvn/version "1.3.1" :exclusions [org.springframework.build/aws-maven]}
    org.springframework.build/aws-maven {:mvn/version "5.0.0.RELEASE" :exclusions [ch.qos.logback/logback-classic com.amazonaws/aws-java-sdk]}

@@ -3,6 +3,7 @@ Changelog
 
 * next
   * Fix: pom deps should include only compile and runtime deps
+  * Fix: remove slf4j-nop as dep - let consumers choose
 * 0.7.537 on Aug 9, 2019 
   * Fix: exclusions were not canonicalized and may fail to match and exclude
   * Perf: cache Maven resources and use Maven repository cache
