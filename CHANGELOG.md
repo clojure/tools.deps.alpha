@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* next
+* 0.7.537 on Aug 9, 2019 
   * Fix: exclusions were not canonicalized and may fail to match and exclude
   * Perf: cache Maven resources and use Maven repository cache
 * 0.7.527 on July 17, 2019
