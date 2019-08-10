@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* next
+* 0.7.541 on Aug 9, 2019
   * Fix: pom deps should include only compile and runtime deps
   * Fix: remove slf4j-nop as dep - let consumers choose
 * 0.7.537 on Aug 9, 2019 
