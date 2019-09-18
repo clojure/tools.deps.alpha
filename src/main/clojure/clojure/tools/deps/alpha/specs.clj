@@ -21,7 +21,7 @@
 (s/def :mvn/coord (s/keys :req [:mvn/version] :opt-un [::path ::exclusions]))
 
 (s/def :local/root string?)
-(s/def :local/coord (s/keys :req-un [:local/root] :opt-un [::path]))
+(s/def :local/coord (s/keys :req [:local/root] :opt-un [::path]))
 
 (s/def :git/url string?)
 (s/def :git/coord (s/keys :req [:git/url]))
