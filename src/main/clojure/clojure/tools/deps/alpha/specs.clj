@@ -24,7 +24,8 @@
 (s/def :local/coord (s/keys :req [:local/root] :opt-un [::path]))
 
 (s/def :git/url string?)
-(s/def :git/coord (s/keys :req [:git/url]))
+(s/def :git/sha string?)
+(s/def :git/coord (s/keys :req [:git/url] :req-un [:git/sha]))
 
 ;; should this become a multipec?
 (s/def ::coord (s/or :mvn :mvn/coord
