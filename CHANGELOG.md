@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* next on Sep 17, 2019
+* 0.7.549 on Sep 17, 2019
   * Fix: spec error for :local/root and missing required key :sha for git coords
 * 0.7.541 on Aug 9, 2019
   * Fix: pom deps should include only compile and runtime deps
