@@ -119,7 +119,8 @@
 (defn- parse-xml
   [^Reader rdr]
   (let [roots (tree/seq-tree event/event-element event/event-exit? event/event-node
-                (xml/event-seq rdr {:include-node? #{:element :characters :comment}}))]
+                (xml/event-seq rdr {:include-node? #{:element :characters :comment}
+                                    :skip-whitespace true}))]
     (first (filter #(instance? Element %) (first roots)))))
 
 (defn sync-pom
