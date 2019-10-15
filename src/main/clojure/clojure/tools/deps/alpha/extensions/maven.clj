@@ -58,7 +58,7 @@
     [lib coord]))
 
 (defmethod ext/lib-location :mvn
-  [lib {:keys [mvn/version]} {:keys [mvn/repos mvn/local-repo]}]
+  [lib {:keys [mvn/version]} {:keys [mvn/local-repo]}]
   (let [[group-id artifact-id classifier] (maven/lib->names lib)]
     {:base (or local-repo maven/default-local-repo)
      :path (.getPath ^File
@@ -68,11 +68,11 @@
      :type :mvn}))
 
 (defmethod ext/dep-id :mvn
-  [lib coord config]
+  [_lib coord _config]
   (select-keys coord [:mvn/version]))
 
 (defmethod ext/manifest-type :mvn
-  [lib coord config]
+  [_lib _coord _config]
   {:deps/manifest :mvn})
 
 (defmethod ext/coord-summary :mvn [lib {:keys [mvn/version]}]
@@ -80,11 +80,11 @@
 
 (defonce ^:private version-scheme (GenericVersionScheme.))
 
-(defn- parse-version [{version :mvn/version :as coord}]
+(defn- parse-version [{version :mvn/version :as _coord}]
   (.parseVersion ^GenericVersionScheme version-scheme ^String version))
 
 (defmethod ext/compare-versions [:mvn :mvn]
-  [lib coord-x coord-y config]
+  [_lib coord-x coord-y _config]
   (apply compare (map parse-version [coord-x coord-y])))
 
 (defmethod ext/coord-deps :mvn
@@ -109,8 +109,7 @@
   (try
     (let [artifact (maven/coord->artifact lib coord)
           req (ArtifactRequest. artifact mvn-repos nil)
-          result (.resolveArtifact system session req)
-          exceptions (.getExceptions result)]
+          result (.resolveArtifact system session req)]
       (cond
         (.isResolved result) (.. result getArtifact getFile getAbsolutePath)
         (.isMissing result) (throw (ex-info (str "Unable to download: [" lib (pr-str (:mvn/version coord)) "]") {:lib lib :coord coord}))

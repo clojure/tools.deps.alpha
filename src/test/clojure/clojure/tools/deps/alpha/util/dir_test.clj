@@ -9,7 +9,7 @@
 (ns clojure.tools.deps.alpha.util.dir-test
   (:require
     [clojure.tools.deps.alpha.util.dir :as dir]
-    [clojure.test :refer :all])
+    [clojure.test :refer [deftest is]])
   (:import
     [java.io File]))
 

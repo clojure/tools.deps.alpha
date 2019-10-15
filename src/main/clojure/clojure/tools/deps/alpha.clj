@@ -19,8 +19,7 @@
     [clojure.tools.deps.alpha.extensions.local]
     [clojure.tools.deps.alpha.extensions.git]
     [clojure.tools.deps.alpha.extensions.deps]
-    [clojure.tools.deps.alpha.extensions.pom]
-    [clojure.tools.deps.alpha.util.io :as io])
+    [clojure.tools.deps.alpha.extensions.pom])
   (:import
     [clojure.lang PersistentQueue]
     [java.io File]))
@@ -94,7 +93,7 @@
 ;;       :pin      true}                ;; if selection is pinned
 
 (defn- parent-missing?
-  [vmap lib path]
+  [vmap path]
   (when (seq path)
     (let [parent-lib (last path)
           parent-path (vec (butlast path))
@@ -102,7 +101,7 @@
       (not (contains? (get paths select) parent-path)))))
 
 (defn- include-coord?
-  [vmap lib coord coord-id path exclusions verbose]
+  [vmap lib path exclusions verbose]
   (cond
     ;; lib is a top dep and this is it => select and pin
     (empty? path) :pin
@@ -118,7 +117,7 @@
         nil)
 
     ;; lib's parent path is not included => omit
-    (parent-missing? vmap lib path)
+    (parent-missing? vmap path)
     (do (when verbose (println "\t=> skip, path to dep no longer included" path))
         nil)
 
@@ -178,7 +177,7 @@
                             :else (get default-deps lib))
             coord-id (ext/dep-id lib use-coord config)]
         (when verbose (println "Expanding" lib coord-id))
-        (if-let [action (include-coord? version-map lib use-coord coord-id parents exclusions verbose)]
+        (if-let [action (include-coord? version-map lib parents exclusions verbose)]
           (let [use-path (conj parents lib)
                 {:deps/keys [manifest root] :as manifest-info} (ext/manifest-type lib use-coord config)
                 use-coord (merge use-coord manifest-info)
@@ -223,7 +222,7 @@
     :default-deps - a map from lib to coord of deps to use if no coord specified
 
   Returns a lib map (map of lib to coordinate chosen)."
-  [{:keys [deps] :as deps-map} args-map]
+  [deps-map args-map]
   (let [{:keys [extra-deps default-deps override-deps verbose]} args-map
         deps (merge (or (:deps args-map) (:deps deps-map)) extra-deps)]
     (when verbose

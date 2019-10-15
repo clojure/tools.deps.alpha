@@ -19,7 +19,7 @@
 
 (defn run
   "Run print-tree script. See -main for details."
-  [{:keys [libs-file] :as options}]
+  [{:keys [libs-file] :as _options}]
   (let [lib-map (io/slurp-edn libs-file)]
     (deps/print-tree lib-map)))
 

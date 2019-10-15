@@ -13,7 +13,7 @@
     [clojure.tools.gitlibs :as gitlibs]))
 
 (defmethod ext/canonicalize :git
-  [lib {:keys [git/url sha tag rev] :as coord} config]
+  [lib {:keys [sha tag rev] :as coord} _config]
   (let [lib (if (nil? (namespace lib))
               (symbol (name lib) (name lib))
               lib)]
@@ -33,11 +33,11 @@
    :type :git})
 
 (defmethod ext/dep-id :git
-  [lib coord config]
+  [_lib coord _config]
   (select-keys coord [:git/url :sha]))
 
 (defmethod ext/manifest-type :git
-  [lib {:keys [git/url sha deps/manifest deps/root] :as coord} config]
+  [lib {:keys [git/url sha deps/manifest deps/root] :as _coord} _config]
   (let [sha-dir (gitlibs/procure url lib sha)
         root-dir (if root
                    (.getCanonicalPath (jio/file sha-dir root))
@@ -53,7 +53,7 @@
 ;; negative if x is parent of y (y derives from x)
 ;; positive if y is parent of x (x derives from y)
 (defmethod ext/compare-versions [:git :git]
-  [lib {x-url :git/url, x-sha :sha :as x} {y-url :git/url, y-sha :sha :as y} config]
+  [_lib {x-url :git/url, x-sha :sha :as x} {y-url :git/url, y-sha :sha :as y} _config]
   (if (= x-sha y-sha)
     0
     (let [desc (if (= x-url y-url)
@@ -73,6 +73,7 @@
                     {:git/url "https://github.com/clojure/core.async.git"
                      :sha "ecea2539a724a415b15e50f12815b4ab115cfd35"} {})
 
+  ;; error - prefix sha
   (ext/canonicalize 'org.clojure/spec.alpha
     {:git/url "https://github.com/clojure/spec.alpha.git" :sha "739c1af5"}
     nil)

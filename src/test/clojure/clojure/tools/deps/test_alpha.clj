@@ -1,6 +1,6 @@
 (ns clojure.tools.deps.test-alpha
   (:require
-    [clojure.test :refer :all]
+    [clojure.test :refer [deftest is are testing]]
     [clojure.tools.deps.alpha :as deps]
     [clojure.tools.deps.alpha.extensions :as ext]
     [clojure.tools.deps.alpha.extensions.faken :as fkn]
@@ -114,7 +114,7 @@
 
 ;; +a1 -> +b1 -> +x2 -> +y1
 ;; +c1 -> -x1 -> -z1
-(deftest test-dep-choice
+(deftest test-dep-choice2
   (fkn/with-libs
     {'ex/a {{:fkn/version "1"} [['ex/b {:fkn/version "1"}]]}
      'ex/b {{:fkn/version "1"} [['ex/x {:fkn/version "2"}]]}

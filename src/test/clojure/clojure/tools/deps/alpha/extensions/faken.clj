@@ -8,7 +8,6 @@
 
 (ns clojure.tools.deps.alpha.extensions.faken
   (:require
-    [clojure.java.io :as jio]
     [clojure.string :as str]
     [clojure.tools.deps.alpha.extensions :as ext])
   (:import
@@ -28,20 +27,20 @@
      ~@body))
 
 (defmethod ext/dep-id :fkn
-  [lib coord config]
+  [_lib coord _config]
   (select-keys coord [:fkn/version]))
 
 (defmethod ext/manifest-type :fkn
-  [lib coord config]
+  [_lib _coord _config]
   {:deps/manifest :fkn})
 
 (defonce ^:private version-scheme (GenericVersionScheme.))
 
-(defn- parse-version [{version :fkn/version :as coord}]
+(defn- parse-version [{version :fkn/version :as _coord}]
   (.parseVersion ^GenericVersionScheme version-scheme ^String version))
 
 (defmethod ext/compare-versions [:fkn :fkn]
-  [lib coord-x coord-y config]
+  [_lib coord-x coord-y _config]
   (apply compare (map parse-version [coord-x coord-y])))
 
 (defmethod ext/coord-deps :fkn

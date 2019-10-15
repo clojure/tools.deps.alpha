@@ -1,6 +1,6 @@
 (ns clojure.tools.deps.alpha.test-reader
   (:require
-    [clojure.test :refer :all]
+    [clojure.test :refer [deftest is are]]
     [clojure.tools.deps.alpha.reader :as reader]))
 
 (deftest test-merge-or-replace

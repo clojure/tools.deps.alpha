@@ -93,13 +93,13 @@
     (map model-dep->data)))
 
 (defmethod ext/coord-deps :pom
-  [_lib {:keys [deps/root] :as coord} _mf config]
+  [_lib {:keys [deps/root] :as _coord} _mf config]
   (let [pom (jio/file root "pom.xml")
         model (read-model-file pom config)]
     (model-deps model)))
 
 (defmethod ext/coord-paths :pom
-  [_lib {:keys [deps/root] :as coord} _mf config]
+  [_lib {:keys [deps/root] :as _coord} _mf config]
   (let [pom (jio/file root "pom.xml")
         model (read-model-file pom config)
         srcs [(.getCanonicalPath (jio/file root (.. model getBuild getSourceDirectory)))
