@@ -21,12 +21,12 @@
       config)))
 
 (defmethod ext/coord-deps :deps
-  [_lib {:keys [deps/root] :as coord} _mf config]
+  [_lib {:keys [deps/root] :as _coord} _mf config]
   (dir/with-dir (jio/file root)
     (seq (:deps (deps-map config root)))))
 
 (defmethod ext/coord-paths :deps
-  [_lib {:keys [deps/root] :as coord} _mf config]
+  [_lib {:keys [deps/root] :as _coord} _mf config]
   (dir/with-dir (jio/file root)
     (into []
       (map #(.getCanonicalPath (dir/canonicalize (jio/file %))))

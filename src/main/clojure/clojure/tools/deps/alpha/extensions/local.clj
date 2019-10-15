@@ -21,22 +21,22 @@
     [org.apache.maven.model.building UrlModelSource]))
 
 (defmethod ext/dep-id :local
-  [lib {:keys [local/root] :as coord} config]
+  [lib {:keys [local/root] :as _coord} _config]
   {:lib lib
    :root root})
 
 (defmethod ext/canonicalize :local
-  [lib {:keys [local/root] :as coord} config]
+  [lib {:keys [local/root] :as coord} _config]
   [lib (assoc coord :local/root (.getCanonicalPath (dir/canonicalize (jio/file root))))])
 
 (defmethod ext/lib-location :local
-  [lib {:keys [local/root]} config]
+  [_lib {:keys [local/root]} _config]
   {:base root
    :path ""
    :type :local})
 
 (defmethod ext/manifest-type :local
-  [lib {:keys [local/root deps/manifest] :as coord} config]
+  [_lib {:keys [local/root deps/manifest] :as _coord} _config]
   (cond
     manifest {:deps/manifest manifest :deps/root root}
     (.isFile (jio/file root)) {:deps/manifest :jar, :deps/root root}
@@ -56,10 +56,10 @@
                 (str/ends-with? name "pom.xml"))
             name
             (recur entries)))))
-    (catch IOException t nil)))
+    (catch IOException _t nil)))
 
 (defmethod ext/coord-deps :jar
-  [lib {:keys [local/root] :as coord} _manifest config]
+  [_lib {:keys [local/root] :as _coord} _manifest config]
   (let [jar (JarFile. (jio/file root))]
     (if-let [path (find-pom jar)]
       (let [url (URL. (str "jar:file:" root "!/" path))
@@ -69,5 +69,5 @@
       [])))
 
 (defmethod ext/coord-paths :jar
-  [lib coord _manifest config]
+  [_lib coord _manifest _config]
   [(:local/root coord)])

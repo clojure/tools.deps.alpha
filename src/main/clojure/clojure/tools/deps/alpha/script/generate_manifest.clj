@@ -8,11 +8,9 @@
 
 (ns clojure.tools.deps.alpha.script.generate-manifest
   (:require [clojure.java.io :as jio]
-            [clojure.string :as str]
             [clojure.tools.cli :as cli]
             [clojure.tools.deps.alpha :as deps]
             [clojure.tools.deps.alpha.gen.pom :as pom]
-            [clojure.tools.deps.alpha.reader :as reader]
             [clojure.tools.deps.alpha.script.parse :as parse]
             [clojure.tools.deps.alpha.script.make-classpath :as makecp]
             [clojure.tools.deps.alpha.util.io :refer [printerrln]])

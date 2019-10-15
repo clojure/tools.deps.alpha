@@ -7,8 +7,7 @@
 ;   You must not remove this notice, or any other, from this software.
 
 (ns clojure.tools.deps.alpha.reader
-  (:require [clojure.edn :as edn]
-            [clojure.java.io :as jio]
+  (:require [clojure.java.io :as jio]
             [clojure.java.shell :as sh]
             [clojure.string :as str]
             [clojure.walk :as walk]

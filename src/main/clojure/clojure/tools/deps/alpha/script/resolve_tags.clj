@@ -10,9 +10,7 @@
   (:require
     [clojure.java.io :as jio]
     [clojure.pprint :as pp]
-    [clojure.string :as str]
     [clojure.walk :as walk]
-    [clojure.tools.deps.alpha :as deps]
     [clojure.tools.deps.alpha.reader :as reader]
     [clojure.tools.deps.alpha.util.io :refer [printerrln]]
     [clojure.tools.gitlibs :as gitlibs]
