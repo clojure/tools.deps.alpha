@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* next
+* 0.8.559 on Oct 15, 2019
   * TDEPS-138 - add tools.deps.alpha.reader/user-deps-location function
   * TDEPS-29 - fix -Spom adding unnecessary newlines in Java 9+
   * Add :deps and :paths to aliases to "replace" main :deps and :paths
