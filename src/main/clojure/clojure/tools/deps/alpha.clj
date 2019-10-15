@@ -26,10 +26,12 @@
     [java.io File]))
 
 (def ^:private merge-alias-rules
-  {:extra-deps merge
+  {:deps merge
+   :extra-deps merge
    :override-deps merge
    :default-deps merge
    :classpath-overrides merge
+   :paths (comp vec distinct concat)
    :extra-paths (comp vec distinct concat)
    :jvm-opts (comp vec concat)
    :main-opts (comp last #(remove nil? %) vector)
@@ -215,14 +217,15 @@
   from the initial set of deps. args-map is a map with several keys (all
   optional) that can modify the results of the transitive expansion:
 
-    :extra-deps - a map from lib to coord of extra deps to include
+    :deps - a map from lib to coord that REPLACES the main deps
+    :extra-deps - a map from lib to coord of deps to ADD to the main deps
     :override-deps - a map from lib to coord of coord to use instead of those in the graph
     :default-deps - a map from lib to coord of deps to use if no coord specified
 
   Returns a lib map (map of lib to coordinate chosen)."
   [{:keys [deps] :as deps-map} args-map]
   (let [{:keys [extra-deps default-deps override-deps verbose]} args-map
-        deps (merge (:deps deps-map) extra-deps)]
+        deps (merge (or (:deps args-map) (:deps deps-map)) extra-deps)]
     (when verbose
       (println "Initial deps to expand:")
       (pprint deps))
@@ -262,14 +265,16 @@
   The classpath-args is a map with keys that can be used to modify the classpath
   building operation:
 
+    :paths - classpath paths that REPLACE the main :paths
+    :extra-paths - extra classpath paths to ADD to the classpath
     :classpath-overrides - a map of lib to path, where path is used instead of the coord's paths
-    :extra-paths - extra classpath paths to add to the classpath
+
 
   Returns the classpath as a string."
   [lib-map paths {:keys [classpath-overrides extra-paths] :as classpath-args}]
   (let [libs (merge-with (fn [coord path] (assoc coord :paths [path])) lib-map classpath-overrides)
         lib-paths (mapcat :paths (vals libs))]
-    (str/join File/pathSeparator (concat extra-paths paths lib-paths))))
+    (str/join File/pathSeparator (concat extra-paths (or (:paths classpath-args) paths) lib-paths))))
 
 (comment
   (require '[clojure.tools.deps.alpha.util.maven :as mvn])
@@ -320,6 +325,18 @@
                           'cheshire/cheshire {:mvn/version "5.8.0"}}
                    :mvn/repos mvn/standard-repos} nil))
 
+  ;; deps replacement
+  (clojure.pprint/pprint
+    (resolve-deps {:deps {'cheshire/cheshire {:mvn/version "5.8.0"}}
+                   :mvn/repos mvn/standard-repos}
+      {:deps {'org.clojure/tools.gitlibs {:mvn/version "0.2.64"}}}))
+
+  ;; deps addition
+  (clojure.pprint/pprint
+    (resolve-deps {:deps {'cheshire/cheshire {:mvn/version "5.8.0"}}
+                   :mvn/repos mvn/standard-repos}
+      {:extra-deps {'org.clojure/tools.gitlibs {:mvn/version "0.2.64"}}}))
+
   ;; override-deps
   (make-classpath
     (resolve-deps
@@ -334,6 +351,22 @@
       {:deps {'org.clojure/tools.deps.alpha {:mvn/version "0.1.40"}
               'org.clojure/clojure {:mvn/version "1.9.0-alpha17"}}
        :mvn/repos mvn/standard-repos} nil) nil nil)
+
+  ;; replace paths
+  (make-classpath
+    (resolve-deps
+      {:deps {'org.clojure/clojure {:mvn/version "1.10.0"}}
+       :mvn/repos mvn/standard-repos} nil)
+    ["src"]
+    {:paths ["replaced"]})
+
+  ;; extra paths
+  (make-classpath
+    (resolve-deps
+      {:deps {'org.clojure/clojure {:mvn/version "1.10.0"}}
+       :mvn/repos mvn/standard-repos} nil)
+    ["src"]
+    {:extra-paths ["replaced"]})
 
   ;; classpath overrides
   (make-classpath
@@ -373,5 +406,16 @@
     {:deps {'foo {:git/url "https://github.com/clojure/core.async.git"
                   :sha "ecea2539a724a415b15e50f12815b4ab115cfd35"}}}
     nil)
+
+  (require '[clojure.tools.deps.alpha.util.session :as session])
+  (time
+    (do
+      (session/with-session
+        (resolve-deps
+          {:deps {'com.google.cloud/google-cloud-monitoring {:mvn/version "1.78.0"}}
+           :mvn/repos (merge mvn/standard-repos
+                        {"datomic-cloud" {:url "s3://datomic-releases-1fc2183a/maven/releases"}})}
+          nil))
+      nil))
 
   )

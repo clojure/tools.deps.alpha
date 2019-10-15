@@ -8,7 +8,7 @@ Then go to this project's issue tracker in JIRA to create tickets, update
 tickets, or submit patches. For help in creating tickets and patches,
 please see:
 
-- Signing the CA: https://clojure.org/community/contributing
-- Creating Tickets: https://clojure.org/community/creating_tickets
-- Developing Patches: https://clojure.org/community/developing_patches
-- Contributing FAQ: https://clojure.org/community/contributing
+- Contributing FAQ: https://clojure.org/dev
+- Signing the CA: https://clojure.org/dev/contributor_agreement
+- Creating Tickets: https://clojure.org/dev/creating_tickets
+- Developing Patches: https://clojure.org/dev/developing_patches

@@ -11,7 +11,8 @@
     [clojure.java.io :as jio]
     [clojure.string :as str]
     [clojure.tools.deps.alpha.extensions :as ext]
-    [clojure.tools.deps.alpha.util.maven :as maven])
+    [clojure.tools.deps.alpha.util.maven :as maven]
+    [clojure.tools.deps.alpha.util.session :as session])
   (:import
     [java.io File]
 
@@ -33,8 +34,8 @@
   (cond
     (contains? #{"RELEASE" "LATEST"} version)
     (let [local-repo (or local-repo maven/default-local-repo)
-          system (maven/make-system)
-          session (maven/make-session system local-repo)
+          system ^RepositorySystem (session/retrieve :mvn/system #(maven/make-system))
+          session ^RepositorySystemSession (session/retrieve :mvn/session #(maven/make-session system local-repo))
           artifact (maven/coord->artifact lib coord)
           req (VersionRequest. artifact (mapv maven/remote-repo repos) nil)
           result (.resolveVersion system session req)]
@@ -44,8 +45,8 @@
 
     (maven/version-range? version)
     (let [local-repo (or local-repo maven/default-local-repo)
-          system (maven/make-system)
-          session (maven/make-session system local-repo)
+          system ^RepositorySystem (session/retrieve :mvn/system #(maven/make-system))
+          session ^RepositorySystemSession (session/retrieve :mvn/session #(maven/make-session system local-repo))
           artifact (maven/coord->artifact lib coord)
           req (VersionRangeRequest. artifact (mapv maven/remote-repo repos) nil)
           result (.resolveVersionRange system session req)]
@@ -89,10 +90,11 @@
 (defmethod ext/coord-deps :mvn
   [lib coord _manifest {:keys [mvn/repos mvn/local-repo]}]
   (let [local-repo (or local-repo maven/default-local-repo)
-        system (maven/make-system)
-        session (maven/make-session system local-repo)
+        system ^RepositorySystem (session/retrieve :mvn/system #(maven/make-system))
+        session ^RepositorySystemSession (session/retrieve :mvn/session #(maven/make-session system local-repo))
         artifact (maven/coord->artifact lib coord)
-        req (ArtifactDescriptorRequest. artifact (mapv maven/remote-repo repos) nil)
+        repos (mapv maven/remote-repo repos)
+        req (ArtifactDescriptorRequest. artifact repos nil)
         result (.readArtifactDescriptor system session req)]
     (into []
       (comp
@@ -120,8 +122,8 @@
   [lib coord _manifest {:keys [mvn/repos mvn/local-repo]}]
   (let [local-repo (or local-repo maven/default-local-repo)
         mvn-repos (mapv maven/remote-repo repos)
-        system (maven/make-system)
-        session (maven/make-session system local-repo)]
+        system ^RepositorySystem (session/retrieve :mvn/system #(maven/make-system))
+        session ^RepositorySystemSession (session/retrieve :mvn/session #(maven/make-session system local-repo))]
     [(get-artifact lib coord system session mvn-repos)]))
 
 (comment

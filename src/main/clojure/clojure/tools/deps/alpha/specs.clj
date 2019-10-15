@@ -21,10 +21,11 @@
 (s/def :mvn/coord (s/keys :req [:mvn/version] :opt-un [::path ::exclusions]))
 
 (s/def :local/root string?)
-(s/def :local/coord (s/keys :req-un [:local/root] :opt-un [::path]))
+(s/def :local/coord (s/keys :req [:local/root] :opt-un [::path]))
 
 (s/def :git/url string?)
-(s/def :git/coord (s/keys :req [:git/url]))
+(s/def :git/sha string?)
+(s/def :git/coord (s/keys :req [:git/url] :req-un [:git/sha]))
 
 ;; should this become a multipec?
 (s/def ::coord (s/or :mvn :mvn/coord
@@ -87,6 +88,27 @@
   :ret string?)
 
 (comment
-  (require '[clojure.spec.test.alpha :as stest])
+  ;; some scratch code to recursively check every deps.edn under
+  ;; a root directory whether it's valid against the specs
+  (require
+    '[clojure.spec.test.alpha :as stest]
+    '[clojure.tools.deps.alpha.reader :as trdr]
+    '[clojure.java.io :as jio])
+  (import '[java.nio.file Files Paths FileVisitor FileVisitResult])
   (stest/instrument (stest/enumerate-namespace 'clojure.tools.deps.alpha))
+
+  (Files/walkFileTree
+    (Paths/get "../" (into-array String []))
+    (reify FileVisitor
+      (postVisitDirectory [_ dir ex] FileVisitResult/CONTINUE)
+      (preVisitDirectory [_ dir attrs] FileVisitResult/CONTINUE)
+      (visitFileFailed [_ f ex] FileVisitResult/CONTINUE)
+      (visitFile [_ f attrs]
+        (when (.endsWith (str f) "/deps.edn")
+          (print "Checking" (str f))
+          (let [v (s/valid? ::deps-map (#'trdr/slurp-edn-map (.toFile f)))]
+            (println ":" v)
+            (when-not v
+              (s/explain ::deps-map (#'trdr/slurp-edn-map (.toFile f))))))
+        FileVisitResult/CONTINUE)))
   )

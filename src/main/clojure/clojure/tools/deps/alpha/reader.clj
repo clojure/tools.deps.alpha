@@ -61,7 +61,9 @@
 (defn- canonicalize-all-syms
   [deps-map]
   (walk/postwalk
-    #(cond-> % (map? %) (coll/map-keys canonicalize-sym))
+    #(cond-> %
+       (map? %) (coll/map-keys canonicalize-sym)
+       (vector? %) ((fn [v] (mapv canonicalize-sym v))))
     deps-map))
 
 (defn slurp-deps

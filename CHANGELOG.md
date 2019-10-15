@@ -2,6 +2,16 @@ Changelog
 ===========
 
 * next
+  * Add :deps and :paths to aliases to "replace" main :deps and :paths
+* 0.7.549 on Sep 17, 2019
+  * Fix: spec error for :local/root and missing required key :sha for git coords
+* 0.7.541 on Aug 9, 2019
+  * Fix: pom deps should include only compile and runtime deps
+  * Fix: remove slf4j-nop as dep - let consumers choose
+* 0.7.537 on Aug 9, 2019 
+  * Fix: exclusions were not canonicalized and may fail to match and exclude
+  * Perf: cache Maven resources and use Maven repository cache
+* 0.7.527 on July 17, 2019
   * Deprecate and warn for clojure.tools.deps.alpha.reader/clojure-env
   * TDEPS-134 - use Maven mirrors
   * Change unknown aliases from error to warning
