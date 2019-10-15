@@ -96,6 +96,18 @@
   (let [url (jio/resource install-deps-path)]
     (io/read-edn (BufferedReader. (InputStreamReader. (.openStream url))))))
 
+(defn user-deps-location
+  "Use the same logic as clj to return the expected location of the user
+  config path. Note that it's possible no file may exist at this location."
+  []
+  (let [config-env (System/getenv "CLJ_CONFIG")
+        xdg-env (System/getenv "XDG_CONFIG_HOME")
+        home (System/getProperty "user.home")
+        config-dir (cond config-env config-env
+                         xdg-env (str xdg-env File/separator "clojure")
+                         :else (str home File/separator ".clojure"))]
+    (str config-dir File/separator "deps.edn")))
+
 (defn read-deps
   "Read the built-in clojure/tools/deps/deps.edn resource, and a set of deps-files,
   and merge them left to right into a single deps map."
@@ -108,13 +120,5 @@
   "Use the same logic as clj to build the set of deps.edn files to load.
   These can be passed to read-deps to replicate what clj does."
   []
-  (let [config-env (System/getenv "CLJ_CONFIG")
-        xdg-env (System/getenv "XDG_CONFIG_HOME")
-        home (System/getProperty "user.home")
-        config-dir (cond config-env config-env
-                         xdg-env (str xdg-env File/separator "clojure")
-                         :else (str home File/separator ".clojure"))
-        config-deps (str config-dir File/separator "deps.edn")
-        project-deps (str dir/*the-dir* File/separator "deps.edn")]
-    (->> [config-deps project-deps]
-      (filterv #(-> % jio/file .exists)))))
+  (filterv #(-> % jio/file .exists)
+    [(user-deps-location) (str dir/*the-dir* File/separator "deps.edn")]))
