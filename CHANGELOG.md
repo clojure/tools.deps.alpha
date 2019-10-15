@@ -2,6 +2,7 @@ Changelog
 ===========
 
 * next
+  * TDEPS-138 - add tools.deps.alpha.reader/user-deps-location function
   * Add :deps and :paths to aliases to "replace" main :deps and :paths
 * 0.7.549 on Sep 17, 2019
   * Fix: spec error for :local/root and missing required key :sha for git coords
