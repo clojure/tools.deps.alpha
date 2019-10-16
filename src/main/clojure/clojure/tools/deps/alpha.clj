@@ -216,15 +216,14 @@
   from the initial set of deps. args-map is a map with several keys (all
   optional) that can modify the results of the transitive expansion:
 
-    :deps - a map from lib to coord that REPLACES the main deps
-    :extra-deps - a map from lib to coord of deps to ADD to the main deps
+    :extra-deps - a map from lib to coord of deps to add to the main deps
     :override-deps - a map from lib to coord of coord to use instead of those in the graph
     :default-deps - a map from lib to coord of deps to use if no coord specified
 
   Returns a lib map (map of lib to coordinate chosen)."
   [deps-map args-map]
   (let [{:keys [extra-deps default-deps override-deps verbose]} args-map
-        deps (merge (or (:deps args-map) (:deps deps-map)) extra-deps)]
+        deps (merge (:deps deps-map) extra-deps)]
     (when verbose
       (println "Initial deps to expand:")
       (pprint deps))
@@ -264,8 +263,7 @@
   The classpath-args is a map with keys that can be used to modify the classpath
   building operation:
 
-    :paths - classpath paths that REPLACE the main :paths
-    :extra-paths - extra classpath paths to ADD to the classpath
+    :extra-paths - extra classpath paths to add to the classpath
     :classpath-overrides - a map of lib to path, where path is used instead of the coord's paths
 
 
@@ -273,7 +271,7 @@
   [lib-map paths {:keys [classpath-overrides extra-paths] :as classpath-args}]
   (let [libs (merge-with (fn [coord path] (assoc coord :paths [path])) lib-map classpath-overrides)
         lib-paths (mapcat :paths (vals libs))]
-    (str/join File/pathSeparator (concat extra-paths (or (:paths classpath-args) paths) lib-paths))))
+    (str/join File/pathSeparator (concat extra-paths paths lib-paths))))
 
 (comment
   (require '[clojure.tools.deps.alpha.util.maven :as mvn])
