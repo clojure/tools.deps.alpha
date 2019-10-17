@@ -100,6 +100,18 @@
     (is (contains? paths "z"))
     (is (not (contains? paths "src")))))
 
+;; :extra-paths add
+(deftest extra-paths-add
+  (let [cp-data (mc/run-core {:install-deps install-data
+                              :user-deps {:aliases {:p {:extra-paths ["x" "y"]}}}
+                              :project-deps {:aliases {:q {:extra-paths ["z"]}}}
+                              :aliases [:p :q]})
+        paths (set (str/split (:cp cp-data) (re-pattern File/pathSeparator)))]
+    (is (contains? paths "x"))
+    (is (contains? paths "y"))
+    (is (contains? paths "z"))
+    (is (contains? paths "src"))))
+
 ;; java opts in aliases are additive
 (deftest jvm-opts-add
   (let [cp-data (mc/run-core {:install-deps install-data
