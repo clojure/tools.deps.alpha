@@ -6,9 +6,7 @@
 ;   the terms of this license.
 ;   You must not remove this notice, or any other, from this software.
 
-(ns
-  ^{:deprecated "Use clojure.tools.deps.alpha.script.make-classpath2"}
-  clojure.tools.deps.alpha.script.make-classpath
+(ns clojure.tools.deps.alpha.script.make-classpath2
   (:require
     [clojure.java.io :as jio]
     [clojure.string :as str]
@@ -23,7 +21,8 @@
 
 (def ^:private opts
   [;; deps.edn inputs
-   [nil "--config-files PATHS" "Comma delimited list of deps.edn files to merge" :parse-fn parse/parse-files]
+   [nil "--config-user PATH" "User deps.edn location"]
+   [nil "--config-project PATH" "Project deps.edn location"]
    [nil "--config-data EDN" "Final deps.edn data to treat as the last deps.edn file" :parse-fn parse/parse-config]
    ;; output files
    [nil "--libs-file PATH" "Libs cache file to write"]
@@ -43,51 +42,60 @@
   [args]
   (cli/parse-opts args opts))
 
-(defn combine-deps-files
-  "Given a configuration for config-files and optional config-data, read
-  and merge into a combined deps map."
-  [{:keys [config-files config-data] :as opts}]
-  (let [deps-map (reader/read-deps config-files)]
-    (if config-data
-      (reader/merge-deps [deps-map config-data])
-      deps-map)))
-
 (defn create-classpath
   "Given parsed-opts describing the input config files, and aliases to use,
   return the output lib map and classpath."
   [deps-map
-   {:keys [resolve-aliases makecp-aliases aliases] :as opts}]
+   {:keys [resolve-aliases makecp-aliases aliases] :as _opts}]
   (session/with-session
     (let [resolve-args (deps/combine-aliases deps-map (concat aliases resolve-aliases))
           cp-args (deps/combine-aliases deps-map (concat aliases makecp-aliases))
           libs (deps/resolve-deps deps-map resolve-args)
-          cp (deps/make-classpath libs (:paths deps-map) cp-args)]
+          cp (deps/make-classpath libs (or (:paths (deps/combine-aliases deps-map aliases))
+                                         (:paths deps-map))
+               cp-args)]
       {:lib-map libs
        :classpath cp})))
 
-(defn- check-aliases
+(defn check-aliases
   "Check that all aliases are known and warn if aliases are undeclared"
   [deps aliases]
   (when-let [unknown (seq (remove #(contains? (:aliases deps) %) (distinct aliases)))]
     (printerrln "WARNING: Specified aliases are undeclared:" (vec unknown))))
 
+(defn run-core
+  "Run make-classpath script from/to data (no file stuff)"
+  [{:keys [install-deps user-deps project-deps config-data ;; all deps.edn maps
+           resolve-aliases makecp-aliases jvmopt-aliases main-aliases aliases] :as opts}]
+  (let [deps-map (reader/merge-deps (remove nil? [install-deps user-deps project-deps config-data]))]
+    (check-aliases deps-map (concat resolve-aliases makecp-aliases jvmopt-aliases main-aliases aliases))
+    (let [deps-map' (if-let [replace-deps (get (deps/combine-aliases deps-map aliases) :deps)]
+                      (reader/merge-deps (remove nil? [install-deps user-deps {:deps replace-deps} config-data]))
+                      deps-map)
+          {:keys [lib-map classpath]} (create-classpath deps-map' opts)
+          jvm (seq (get (deps/combine-aliases deps-map (concat aliases jvmopt-aliases)) :jvm-opts))
+          main (seq (get (deps/combine-aliases deps-map (concat aliases main-aliases)) :main-opts))]
+      (cond-> {:libs lib-map, :cp classpath}
+        jvm (assoc :jvm jvm)
+        main (assoc :main main)))))
+
 (defn run
   "Run make-classpath script. See -main for details."
-  [{:keys [libs-file cp-file jvm-file main-file skip-cp
-           resolve-aliases makecp-aliases jvmopt-aliases main-aliases aliases] :as opts}]
-  (let [deps-map (combine-deps-files opts)]
-    (check-aliases deps-map (concat resolve-aliases makecp-aliases jvmopt-aliases main-aliases aliases))
+  [{:keys [config-user config-project libs-file cp-file jvm-file main-file skip-cp] :as opts}]
+  (let [opts' (merge opts {:install-deps (reader/install-deps)
+                           :user-deps (when config-user (reader/slurp-deps (jio/file config-user)))
+                           :project-deps (when config-project (reader/slurp-deps (jio/file config-project)))})
+        {:keys [libs cp jvm main]} (run-core opts')]
     (when-not skip-cp
-      (let [{:keys [lib-map classpath]} (create-classpath deps-map opts)]
-        (io/write-file libs-file (pr-str lib-map))
-        (io/write-file cp-file classpath)))
-    (if-let [jvm-opts (seq (get (deps/combine-aliases deps-map (concat aliases jvmopt-aliases)) :jvm-opts))]
-      (io/write-file jvm-file (str/join " " jvm-opts))
+      (io/write-file libs-file (pr-str libs))
+      (io/write-file cp-file cp))
+    (when jvm
+      (io/write-file jvm-file (str/join " " jvm))
       (let [jf (jio/file jvm-file)]
         (when (.exists jf)
           (.delete jf))))
-    (if-let [main-opts (seq (get (deps/combine-aliases deps-map (concat aliases main-aliases)) :main-opts))]
-      (io/write-file main-file (str/join " " main-opts))
+    (when main
+      (io/write-file main-file (str/join " " main))
       (let [mf (jio/file main-file)]
         (when (.exists mf)
           (.delete mf))))))
@@ -96,8 +104,9 @@
   "Main entry point for make-classpath script.
 
   Options:
-    --config-files=/install/deps.edn,... - comma-delimited list of deps.edn files to merge
-    --config-data={...} - deps.edn as data
+    --config-user=path - user deps.edn file (usually ~/.clojure/deps.edn)
+    --config-project=path - project deps.edn file (usually ./deps.edn)
+    --config-data={...} - deps.edn as data (from -Sdeps)
     --libs-file=path - libs cache file to write
     --cp-file=path - cp cache file to write
     --jvm-file=path - jvm opts file to write
@@ -109,8 +118,10 @@
     -Aaliases - concatenated generic alias names
 
   Resolves the dependencies and updates the lib, classpath, etc files.
-  The libs file is at <cachedir>/<resolve-aliases>.libs
-  The cp file is at <cachedir>/<resolve-aliases>/<cpaliases>.cp"
+  The libs file is at <cachedir>/<hash>.libs
+  The cp file is at <cachedir>/<hash>.cp
+  The main opts file is at <cachedir>/<hash>.main (if needed)
+  The jvm opts file is at <cachedir>/<hash>.jvm (if needed)"
   [& args]
   (try
     (let [{:keys [options errors]} (parse-opts args)]
@@ -123,26 +134,3 @@
       (when-not (instance? ExceptionInfo t)
         (.printStackTrace t))
       (System/exit 1))))
-
-(comment
-  (def user-deps (jio/file (System/getProperty "user.home") ".clojure" "deps.edn"))
-  (run
-    {:config-files [(jio/file (str (.getAbsolutePath user-deps))) (jio/file "deps.edn")]
-     :libs-file "foo.libs"
-     :cp-file "foo.cp"})
-
-  (run
-    {:config-files [(jio/file (str (.getAbsolutePath user-deps))) (jio/file "deps.edn")]
-     :libs-file "foo.libs"
-     :cp-file "foo.cp"
-     :config-data {:deps {'org.clojure/test.check {:mvn/version "0.9.0"}}}})
-
-  (run
-    {:config-data {:aliases {:j1 {:jvm-opts ["-Xms100m" "-Xmx200m"]}
-                             :j2 {:jvm-opts ["-server"]}}}
-     :aliases [:j1 :j2]
-     :libs-file "foo.libs"
-     :cp-file "foo.cp"
-     :jvm-file "foo.jvm"
-     :main-file "foo.main"})
-  )
