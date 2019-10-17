@@ -53,7 +53,6 @@
                   'org.clojure/test.check {:mvn/version "0.9.0"}}}
           cp-data))))
 
-
 ;; alias :e with :deps replaces the project deps
 (deftest tool-deps
   (let [cp-data (mc/run-core {:install-deps install-data
@@ -79,26 +78,18 @@
 ;; paths replace in chain
 (deftest paths-replace
   (let [cp-data (mc/run-core {:install-deps install-data
-                                  :user-deps {:paths ["x"]}
-                                  :project-deps {:paths ["y"]}
-                                  :config-data {:paths ["z"]}})
-        paths (set (str/split (:cp cp-data) (re-pattern File/pathSeparator)))]
-    (is (contains? paths "z"))
-    (is (not (contains? paths "src")))
-    (is (not (contains? paths "x")))
-    (is (not (contains? paths "y")))))
+                              :user-deps {:paths ["x"]}
+                              :project-deps {:paths ["y"]}
+                              :config-data {:paths ["z"]}})]
+    (= #{"z"} (set (:paths cp-data)))))
 
 ;; :paths in alias replaces, multiple alias :paths will be combined
 (deftest alias-paths-replace
   (let [cp-data (mc/run-core {:install-deps install-data
                                   :user-deps {:aliases {:p {:paths ["x" "y"]}}}
                                   :project-deps {:aliases {:q {:paths ["z"]}}}
-                                  :aliases [:p :q]})
-        paths (set (str/split (:cp cp-data) (re-pattern File/pathSeparator)))]
-    (is (contains? paths "x"))
-    (is (contains? paths "y"))
-    (is (contains? paths "z"))
-    (is (not (contains? paths "src")))))
+                                  :aliases [:p :q]})]
+    (= #{"x" "y" "z"} (set (:paths cp-data)))))
 
 ;; :extra-paths add
 (deftest extra-paths-add
@@ -107,10 +98,7 @@
                               :project-deps {:aliases {:q {:extra-paths ["z"]}}}
                               :aliases [:p :q]})
         paths (set (str/split (:cp cp-data) (re-pattern File/pathSeparator)))]
-    (is (contains? paths "x"))
-    (is (contains? paths "y"))
-    (is (contains? paths "z"))
-    (is (contains? paths "src"))))
+    (= #{"x" "y" "z" "src"} (set (:paths cp-data)))))
 
 ;; java opts in aliases are additive
 (deftest jvm-opts-add

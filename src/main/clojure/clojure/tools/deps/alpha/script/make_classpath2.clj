@@ -51,11 +51,12 @@
     (let [resolve-args (deps/combine-aliases deps-map (concat aliases resolve-aliases))
           cp-args (deps/combine-aliases deps-map (concat aliases makecp-aliases))
           libs (deps/resolve-deps deps-map resolve-args)
-          cp (deps/make-classpath libs (or (:paths (deps/combine-aliases deps-map aliases))
-                                         (:paths deps-map))
-               cp-args)]
-      {:lib-map libs
-       :classpath cp})))
+          effective-paths (or (:paths (deps/combine-aliases deps-map aliases))
+                           (:paths deps-map))
+          cp (deps/make-classpath libs effective-paths cp-args)]
+      {:paths effective-paths
+       :libs libs
+       :cp cp})))
 
 (defn check-aliases
   "Check that all aliases are known and warn if aliases are undeclared"
@@ -72,10 +73,10 @@
     (let [deps-map' (if-let [replace-deps (get (deps/combine-aliases deps-map aliases) :deps)]
                       (reader/merge-deps (remove nil? [install-deps user-deps {:deps replace-deps} config-data]))
                       deps-map)
-          {:keys [lib-map classpath]} (create-classpath deps-map' opts)
+          cp-data (create-classpath deps-map' opts)
           jvm (seq (get (deps/combine-aliases deps-map (concat aliases jvmopt-aliases)) :jvm-opts))
           main (seq (get (deps/combine-aliases deps-map (concat aliases main-aliases)) :main-opts))]
-      (cond-> {:libs lib-map, :cp classpath}
+      (cond-> (merge cp-data {:deps deps-map'})
         jvm (assoc :jvm jvm)
         main (assoc :main main)))))
 

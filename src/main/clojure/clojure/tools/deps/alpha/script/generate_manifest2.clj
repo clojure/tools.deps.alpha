@@ -6,21 +6,20 @@
 ;   the terms of this license.
 ;   You must not remove this notice, or any other, from this software.
 
-(ns
-  ^{:deprecated "Use clojure.tools.deps.alpha.script.generate-manifest2"}
-  clojure.tools.deps.alpha.script.generate-manifest
+(ns clojure.tools.deps.alpha.script.generate-manifest2
   (:require [clojure.java.io :as jio]
             [clojure.tools.cli :as cli]
-            [clojure.tools.deps.alpha :as deps]
+            [clojure.tools.deps.alpha.reader :as reader]
             [clojure.tools.deps.alpha.gen.pom :as pom]
             [clojure.tools.deps.alpha.script.parse :as parse]
-            [clojure.tools.deps.alpha.script.make-classpath :as makecp]
+            [clojure.tools.deps.alpha.script.make-classpath2 :as makecp]
             [clojure.tools.deps.alpha.util.io :refer [printerrln]])
   (:import
     [clojure.lang ExceptionInfo]))
 
 (def ^:private opts
-  [[nil "--config-files PATHS" "Comma delimited list of deps.edn files to merge" :parse-fn parse/parse-files]
+  [[nil "--config-user PATH" "User deps.edn location"]
+   [nil "--config-project PATH" "Project deps.edn location"]
    [nil "--config-data EDN" "Final deps.edn data to treat as the last deps.edn file" :parse-fn parse/parse-config]
    [nil "--gen TYPE" "manifest type to generate" :parse-fn keyword]
    ["-R" "--resolve-aliases ALIASES" "Concatenated resolve-deps alias names" :parse-fn parse/parse-kws]
@@ -31,7 +30,8 @@
   "Main entry point for generating a manifest file.
 
   Required:
-    --config-files DEP_FILES - comma-delimited list of deps.edn files to merge
+    --config-user PATH - User deps.edn location
+    --config-project PATH - Project deps.edn location
     --config-data={...} - deps.edn as data
     --gen TYPE - manifest type to generate (currently only pom)
 
@@ -43,25 +43,15 @@
     (when (seq errors)
       (run! println errors)
       (System/exit 1))
-    (let [{:keys [gen resolve-aliases makecp-aliases aliases]} options]
+    (let [{:keys [gen config-user config-project]} options]
       (try
-        (let [deps-map (makecp/combine-deps-files options)
-              resolve-args (deps/combine-aliases deps-map (concat resolve-aliases aliases))
-              {:keys [extra-deps override-deps]} resolve-args
-              cp-args (deps/combine-aliases deps-map (concat makecp-aliases aliases))
-              {:keys [extra-paths]} cp-args
-              mod-map (merge-with concat
-                        (merge-with merge deps-map {:deps override-deps} {:deps extra-deps})
-                        {:paths extra-paths})]
+        (let [mod-map (makecp/run-core (merge options
+                                         {:install-deps (reader/install-deps)
+                                          :user-deps (when config-user (reader/slurp-deps (jio/file config-user)))
+                                          :project-deps (when config-project (reader/slurp-deps (jio/file config-project)))}))]
           (pom/sync-pom mod-map (jio/file ".")))
         (catch Throwable t
           (printerrln "Error generating" (name gen) "manifest:" (.getMessage t))
           (when-not (instance? ExceptionInfo t)
             (.printStackTrace t))
           (System/exit 1))))))
-
-(comment
-  (-main
-    "--config-files" "deps.edn"
-    "--gen" "pom")
-  )
