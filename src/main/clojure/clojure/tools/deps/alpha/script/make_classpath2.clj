@@ -76,16 +76,23 @@
           cp-data (create-classpath deps-map' opts)
           jvm (seq (get (deps/combine-aliases deps-map (concat aliases jvmopt-aliases)) :jvm-opts))
           main (seq (get (deps/combine-aliases deps-map (concat aliases main-aliases)) :main-opts))]
-      (cond-> (merge cp-data {:deps deps-map'})
+      (cond-> (merge cp-data {:deps (:deps deps-map')})
         jvm (assoc :jvm jvm)
         main (assoc :main main)))))
+
+(defn read-deps
+  [name]
+  (when (not (str/blank? name))
+    (let [f (jio/file name)]
+      (when (.exists f)
+        (reader/slurp-deps f)))))
 
 (defn run
   "Run make-classpath script. See -main for details."
   [{:keys [config-user config-project libs-file cp-file jvm-file main-file skip-cp] :as opts}]
   (let [opts' (merge opts {:install-deps (reader/install-deps)
-                           :user-deps (when config-user (reader/slurp-deps (jio/file config-user)))
-                           :project-deps (when config-project (reader/slurp-deps (jio/file config-project)))})
+                           :user-deps (read-deps config-user)
+                           :project-deps (read-deps config-project)})
         {:keys [libs cp jvm main]} (run-core opts')]
     (when-not skip-cp
       (io/write-file libs-file (pr-str libs))

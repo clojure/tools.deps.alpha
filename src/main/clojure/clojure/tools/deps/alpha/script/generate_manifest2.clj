@@ -47,8 +47,8 @@
       (try
         (let [mod-map (makecp/run-core (merge options
                                          {:install-deps (reader/install-deps)
-                                          :user-deps (when config-user (reader/slurp-deps (jio/file config-user)))
-                                          :project-deps (when config-project (reader/slurp-deps (jio/file config-project)))}))]
+                                          :user-deps (makecp/read-deps config-user)
+                                          :project-deps (makecp/read-deps config-project)}))]
           (pom/sync-pom mod-map (jio/file ".")))
         (catch Throwable t
           (printerrln "Error generating" (name gen) "manifest:" (.getMessage t))
