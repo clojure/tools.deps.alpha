@@ -119,6 +119,12 @@
         proxy (.setProxy proxy))
       (.build))))
 
+(defn remote-repos
+  [repos]
+  (->> repos
+    (remove (fn [[name config]] (nil? config)))
+    (mapv remote-repo)))
+
 ;; Local repository
 
 (def ^:private home (System/getProperty "user.home"))

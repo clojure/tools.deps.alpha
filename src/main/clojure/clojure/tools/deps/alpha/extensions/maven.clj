@@ -37,7 +37,7 @@
           system ^RepositorySystem (session/retrieve :mvn/system #(maven/make-system))
           session ^RepositorySystemSession (session/retrieve :mvn/session #(maven/make-session system local-repo))
           artifact (maven/coord->artifact lib coord)
-          req (VersionRequest. artifact (mapv maven/remote-repo repos) nil)
+          req (VersionRequest. artifact (maven/remote-repos repos) nil)
           result (.resolveVersion system session req)]
       (if result
         [lib (assoc coord :mvn/version (.getVersion result))]
@@ -48,7 +48,7 @@
           system ^RepositorySystem (session/retrieve :mvn/system #(maven/make-system))
           session ^RepositorySystemSession (session/retrieve :mvn/session #(maven/make-session system local-repo))
           artifact (maven/coord->artifact lib coord)
-          req (VersionRangeRequest. artifact (mapv maven/remote-repo repos) nil)
+          req (VersionRangeRequest. artifact (maven/remote-repos repos) nil)
           result (.resolveVersionRange system session req)]
       (if (and result (.getHighestVersion result))
         [lib (assoc coord :mvn/version (.toString (.getHighestVersion result)))]
@@ -93,7 +93,7 @@
         system ^RepositorySystem (session/retrieve :mvn/system #(maven/make-system))
         session ^RepositorySystemSession (session/retrieve :mvn/session #(maven/make-session system local-repo))
         artifact (maven/coord->artifact lib coord)
-        repos (mapv maven/remote-repo repos)
+        repos (maven/remote-repos repos)
         req (ArtifactDescriptorRequest. artifact repos nil)
         result (.readArtifactDescriptor system session req)]
     (into []
@@ -120,7 +120,7 @@
 (defmethod ext/coord-paths :mvn
   [lib coord _manifest {:keys [mvn/repos mvn/local-repo]}]
   (let [local-repo (or local-repo maven/default-local-repo)
-        mvn-repos (mapv maven/remote-repo repos)
+        mvn-repos (maven/remote-repos repos)
         system ^RepositorySystem (session/retrieve :mvn/system #(maven/make-system))
         session ^RepositorySystemSession (session/retrieve :mvn/session #(maven/make-session system local-repo))]
     [(get-artifact lib coord system session mvn-repos)]))

@@ -4,6 +4,7 @@ Changelog
 * next
   * Rework impl of :deps and :paths in aliases, deprecate script.make-classpath
     in favor of script.make-classpath2 and added tests
+  * nil repo configs will be ignored (can remove default repos by declaring nil)
 * 0.8.559 on Oct 15, 2019
   * TDEPS-138 - add tools.deps.alpha.reader/user-deps-location function
   * TDEPS-29 - fix -Spom adding unnecessary newlines in Java 9+
