@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* next
+* 0.8.567 on Oct 17, 2019 
   * Rework impl of :deps and :paths in aliases, deprecate script.make-classpath
     in favor of script.make-classpath2 and added tests
   * nil repo configs will be ignored (can remove default repos by declaring nil)
