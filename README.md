@@ -30,20 +30,20 @@ Also see:
 
 # Release Information
 
-Latest release: 0.8.567
+Latest release: 0.8.573
 
 * [All released versions](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22org.clojure%22%20AND%20a%3A%22tools.deps.alpha%22)
 
 [deps.edn](https://clojure.org/guides/deps_and_cli) dependency information:
 
 ```
-org.clojure/tools.deps.alpha {:mvn/version "0.8.567"}
+org.clojure/tools.deps.alpha {:mvn/version "0.8.573"}
 ```
 
 [Leiningen](https://github.com/technomancy/leiningen/) dependency information:
 
 ```
-[org.clojure/tools.deps.alpha "0.8.567"]
+[org.clojure/tools.deps.alpha "0.8.573"]
 ```
 
 [Maven](https://maven.apache.org) dependency information:
@@ -52,7 +52,7 @@ org.clojure/tools.deps.alpha {:mvn/version "0.8.567"}
 <dependency>
   <groupId>org.clojure</groupId>
   <artifactId>tools.deps.alpha</artifactId>
-  <version>0.8.567</version>
+  <version>0.8.573</version>
 </dependency>
 ```
 
