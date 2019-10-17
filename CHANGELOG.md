@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* next
+  * Deprecate script.generate-manifest in favor of generate-manifest2, reuse more of make-classpath2
 * 0.8.567 on Oct 17, 2019 
   * Rework impl of :deps and :paths in aliases, deprecate script.make-classpath
     in favor of script.make-classpath2 and added tests
