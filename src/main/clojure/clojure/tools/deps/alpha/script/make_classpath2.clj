@@ -97,12 +97,12 @@
     (when-not skip-cp
       (io/write-file libs-file (pr-str libs))
       (io/write-file cp-file cp))
-    (when jvm
+    (if jvm
       (io/write-file jvm-file (str/join " " jvm))
       (let [jf (jio/file jvm-file)]
         (when (.exists jf)
           (.delete jf))))
-    (when main
+    (if main
       (io/write-file main-file (str/join " " main))
       (let [mf (jio/file main-file)]
         (when (.exists mf)
