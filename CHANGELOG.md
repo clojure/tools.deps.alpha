@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* next
+  * Fix bugs in script.make-classpath2
 * 0.8.573 on Oct 17, 2019
   * Deprecate script.generate-manifest in favor of generate-manifest2, reuse more of make-classpath2
 * 0.8.567 on Oct 17, 2019 
