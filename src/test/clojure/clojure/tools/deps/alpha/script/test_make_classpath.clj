@@ -1,6 +1,5 @@
 (ns clojure.tools.deps.alpha.script.test-make-classpath
   (:require
-    [clojure.string :as str]
     [clojure.test :refer [deftest is]]
     [clojure.tools.deps.alpha.script.make-classpath2 :as mc])
   (:import
@@ -96,8 +95,7 @@
   (let [cp-data (mc/run-core {:install-deps install-data
                               :user-deps {:aliases {:p {:extra-paths ["x" "y"]}}}
                               :project-deps {:aliases {:q {:extra-paths ["z"]}}}
-                              :aliases [:p :q]})
-        paths (set (str/split (:cp cp-data) (re-pattern File/pathSeparator)))]
+                              :aliases [:p :q]})]
     (= #{"x" "y" "z" "src"} (set (:paths cp-data)))))
 
 ;; java opts in aliases are additive
