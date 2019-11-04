@@ -71,7 +71,7 @@
   (let [deps-map (reader/merge-deps (remove nil? [install-deps user-deps project-deps config-data]))]
     (check-aliases deps-map (concat resolve-aliases makecp-aliases jvmopt-aliases main-aliases aliases))
     (let [deps-map' (if-let [replace-deps (get (deps/combine-aliases deps-map aliases) :deps)]
-                      (reader/merge-deps (remove nil? [install-deps user-deps {:deps replace-deps} config-data]))
+                      (reader/merge-deps (remove nil? [install-deps user-deps (merge project-deps {:deps replace-deps}) config-data]))
                       deps-map)
           cp-data (create-classpath deps-map' opts)
           jvm (seq (get (deps/combine-aliases deps-map (concat aliases jvmopt-aliases)) :jvm-opts))

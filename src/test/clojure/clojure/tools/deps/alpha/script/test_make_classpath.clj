@@ -75,6 +75,15 @@
           {:libs {'org.clojure/clojure {:mvn/version "1.6.0"}}}
           cp-data))))
 
+;; paths and deps in alias replace
+(deftest alias-paths-and-deps
+  (let [cp-data (mc/run-core {:install-deps install-data
+                              :project-deps {:paths ["a" "b"]
+                                             :aliases {:q {:paths ["a" "c"]
+                                                           :deps {'org.clojure/clojure {:mvn/version "1.6.0"}}}}}
+                              :aliases [:q]})]
+    (is (= #{"a" "c"} (set (:paths cp-data))))))
+
 ;; paths replace in chain
 (deftest paths-replace
   (let [cp-data (mc/run-core {:install-deps install-data
