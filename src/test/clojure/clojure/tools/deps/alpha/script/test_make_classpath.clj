@@ -1,6 +1,7 @@
 (ns clojure.tools.deps.alpha.script.test-make-classpath
   (:require
     [clojure.test :refer [deftest is]]
+    [clojure.string :as str]
     [clojure.tools.deps.alpha.script.make-classpath2 :as mc])
   (:import
     [java.io File]))
@@ -80,7 +81,7 @@
                               :user-deps {:paths ["x"]}
                               :project-deps {:paths ["y"]}
                               :config-data {:paths ["z"]}})]
-    (= #{"z"} (set (:paths cp-data)))))
+    (is (= #{"z"} (set (:paths cp-data))))))
 
 ;; :paths in alias replaces, multiple alias :paths will be combined
 (deftest alias-paths-replace
@@ -88,7 +89,7 @@
                                   :user-deps {:aliases {:p {:paths ["x" "y"]}}}
                                   :project-deps {:aliases {:q {:paths ["z"]}}}
                                   :aliases [:p :q]})]
-    (= #{"x" "y" "z"} (set (:paths cp-data)))))
+    (is (= #{"x" "y" "z"} (set (:paths cp-data))))))
 
 ;; :extra-paths add
 (deftest extra-paths-add
@@ -96,7 +97,8 @@
                               :user-deps {:aliases {:p {:extra-paths ["x" "y"]}}}
                               :project-deps {:aliases {:q {:extra-paths ["z"]}}}
                               :aliases [:p :q]})]
-    (= #{"x" "y" "z" "src"} (set (:paths cp-data)))))
+    (is (= #{"src"} (set (:paths cp-data))))
+    (is (true? (str/starts-with? (:cp cp-data) "x:y:z:src:")))))
 
 ;; java opts in aliases are additive
 (deftest jvm-opts-add
