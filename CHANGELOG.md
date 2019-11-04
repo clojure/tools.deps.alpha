@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* next on Nov 4, 2019
+* 0.8.584 on Nov 4, 2019
   * TDEPS-142 - Fix :paths replacement doesn't work when :deps replacement used in alias
 * 0.8.578 on Oct 18, 2019
   * Fix bugs in script.make-classpath2
