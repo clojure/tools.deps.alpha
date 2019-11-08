@@ -54,7 +54,7 @@
           effective-paths (or (:paths (deps/combine-aliases deps-map aliases))
                            (:paths deps-map))
           cp (deps/make-classpath libs effective-paths cp-args)]
-      {:paths effective-paths
+      {:paths (vec (concat (:extra-paths cp-args) effective-paths))
        :libs libs
        :cp cp})))
 

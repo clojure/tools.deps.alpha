@@ -106,7 +106,7 @@
                               :user-deps {:aliases {:p {:extra-paths ["x" "y"]}}}
                               :project-deps {:aliases {:q {:extra-paths ["z"]}}}
                               :aliases [:p :q]})]
-    (is (= #{"src"} (set (:paths cp-data))))
+    (is (= #{"src" "x" "y" "z"} (set (:paths cp-data))))
     (is (true? (str/starts-with? (:cp cp-data) "x:y:z:src:")))))
 
 ;; java opts in aliases are additive

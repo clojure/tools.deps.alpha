@@ -48,8 +48,11 @@
         (let [mod-map (makecp/run-core (merge options
                                          {:install-deps (reader/install-deps)
                                           :user-deps (makecp/read-deps config-user)
-                                          :project-deps (makecp/read-deps config-project)}))]
-          (pom/sync-pom mod-map (jio/file ".")))
+                                          :project-deps (makecp/read-deps config-project)}))
+              updated-deps (reduce-kv (fn [m lib {:keys [dependents] :as coord}]
+                                        (if (seq dependents) m (assoc m lib coord)))
+                             {} (:libs mod-map))]
+          (pom/sync-pom (merge mod-map {:deps updated-deps}) (jio/file ".")))
         (catch Throwable t
           (printerrln "Error generating" (name gen) "manifest:" (.getMessage t))
           (when-not (instance? ExceptionInfo t)
