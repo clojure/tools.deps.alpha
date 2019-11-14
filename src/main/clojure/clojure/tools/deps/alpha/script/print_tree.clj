@@ -12,7 +12,7 @@
     [clojure.tools.deps.alpha.util.io :as io :refer [printerrln]]
     [clojure.tools.cli :as cli])
   (:import
-    [clojure.lang ExceptionInfo]))
+    [clojure.lang IExceptionInfo]))
 
 (def ^:private opts
   [[nil "--libs-file PATH" "Libs cache file to write"]])
@@ -39,7 +39,7 @@
       (run options))
     (catch Throwable t
       (printerrln "Error printing tree." (.getMessage t))
-      (when-not (instance? ExceptionInfo t)
+      (when-not (instance? IExceptionInfo t)
         (.printStackTrace t))
       (System/exit 1))))
 

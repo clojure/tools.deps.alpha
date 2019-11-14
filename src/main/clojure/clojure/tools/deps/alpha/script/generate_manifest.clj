@@ -17,7 +17,7 @@
             [clojure.tools.deps.alpha.script.make-classpath :as makecp]
             [clojure.tools.deps.alpha.util.io :refer [printerrln]])
   (:import
-    [clojure.lang ExceptionInfo]))
+    [clojure.lang IExceptionInfo]))
 
 (def ^:private opts
   [[nil "--config-files PATHS" "Comma delimited list of deps.edn files to merge" :parse-fn parse/parse-files]
@@ -56,7 +56,7 @@
           (pom/sync-pom mod-map (jio/file ".")))
         (catch Throwable t
           (printerrln "Error generating" (name gen) "manifest:" (.getMessage t))
-          (when-not (instance? ExceptionInfo t)
+          (when-not (instance? IExceptionInfo t)
             (.printStackTrace t))
           (System/exit 1))))))
 

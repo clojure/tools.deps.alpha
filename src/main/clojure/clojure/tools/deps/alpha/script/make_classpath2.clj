@@ -17,7 +17,7 @@
     [clojure.tools.deps.alpha.util.session :as session]
     [clojure.tools.deps.alpha.script.parse :as parse])
   (:import
-    [clojure.lang ExceptionInfo]))
+    [clojure.lang IExceptionInfo]))
 
 (def ^:private opts
   [;; deps.edn inputs
@@ -139,6 +139,6 @@
       (run options))
     (catch Throwable t
       (printerrln "Error building classpath." (.getMessage t))
-      (when-not (instance? ExceptionInfo t)
+      (when-not (instance? IExceptionInfo t)
         (.printStackTrace t))
       (System/exit 1))))

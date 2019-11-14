@@ -15,7 +15,7 @@
             [clojure.tools.deps.alpha.script.make-classpath2 :as makecp]
             [clojure.tools.deps.alpha.util.io :refer [printerrln]])
   (:import
-    [clojure.lang ExceptionInfo]))
+    [clojure.lang IExceptionInfo]))
 
 (def ^:private opts
   [[nil "--config-user PATH" "User deps.edn location"]
@@ -55,6 +55,6 @@
           (pom/sync-pom (merge mod-map {:deps updated-deps}) (jio/file ".")))
         (catch Throwable t
           (printerrln "Error generating" (name gen) "manifest:" (.getMessage t))
-          (when-not (instance? ExceptionInfo t)
+          (when-not (instance? IExceptionInfo t)
             (.printStackTrace t))
           (System/exit 1))))))
