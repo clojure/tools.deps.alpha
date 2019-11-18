@@ -1,7 +1,8 @@
 Changelog
 ===========
 
-* next
+* 0.8.591
+  * Add tracing
   * TDEPS-143 - Fix pom gen in combination with aliases does not respect alias modifications
 * 0.8.584 on Nov 4, 2019
   * TDEPS-142 - Fix :paths replacement doesn't work when :deps replacement used in alias
