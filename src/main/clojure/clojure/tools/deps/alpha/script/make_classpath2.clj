@@ -35,7 +35,9 @@
    ["-C" "--makecp-aliases ALIASES" "Concatenated make-classpath alias names" :parse-fn parse/parse-kws]
    ["-J" "--jvmopt-aliases ALIASES" "Concatenated jvm option alias names" :parse-fn parse/parse-kws]
    ["-M" "--main-aliases ALIASES" "Concatenated main option alias names" :parse-fn parse/parse-kws]
-   ["-A" "--aliases ALIASES" "Concatenated generic alias names" :parse-fn parse/parse-kws]])
+   ["-A" "--aliases ALIASES" "Concatenated generic alias names" :parse-fn parse/parse-kws]
+   ;; options
+   [nil "--trace" "Emit trace log to trace.edn"]])
 
 (defn parse-opts
   "Parse the command line opts to make-classpath"
@@ -46,17 +48,20 @@
   "Given parsed-opts describing the input config files, and aliases to use,
   return the output lib map and classpath."
   [deps-map
-   {:keys [resolve-aliases makecp-aliases aliases] :as _opts}]
+   {:keys [resolve-aliases makecp-aliases aliases trace] :as _opts}]
   (session/with-session
     (let [resolve-args (deps/combine-aliases deps-map (concat aliases resolve-aliases))
           cp-args (deps/combine-aliases deps-map (concat aliases makecp-aliases))
-          libs (deps/resolve-deps deps-map resolve-args)
+          libs (deps/resolve-deps deps-map resolve-args {:trace trace})
+          trace-log (-> libs meta :trace)
           effective-paths (or (:paths (deps/combine-aliases deps-map aliases))
                            (:paths deps-map))
           cp (deps/make-classpath libs effective-paths cp-args)]
-      {:paths (vec (concat (:extra-paths cp-args) effective-paths))
-       :libs libs
-       :cp cp})))
+      (cond->
+        {:paths (vec (concat (:extra-paths cp-args) effective-paths))
+         :libs libs
+         :cp cp}
+        trace (assoc :trace trace-log)))))
 
 (defn check-aliases
   "Check that all aliases are known and warn if aliases are undeclared"
@@ -93,7 +98,9 @@
   (let [opts' (merge opts {:install-deps (reader/install-deps)
                            :user-deps (read-deps config-user)
                            :project-deps (read-deps config-project)})
-        {:keys [libs cp jvm main]} (run-core opts')]
+        {:keys [libs cp jvm main trace] :as o} (run-core opts')]
+    (when trace
+      (spit "trace.edn" (binding [*print-namespace-maps* false] (with-out-str (clojure.pprint/pprint trace)))))
     (when-not skip-cp
       (io/write-file libs-file (pr-str libs))
       (io/write-file cp-file cp))

@@ -90,7 +90,7 @@
 ;; {lib {:versions {coord-id coord}     ;; all version coords
 ;;       :paths    {coord-id #{paths}}  ;; paths to coord-ids
 ;;       :select   coord-id             ;; current selection
-;;       :pin      true}                ;; if selection is pinned
+;;       :top      true}                ;; if selection is top dep
 
 (defn- parent-missing?
   [vmap path]
@@ -101,72 +101,77 @@
       (not (contains? (get paths select) parent-path)))))
 
 (defn- include-coord?
-  [vmap lib path exclusions verbose]
+  [vmap lib path exclusions]
   (cond
-    ;; lib is a top dep and this is it => select and pin
-    (empty? path) :pin
+    ;; lib is a top dep and this is it => select
+    (empty? path) {:include true, :reason :top}
 
     ;; lib is excluded in this path => omit
     (excluded? exclusions path lib)
-    (do (when verbose (println "\t=> excluded"))
-        nil)
+    {:include false, :reason :excluded}
 
     ;; lib is a top dep and this isn't it => omit
-    (get-in vmap [lib :pin])
-    (do (when verbose (println "\t=> skip, top dep used instead"))
-        nil)
+    (get-in vmap [lib :top])
+    {:include false, :reason :use-top}
 
     ;; lib's parent path is not included => omit
     (parent-missing? vmap path)
-    (do (when verbose (println "\t=> skip, path to dep no longer included" path))
-        nil)
+    {:include false, :reason :parent-omitted}
 
     ;; otherwise => choose newest version
-    :else :choice))
+    :else
+    {:include true, :reason :choose-version}))
 
 (defn- dominates?
   [lib new-coord old-coord config]
   (pos? (ext/compare-versions lib new-coord old-coord config)))
 
-(defmacro ^:private with-log
-  [verbose msg & body]
-  `(do
-     (when ~verbose (println "\t=> " ~msg))
-     ~@body))
-
 (defn- add-coord
-  [vmap lib coord-id coord path action config verbose]
+  [vmap lib coord-id coord path action config]
   (let [vmap' (-> (or vmap {})
                 (assoc-in [lib :versions coord-id] coord)
                 (update-in [lib :paths]
                   (fn [coord-paths]
                     (merge-with into {coord-id #{path}} coord-paths))))]
-    (if (= action :pin)
-      (with-log verbose "include, pin top dep"
-        (update-in vmap' [lib] merge {:select coord-id :pin true}))
+    (if (= action :top)
+      {:include true
+       :reason :new-top-dep
+       :vmap (update-in vmap' [lib] merge {:select coord-id :top true})}
       (let [select-id (get-in vmap' [lib :select])]
         (if (not select-id)
-          (with-log verbose "include, new dep"
-            (assoc-in vmap' [lib :select] coord-id))
+          {:include true
+           :reason :new-dep
+           :vmap (assoc-in vmap' [lib :select] coord-id)}
           (let [select-coord (get-in vmap' [lib :versions select-id])]
             (cond
               (= select-id coord-id)
-              (with-log verbose "skip, same as current selection")
+              {:include false
+               :reason :same-version
+               :vmap vmap}
 
               (dominates? lib coord select-coord config)
-              (with-log verbose (str "include, replace" select-id)
-                (assoc-in vmap' [lib :select] coord-id))
+              {:include true
+               :reason :newer-version
+               :vmap (assoc-in vmap' [lib :select] coord-id)}
 
               :else
-              (with-log verbose (str "current is newer" select-id)))))))))
+              {:include false
+               :reason :older-version
+               :vmap vmap})))))))
 
 ;; expand-deps
 
+(defn- trace+
+  [trace? trace entry include reason]
+  (when trace?
+    (conj trace (merge entry {:include include :reason reason}))))
+
 (defn- expand-deps
-  [deps default-deps override-deps config verbose]
+  [deps default-deps override-deps config trace?]
   (loop [q (into (PersistentQueue/EMPTY) (map vector deps))
          version-map nil
-         exclusions nil] ;; path to set of exclusions at path
+         exclusions nil
+         trace []] ;; path to set of exclusions at path
     (if-let [path (peek q)] ;; path from root dep to dep being expanded
       (let [q' (pop q)
             [lib coord] (peek path)
@@ -175,28 +180,26 @@
             use-coord (cond override-coord override-coord
                             coord coord
                             :else (get default-deps lib))
-            coord-id (ext/dep-id lib use-coord config)]
-        (when verbose (println "Expanding" lib coord-id))
-        (if-let [action (include-coord? version-map lib parents exclusions verbose)]
-          (let [use-path (conj parents lib)
-                {:deps/keys [manifest root] :as manifest-info} (ext/manifest-type lib use-coord config)
-                use-coord (merge use-coord manifest-info)
-                children (dir/with-dir (if root (jio/file root) dir/*the-dir*)
-                           (canonicalize-deps (ext/coord-deps lib use-coord manifest config) config))
-                child-paths (map #(conj use-path %) children)
-                vmap' (add-coord version-map lib coord-id use-coord parents action config verbose)]
-            (if vmap'
-              (recur
-                (into q' child-paths)
-                vmap'
-                (if-let [excl (:exclusions use-coord)]
-                  (add-exclusion exclusions use-path excl)
-                  exclusions))
-              (recur q' version-map exclusions)))
-          (recur q' version-map exclusions)))
-      (do
-        (when verbose (println) (println "Version map:") (pprint version-map))
-        version-map))))
+            coord-id (ext/dep-id lib use-coord config)
+            entry (cond-> {:path parents, :lib lib, :coord coord, :use-coord use-coord, :coord-id coord-id}
+                    override-coord (assoc :override-coord override-coord))]
+        (let [{:keys [include reason]} (include-coord? version-map lib parents exclusions)]
+          (if include
+            (let [use-path (conj parents lib)
+                  {:deps/keys [manifest root] :as manifest-info} (ext/manifest-type lib use-coord config)
+                  use-coord (merge use-coord manifest-info)
+                  children (dir/with-dir (if root (jio/file root) dir/*the-dir*)
+                             (canonicalize-deps (ext/coord-deps lib use-coord manifest config) config))
+                  child-paths (map #(conj use-path %) children)
+                  {:keys [include reason vmap]} (add-coord version-map lib coord-id use-coord parents reason config)]
+              (if include
+                (let [excl' (if-let [excl (:exclusions use-coord)]
+                              (add-exclusion exclusions use-path excl)
+                              exclusions)]
+                  (recur (into q' child-paths) vmap excl' (trace+ trace? trace entry include reason)))
+                (recur q' vmap exclusions (trace+ trace? trace entry include reason))))
+            (recur q' version-map exclusions (trace+ trace? trace entry include reason)))))
+      (cond-> version-map trace? (with-meta {:trace {:log trace, :vmap version-map, :exclusions exclusions}})))))
 
 (defn- lib-paths
   [version-map config]
@@ -220,17 +223,19 @@
     :override-deps - a map from lib to coord of coord to use instead of those in the graph
     :default-deps - a map from lib to coord of deps to use if no coord specified
 
+  settings is an optional map of settings:
+    :trace - boolean. If true, the returned lib map will have metadata with :trace log
+
   Returns a lib map (map of lib to coordinate chosen)."
-  [deps-map args-map]
-  (let [{:keys [extra-deps default-deps override-deps verbose]} args-map
-        deps (merge (:deps deps-map) extra-deps)]
-    (when verbose
-      (println "Initial deps to expand:")
-      (pprint deps))
-    (-> deps
-      (canonicalize-deps deps-map)
-      (expand-deps default-deps override-deps deps-map verbose)
-      (lib-paths deps-map))))
+  ([deps-map args-map]
+    (resolve-deps deps-map args-map nil))
+  ([deps-map args-map settings]
+   (let [{:keys [extra-deps default-deps override-deps]} args-map
+         deps (merge (:deps deps-map) extra-deps)]
+     (let [version-map (-> deps
+                         (canonicalize-deps deps-map)
+                         (expand-deps default-deps override-deps deps-map (:trace settings)))]
+       (with-meta (lib-paths version-map deps-map) (meta version-map))))))
 
 (defn- make-tree
   [lib-map]
