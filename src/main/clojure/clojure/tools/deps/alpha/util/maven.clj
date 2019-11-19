@@ -171,7 +171,10 @@
     (transferFailed [_ event]
       ;; This happens when Maven can't find an artifact in a particular repo
       ;; (but still may find it in a different repo), ie this is a common event
-      #_(printerrln "Download failed:" (.. ^TransferEvent event getException getMessage)))))
+      #_(printerrln "Download failed:" (.. ^TransferEvent event getException getMessage)))
+    (transferInitiated [_ _event])
+    (transferProgressed [_ _event])
+    (transferSucceeded [_ _event])))
 
 (defn make-session
   ^RepositorySystemSession [^RepositorySystem system local-repo]
