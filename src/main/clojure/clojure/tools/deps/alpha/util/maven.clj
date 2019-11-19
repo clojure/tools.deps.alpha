@@ -48,6 +48,7 @@
     ;; maven-settings-builder
     [org.apache.maven.settings.building DefaultSettingsBuilderFactory]
 
+    ;; plexus-utils
     [org.codehaus.plexus.util.xml Xpp3Dom]))
 
 (set! *warn-on-reflection* true)
