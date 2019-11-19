@@ -1,10 +1,10 @@
 Changelog
 ===========
 
-* next
+* 0.8.599 on Nov 19, 2019
   * TDEPS-127 - Include pom resource directories in dep paths
   * TDEPS-140 - Use Maven seerver HTTP header propereties
-* 0.8.591
+* 0.8.591 on Nov 17, 2019
   * Add tracing
   * TDEPS-143 - Fix pom gen in combination with aliases does not respect alias modifications
 * 0.8.584 on Nov 4, 2019
