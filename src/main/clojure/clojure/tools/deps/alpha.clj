@@ -33,8 +33,7 @@
    :paths (comp vec distinct concat)
    :extra-paths (comp vec distinct concat)
    :jvm-opts (comp vec concat)
-   :main-opts (comp last #(remove nil? %) vector)
-   :verbose #(or %1 %2)})
+   :main-opts (comp last #(remove nil? %) vector)})
 
 (defn- choose-rule [alias-key]
   (or (merge-alias-rules alias-key)
@@ -315,7 +314,7 @@
 
   (clojure.pprint/pprint
     (resolve-deps {:deps {'org.clojure/tools.analyzer.jvm {:mvn/version "0.6.9"}}
-                   :mvn/repos mvn/standard-repos} {:verbose true}))
+                   :mvn/repos mvn/standard-repos} nil))
 
   (clojure.pprint/pprint
     (resolve-deps {:deps {'cheshire {:mvn/version "5.7.0"}}
@@ -344,8 +343,7 @@
     (resolve-deps
       {:deps {'org.clojure/core.memoize {:mvn/version "0.5.8"}}
        :mvn/repos mvn/standard-repos}
-      {:override-deps {'org.clojure/clojure {:mvn/version "1.3.0"}}
-       :verbose true})
+      {:override-deps {'org.clojure/clojure {:mvn/version "1.3.0"}}})
     ["src"] nil)
 
   (make-classpath
@@ -382,7 +380,7 @@
     (resolve-deps
       {:deps {'org.clojure/clojure {:mvn/version "1.8.0"}}
        :mvn/repos mvn/standard-repos}
-      {:verbose true})
+      nil)
     nil
     {'org.clojure/clojure "/Users/alex/code/clojure/target/classes"})
 
@@ -391,7 +389,7 @@
              org.clojure/clojurescript {:mvn/version "1.9.946"}
              reagent {:mvn/version "0.6.0"}}
      :mvn/repos mvn/standard-repos}
-    {:verbose true})
+    nil)
 
   ;; err case
   (resolve-deps {:deps {'bogus {:mvn/version "1.2.3"}}
