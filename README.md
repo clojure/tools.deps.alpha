@@ -65,7 +65,7 @@ For info on using tools.deps as a library, see:
 # Developer Information
 
 * [GitHub project](https://github.com/clojure/tools.deps.alpha)
-* [How to contribute](https://dev.clojure.org/display/community/Contributing)
+* [How to contribute](https://clojure.org/community/contributing)
 * [Bug Tracker](https://dev.clojure.org/jira/browse/TDEPS)
 * [Continuous Integration](https://build.clojure.org/job/tools.deps.alpha/)
 * [Compatibility Test Matrix](https://build.clojure.org/job/tools.deps.alpha-test-matrix/)
