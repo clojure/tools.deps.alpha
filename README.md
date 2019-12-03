@@ -61,6 +61,7 @@ org.clojure/tools.deps.alpha {:mvn/version "0.8.599"}
 For info on using tools.deps as a library, see:
 
 * [API Usage](API.md)
+* [API Docs](https://clojure.github.io/tools.deps.alpha)
 
 # Developer Information
 
