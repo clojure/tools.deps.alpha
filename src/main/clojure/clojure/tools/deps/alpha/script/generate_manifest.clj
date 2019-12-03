@@ -7,7 +7,8 @@
 ;   You must not remove this notice, or any other, from this software.
 
 (ns
-  ^{:deprecated "Use clojure.tools.deps.alpha.script.generate-manifest2"}
+  ^{:deprecated "Use clojure.tools.deps.alpha.script.generate-manifest2"
+    :skip-wiki true}
   clojure.tools.deps.alpha.script.generate-manifest
   (:require [clojure.java.io :as jio]
             [clojure.tools.cli :as cli]

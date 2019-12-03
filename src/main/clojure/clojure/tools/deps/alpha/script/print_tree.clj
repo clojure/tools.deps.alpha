@@ -6,7 +6,8 @@
 ;   the terms of this license.
 ;   You must not remove this notice, or any other, from this software.
 
-(ns clojure.tools.deps.alpha.script.print-tree
+(ns ^{:skip-wiki true}
+  clojure.tools.deps.alpha.script.print-tree
   (:require
     [clojure.tools.deps.alpha :as deps]
     [clojure.tools.deps.alpha.util.io :as io :refer [printerrln]]

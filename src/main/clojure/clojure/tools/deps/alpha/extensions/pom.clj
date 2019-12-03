@@ -6,7 +6,8 @@
 ;   the terms of this license.
 ;   You must not remove this notice, or any other, from this software.
 
-(ns clojure.tools.deps.alpha.extensions.pom
+(ns ^{:skip-wiki true}
+  clojure.tools.deps.alpha.extensions.pom
   (:require
     [clojure.java.io :as jio]
     [clojure.string :as str]
