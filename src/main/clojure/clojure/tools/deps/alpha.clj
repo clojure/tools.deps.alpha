@@ -270,12 +270,11 @@
     :extra-paths - extra classpath paths to add to the classpath
     :classpath-overrides - a map of lib to path, where path is used instead of the coord's paths
 
-
   Returns the classpath as a string."
   [lib-map paths {:keys [classpath-overrides extra-paths] :as classpath-args}]
   (let [libs (merge-with (fn [coord path] (assoc coord :paths [path])) lib-map classpath-overrides)
         lib-paths (mapcat :paths (vals libs))]
-    (str/join File/pathSeparator (concat extra-paths paths lib-paths))))
+    (str/join File/pathSeparator (remove nil? (concat extra-paths paths lib-paths)))))
 
 (comment
   (require '[clojure.tools.deps.alpha.util.maven :as mvn])
