@@ -274,7 +274,7 @@
   [lib-map paths {:keys [classpath-overrides extra-paths] :as classpath-args}]
   (let [libs (merge-with (fn [coord path] (assoc coord :paths [path])) lib-map classpath-overrides)
         lib-paths (mapcat :paths (vals libs))]
-    (str/join File/pathSeparator (remove nil? (concat extra-paths paths lib-paths)))))
+    (str/join File/pathSeparator (remove str/blank? (concat extra-paths paths lib-paths)))))
 
 (comment
   (require '[clojure.tools.deps.alpha.util.maven :as mvn])
