@@ -10,7 +10,8 @@
   (:require
     [clojure.java.io :as jio]
     [clojure.string :as str]
-    [clojure.tools.deps.alpha.util.io :refer [printerrln]])
+    [clojure.tools.deps.alpha.util.io :refer [printerrln]]
+    [clojure.tools.deps.alpha.util.s3-transporter])
   (:import
     ;; maven-resolver-api
     [org.eclipse.aether RepositorySystem RepositorySystemSession DefaultRepositoryCache DefaultRepositorySystemSession ConfigurationProperties]
@@ -33,9 +34,6 @@
     ;; maven-resolver-transport-http
     [org.eclipse.aether.transport.http HttpTransporterFactory]
 
-    ;; maven-resolver-transport-wagon
-    [org.eclipse.aether.transport.wagon WagonTransporterFactory WagonProvider]
-
     ;; maven-aether-provider
     [org.apache.maven.repository.internal MavenRepositorySystemUtils]
 
@@ -49,7 +47,8 @@
     [org.apache.maven.settings.building DefaultSettingsBuilderFactory]
 
     ;; plexus-utils
-    [org.codehaus.plexus.util.xml Xpp3Dom]))
+    [org.codehaus.plexus.util.xml Xpp3Dom]
+    ))
 
 (set! *warn-on-reflection* true)
 
@@ -138,15 +137,6 @@
 
 ;; Maven system and session
 
-;; TODO: in the future this could be user-extensible
-(deftype CustomProvider []
-  WagonProvider
-  (lookup [_ role-hint]
-    (if (contains? #{"s3" "s3p"} role-hint)
-      (org.springframework.build.aws.maven.PrivateS3Wagon.)
-      (throw (ex-info (str "Unknown wagon provider: " role-hint) {:role-hint role-hint}))))
-  (release [_ wagon]))
-
 ;; Delay creation, but then cache Maven ServiceLocator instance
 (def the-locator
   (delay
@@ -154,8 +144,7 @@
       (.addService RepositoryConnectorFactory BasicRepositoryConnectorFactory)
       (.addService TransporterFactory FileTransporterFactory)
       (.addService TransporterFactory HttpTransporterFactory)
-      (.addService TransporterFactory WagonTransporterFactory)
-      (.setService WagonProvider CustomProvider))))
+      (.addService TransporterFactory clojure.tools.deps.alpha.util.S3TransporterFactory))))
 
 (defn make-system
   ^RepositorySystem []

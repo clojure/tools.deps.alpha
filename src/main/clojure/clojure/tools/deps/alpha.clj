@@ -413,7 +413,7 @@
         (resolve-deps
           {:deps {'com.google.cloud/google-cloud-monitoring {:mvn/version "1.78.0"}}
            :mvn/repos (merge mvn/standard-repos
-                        {"datomic-cloud" {:url "s3://datomic-releases-1fc2183a/maven/releases"}})}
+                        {"datomic-cloud" {:url "s3://datomic-releases-1fc2183a.s3-us-east-1.amazonaws.com/maven/releases"}})}
           nil))
       nil))
 
