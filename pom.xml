@@ -21,8 +21,8 @@
     <!-- used for build -->
     <clojure.warnOnReflection>true</clojure.warnOnReflection>
     <clojure.version>1.9.0</clojure.version>
-    <resolverVersion>1.1.1</resolverVersion>
-    <mavenVersion>3.5.2</mavenVersion>
+    <resolverVersion>1.4.1</resolverVersion>
+    <mavenVersion>3.6.3</mavenVersion>
 
     <!-- default published in install deps.edn -->
     <clojure.default>1.10.1</clojure.default>
@@ -94,7 +94,7 @@
     <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>data.xml</artifactId>
-      <version>0.2.0-alpha5</version>
+      <version>0.2.0-alpha6</version>
     </dependency>
     <dependency>
       <groupId>s3-wagon-private</groupId>
@@ -131,7 +131,7 @@
     <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>tools.cli</artifactId>
-      <version>0.3.5</version>
+      <version>0.4.2</version>
     </dependency>
   </dependencies>
 
