@@ -87,6 +87,16 @@
       ;; fail
       nil)))
 
+(defn get-bucket-loc
+  [config bucket]
+  (try
+    (let [s3-client (aws/client config)
+          resp (aws/invoke s3-client {:op :GetBucketLocation
+                                      :request {:Bucket bucket}})
+          region (:LocationConstraint resp)]
+      (if (= region "") "us-east-1" region))
+    (catch Throwable _ nil)))
+
 (defn new-transporter
   [^RepositorySystemSession session ^RemoteRepository repository]
   (let [auth-context (AuthenticationContext/forRepository session repository)
@@ -102,10 +112,12 @@
         url (.getUrl repository)
         {:keys [bucket region repo-path]} (parse-url url)
         _ (when (nil? bucket) (throw (ex-info "Can't parse bucket from url" {:url url})))
-        s3-client (aws/client (cond->
-                                {:api :s3}
-                                cred-provider (assoc :credentials-provider cred-provider)
-                                region (assoc :region region)))]
+
+        http-client (aws/default-http-client)
+        config (cond-> {:api :s3, :http-client http-client}
+                 cred-provider (assoc :credentials-provider cred-provider))
+        region (if (nil? region) (get-bucket-loc config bucket) region)
+        s3-client (aws/client (cond-> config region (assoc :region region)))]
     (reify Transporter
       (^void peek [_ ^PeekTask peek-task]
         (let [path (.. peek-task getLocation toString)
@@ -137,8 +149,7 @@
                                              :Key "maven/releases/com/datomic/ion/0.9.35/ion-0.9.35.pom"}}))
 
   (aws/invoke s3-client {:op :GetBucketLocation
-                         :request {:Bucket "datomic-releases-1fc2183a"
-                                   :Location ""}})
+                         :request {:Bucket "datomic-releases-1fc2183a"}})
 
   (aws/invoke s3-client {:op :GetObject
                          :request {:Bucket "datomic-releases-1fc2183a"
