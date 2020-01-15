@@ -123,7 +123,7 @@
 (defn remote-repos
   [repos]
   (->> repos
-    (remove (fn [[name config]] (nil? config)))
+    (remove (fn [[_name config]] (nil? config)))
     (mapv remote-repo)))
 
 ;; Local repository
