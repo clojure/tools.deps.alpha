@@ -65,7 +65,7 @@
         host (.getHost u)
         host-parts (str/split host #"\.")
         [path1 & pathr :as path-parts] (remove str/blank? (str/split (.getPath u) #"/"))]
-    (println host-parts)
+    ;(println host-parts)
     (case (count host-parts)
       ;; BUCKET
       1 {:bucket host, :repo-path (str/join "/" path-parts)}
