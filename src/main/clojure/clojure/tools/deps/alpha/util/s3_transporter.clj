@@ -94,8 +94,12 @@
           resp (aws/invoke s3-client {:op :GetBucketLocation
                                       :request {:Bucket bucket}})
           region (:LocationConstraint resp)]
-      (if (= region "") "us-east-1" region))
-    (catch Throwable _ nil)))
+      (cond
+        (nil? region) (throw (ex-info (format "Can't determine region of s3 bucket %s" bucket) {:bucket bucket, :response resp}))
+        (= region "") "us-east-1"
+        :else region))
+    (catch Throwable _
+      (throw (ex-info (format "Can't determine region of s3 bucket %s" bucket) {:bucket bucket})))))
 
 (defn new-transporter
   [^RepositorySystemSession session ^RemoteRepository repository]
@@ -117,7 +121,7 @@
         config (cond-> {:api :s3, :http-client http-client}
                  cred-provider (assoc :credentials-provider cred-provider))
         region (if (nil? region) (get-bucket-loc config bucket) region)
-        s3-client (aws/client (cond-> config region (assoc :region region)))]
+        s3-client (aws/client (assoc config :region region))]
     (reify Transporter
       (^void peek [_ ^PeekTask peek-task]
         (let [path (.. peek-task getLocation toString)
