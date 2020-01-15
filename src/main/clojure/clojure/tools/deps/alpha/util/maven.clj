@@ -10,8 +10,7 @@
   (:require
     [clojure.java.io :as jio]
     [clojure.string :as str]
-    [clojure.tools.deps.alpha.util.io :refer [printerrln]]
-    [clojure.tools.deps.alpha.util.s3-transporter])
+    [clojure.tools.deps.alpha.util.io :refer [printerrln]])
   (:import
     ;; maven-resolver-api
     [org.eclipse.aether RepositorySystem RepositorySystemSession DefaultRepositoryCache DefaultRepositorySystemSession ConfigurationProperties]

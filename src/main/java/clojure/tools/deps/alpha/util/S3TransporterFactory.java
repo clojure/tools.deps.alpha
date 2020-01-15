@@ -1,7 +1,7 @@
 package clojure.tools.deps.alpha.util;
 
+import java.lang.Thread;
 import javax.inject.Named;
-
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.spi.connector.transport.Transporter;
@@ -18,19 +18,32 @@ import org.eclipse.aether.spi.locator.ServiceLocator;
 @Named("s3")
 public final class S3TransporterFactory implements TransporterFactory, Service {
 
-    static {
-        IFn REQUIRE = Clojure.var("clojure.core", "require");
-        REQUIRE.invoke(Clojure.read("clojure.tools.deps.alpha.util.s3-transporter"));
-        NEW_TRANSPORTER = Clojure.var("clojure.tools.deps.alpha.util.s3-transporter", "new-transporter");
+    private static class DelayedInstance {
+        private static final IFn NEW_TRANSPORTER;
+
+        static {
+            IFn REQUIRE = Clojure.var("clojure.core", "require");
+            REQUIRE.invoke(Clojure.read("clojure.tools.deps.alpha.util.s3-transporter"));
+            NEW_TRANSPORTER = Clojure.var("clojure.tools.deps.alpha.util.s3-transporter", "new-transporter");
+        }
     }
 
-    private static final IFn NEW_TRANSPORTER;
+    private S3TransporterFactory() {}
+
+    private Object triggerLoad() {
+        return DelayedInstance.NEW_TRANSPORTER;
+    }
 
     public void initService(ServiceLocator locator) {
+        // Load transporter (and core.async) lazily in background daemon thread
+        Thread t = new Thread(new Runnable() { public void run() { triggerLoad(); }});
+        t.setDaemon(true);
+        t.start();
     }
 
     public Transporter newInstance(RepositorySystemSession session, RemoteRepository repository) {
-        return (Transporter) NEW_TRANSPORTER.invoke(session, repository);
+        Transporter t = (Transporter) DelayedInstance.NEW_TRANSPORTER.invoke(session, repository);
+        return t;
     }
 
     public float getPriority() {
