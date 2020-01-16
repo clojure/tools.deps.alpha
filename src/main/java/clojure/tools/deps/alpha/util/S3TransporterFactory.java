@@ -44,10 +44,10 @@ public final class S3TransporterFactory implements TransporterFactory, Service {
 
     public Transporter newInstance(RepositorySystemSession session, RemoteRepository repository) throws NoTransporterException {
         String protocol = repository.getProtocol();
-        if(! ("s3".equals(protocol) || "https".equals(protocol))) {
-            throw new NoTransporterException(repository);
-        } else {
+        if("s3".equals(protocol)) {
             return (Transporter) DelayedInstance.NEW_TRANSPORTER.invoke(session, repository);
+        } else {
+            throw new NoTransporterException(repository);
         }
     }
 

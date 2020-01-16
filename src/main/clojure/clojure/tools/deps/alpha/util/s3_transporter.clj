@@ -59,47 +59,29 @@
       (stream-copy output-stream is offset on-read)
       (throw (ex-info "Artifact not found" {:bucket bucket, :path path, :reason :cognitect.anomalies/not-found})))))
 
+;; s3://BUCKET/PATH?region=us-east-1
 (defn parse-url
-  [repo-url]
-  (let [u (URI/create repo-url)
+  [^RemoteRepository repo]
+  (let [u (URI/create (.getUrl repo))
         host (.getHost u)
-        host-parts (str/split host #"\.")
-        [path1 & pathr :as path-parts] (remove str/blank? (str/split (.getPath u) #"/"))]
-    ;(println host-parts)
-    (case (count host-parts)
-      ;; BUCKET
-      1 {:bucket host, :repo-path (str/join "/" path-parts)}
-
-      ;; s3.amazonaws.com/BUCKET (REGION = us-east-1)
-      3 (when (= host-parts ["s3" "amazonaws" "com"])
-          {:region "us-east-1", :bucket path1, :repo-path (str/join "/" pathr)})
-
-      ;; s3.REGION.amazonaws.com/BUCKET
-      ;; BUCKET.s3.amazonaws.com (no REGION indicated)
-      ;; BUCKET.s3-REGION.amazonaws.com
-      4 (when (= (drop 2 host-parts) ["amazonaws" "com"])
-          (let [[h1 h2] host-parts]
-            (cond (= h1 "s3") {:region h2, :bucket path1, :repo-path (str/join "/" pathr)}
-                  (= h2 "s3") {:bucket h1, :repo-path (str/join "/" path-parts)}
-                  (str/starts-with? h2 "s3-") {:region (subs h2 3), :bucket h1, :repo-path (str/join "/" path-parts)}
-                  :else nil)))
-
-      ;; fail
-      nil)))
+        path (str/join "/" (remove str/blank? (str/split (.getPath u) #"/")))
+        query (.getQuery u)
+        kvs (when query (str/split query #"&"))
+        {:strs [region]} (reduce (fn [m kv] (let [[k v] (str/split kv #"=")] (assoc m k v))) {} kvs)]
+    {:bucket host, :region region, :repo-path path}))
 
 (defn get-bucket-loc
   [config bucket]
-  (try
-    (let [s3-client (aws/client config)
-          resp (aws/invoke s3-client {:op :GetBucketLocation
+  (let [s3-client (aws/client (merge {:region "us-east-1"} config))
+        resp (try
+               (aws/invoke s3-client {:op :GetBucketLocation
                                       :request {:Bucket bucket}})
-          region (:LocationConstraint resp)]
-      (cond
-        (nil? region) (throw (ex-info (format "Can't determine region of s3 bucket %s" bucket) {:bucket bucket, :response resp}))
-        (= region "") "us-east-1"
-        :else region))
-    (catch Throwable _
-      (throw (ex-info (format "Can't determine region of s3 bucket %s" bucket) {:bucket bucket})))))
+               (catch Throwable _ nil))
+        region (:LocationConstraint resp)]
+    (cond
+      (nil? region) nil
+      (= region "") "us-east-1"
+      :else region)))
 
 (defn new-transporter
   [^RepositorySystemSession session ^RemoteRepository repository]
@@ -113,15 +95,13 @@
                             {:aws/access-key-id user
                              :aws/secret-access-key pw})))
         on-close #(when auth-context (.close auth-context))
-        url (.getUrl repository)
-        {:keys [bucket region repo-path]} (parse-url url)
-        _ (when (nil? bucket) (throw (ex-info "Can't parse bucket from url" {:url url})))
+        {:keys [bucket region repo-path]} (parse-url repository)
 
         http-client (aws/default-http-client)
         config (cond-> {:api :s3, :http-client http-client}
                  cred-provider (assoc :credentials-provider cred-provider))
-        region (if (nil? region) (get-bucket-loc config bucket) region)
-        s3-client (aws/client (assoc config :region region))]
+        use-region (or region (get-bucket-loc config bucket) "us-east-1")
+        s3-client (aws/client (assoc config :region use-region))]
     (reify Transporter
       (^void peek [_ ^PeekTask peek-task]
         (let [path (.. peek-task getLocation toString)
@@ -148,6 +128,7 @@
 (comment
   (def s3-client (aws/client {:api :s3
                               :region :us-east-1})) ;; use ambient creds
+
   (def resp (aws/invoke s3-client {:op :GetObject
                                    :request {:Bucket "datomic-releases-1fc2183a"
                                              :Key "maven/releases/com/datomic/ion/0.9.35/ion-0.9.35.pom"}}))
