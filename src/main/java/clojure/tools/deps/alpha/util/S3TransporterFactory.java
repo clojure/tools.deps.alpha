@@ -11,6 +11,7 @@ import org.eclipse.aether.spi.locator.ServiceLocator;
 import clojure.java.api.Clojure;
 import clojure.lang.IFn;
 import org.eclipse.aether.spi.locator.ServiceLocator;
+import org.eclipse.aether.transfer.NoTransporterException;
 
 /**
  * Transporter factory for repositories using the s3 protocol.
@@ -41,9 +42,13 @@ public final class S3TransporterFactory implements TransporterFactory, Service {
         t.start();
     }
 
-    public Transporter newInstance(RepositorySystemSession session, RemoteRepository repository) {
-        Transporter t = (Transporter) DelayedInstance.NEW_TRANSPORTER.invoke(session, repository);
-        return t;
+    public Transporter newInstance(RepositorySystemSession session, RemoteRepository repository) throws NoTransporterException {
+        String protocol = repository.getProtocol();
+        if(! ("s3".equals(protocol) || "https".equals(protocol))) {
+            throw new NoTransporterException(repository);
+        } else {
+            return (Transporter) DelayedInstance.NEW_TRANSPORTER.invoke(session, repository);
+        }
     }
 
     public float getPriority() {
