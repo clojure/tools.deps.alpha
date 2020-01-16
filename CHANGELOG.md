@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* next
+* 0.8.624 on Jan 16, 2020 
   * New s3 transporter, replacing old s3 repo access
   * Bump all dep versions
 * 0.8.599 on Nov 19, 2019
