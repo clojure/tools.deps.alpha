@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* next
+  * New s3 transporter, replacing old s3 repo access
 * 0.8.599 on Nov 19, 2019
   * TDEPS-127 - Include pom resource directories in dep paths
   * TDEPS-140 - Use Maven server HTTP header properties
