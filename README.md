@@ -73,7 +73,7 @@ For info on using tools.deps as a library, see:
 
 # Copyright and License
 
-Copyright © 2017-2019 Rich Hickey, Alex Miller, and contributors
+Copyright © 2017-2020 Rich Hickey, Alex Miller, and contributors
 
 All rights reserved. The use and
 distribution terms for this software are covered by the
