@@ -6,7 +6,7 @@
 ;   the terms of this license.
 ;   You must not remove this notice, or any other, from this software.
 
-(ns ^{skip-wiki true}
+(ns ^{:skip-wiki true}
    clojure.tools.deps.alpha.script.generate-manifest2
   (:require [clojure.java.io :as jio]
             [clojure.tools.cli :as cli]
