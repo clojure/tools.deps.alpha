@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+* new
+  * Use alternate model resolver for reading pom models
 * 0.8.624 on Jan 16, 2020 
   * New s3 transporter, replacing old s3 repo access
   * Bump all dep versions
