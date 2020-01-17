@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-* new
+* 0.8.633 on Jan 17, 2020
   * Use alternate model resolver for reading pom models
   * Fix bad metadata affecting pom gen
 * 0.8.624 on Jan 16, 2020 
