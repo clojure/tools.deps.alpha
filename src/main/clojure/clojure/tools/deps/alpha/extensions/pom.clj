@@ -21,8 +21,8 @@
     ;; maven-model-builder
     [org.apache.maven.model.building DefaultModelBuildingRequest DefaultModelBuilderFactory ModelSource FileModelSource]
     [org.apache.maven.model.resolution ModelResolver]
-    ;; maven-aether-provider
-    [org.apache.maven.repository.internal DefaultModelResolver DefaultVersionRangeResolver]
+    ;; maven-resolver-provider
+    [org.apache.maven.repository.internal DefaultVersionRangeResolver]
     ;; maven-resolver-api
     [org.eclipse.aether RepositorySystemSession RequestTrace]
     ;; maven-resolver-impl
@@ -32,6 +32,8 @@
     [org.eclipse.aether.spi.locator ServiceLocator]
     ;; maven-model
     [org.apache.maven.model Resource]
+    ;; maven-core
+    [org.apache.maven.project ProjectModelResolver ProjectBuildingRequest$RepositoryMerging]
     ))
 
 (set! *warn-on-reflection* true)
@@ -45,11 +47,8 @@
         artifact-resolver (.getService locator ArtifactResolver)
         version-range-resolver (doto (DefaultVersionRangeResolver.) (.initService locator))
         repo-mgr (doto (DefaultRemoteRepositoryManager.) (.initService locator))
-        repos (mapv maven/remote-repo repos)
-        ct (.getConstructor org.apache.maven.repository.internal.DefaultModelResolver
-             (into-array [RepositorySystemSession RequestTrace String ArtifactResolver VersionRangeResolver RemoteRepositoryManager List]))]
-    (.setAccessible ct true) ;; turn away from the horror
-    (.newInstance ct (object-array [session nil "runtime" artifact-resolver version-range-resolver repo-mgr repos]))))
+        repos (mapv maven/remote-repo repos)]
+    (ProjectModelResolver. session nil system repo-mgr repos ProjectBuildingRequest$RepositoryMerging/REQUEST_DOMINANT nil)))
 
 (defn read-model
   ^Model [^ModelSource source config]
