@@ -1,9 +1,11 @@
 Changelog
 ===========
 
+* next
+  * Added tests for pom deps and gen pom
 * 0.8.633 on Jan 17, 2020
-  * Use alternate model resolver for reading pom models
-  * Fix bad metadata affecting pom gen
+  * Fix regression with reading pom models with dep set from 0.8.264
+  * Fix regression breaking pom gen
 * 0.8.624 on Jan 16, 2020 
   * New s3 transporter, replacing old s3 repo access
   * Bump all dep versions
