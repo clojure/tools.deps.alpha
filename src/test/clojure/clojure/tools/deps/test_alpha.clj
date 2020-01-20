@@ -4,7 +4,8 @@
     [clojure.tools.deps.alpha :as deps]
     [clojure.tools.deps.alpha.extensions :as ext]
     [clojure.tools.deps.alpha.extensions.faken :as fkn]
-    [clojure.tools.deps.alpha.util.dir :as dir])
+    [clojure.tools.deps.alpha.util.dir :as dir]
+    [clojure.tools.deps.alpha.util.maven :as mvn])
   (:import
     [java.io File]))
 
@@ -148,3 +149,10 @@
       (binding [dir/*the-dir* base]
         (is (= ['ex/b {:local/root "/b"}]
                (ext/canonicalize 'ex/b {:local/root "/b"} {})))))))
+
+;; simple check that pom resolution is working - load tda itself as pom dep
+(deftest test-local-pom
+  (is (not (empty? (deps/resolve-deps
+                     {:deps {'c/tda {:local/root "." :deps/manifest :pom}}
+                      :mvn/repos mvn/standard-repos}
+                     nil)))))
