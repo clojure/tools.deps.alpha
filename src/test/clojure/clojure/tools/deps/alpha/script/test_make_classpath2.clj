@@ -1,4 +1,4 @@
-(ns clojure.tools.deps.alpha.script.test-make-classpath
+(ns clojure.tools.deps.alpha.script.test-make-classpath2
   (:require
     [clojure.test :refer [deftest is]]
     [clojure.string :as str]
