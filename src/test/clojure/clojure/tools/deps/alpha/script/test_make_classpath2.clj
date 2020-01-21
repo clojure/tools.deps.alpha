@@ -125,6 +125,11 @@
                               :aliases [:m1 :m2]})]
     (is (= ["c"] (:main cp-data)))))
 
+;; repositories should be retained for generate-manifest2's use
+(deftest repo-config-retained
+  (let [cp-data (mc/run-core {:install-deps install-data})] ;; install-data has central and clojars
+    (is (= #{"central" "clojars"} (-> cp-data :mvn/repos keys set)))))
+
 (comment
   (clojure.test/run-tests)
 )
