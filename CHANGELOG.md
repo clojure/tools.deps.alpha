@@ -2,12 +2,12 @@ Changelog
 ===========
 
 * next
-  * Fix regression in -Spom no longer populating <repositories>
+  * Fix regression in -Spom no longer populating <repositories> from 0.8.573
 * 0.8.640 on Jan 20, 2020
   * Added tests for pom deps and gen pom
 * 0.8.633 on Jan 17, 2020
-  * Fix regression with reading pom models with dep set from 0.8.264
-  * Fix regression breaking pom gen
+  * Fix regression with reading pom models with dep set from 0.8.624
+  * Fix regression breaking pom gen from 0.8.624
 * 0.8.624 on Jan 16, 2020 
   * New s3 transporter, replacing old s3 repo access
   * Bump all dep versions
