@@ -50,6 +50,7 @@
                                          {:install-deps (reader/install-deps)
                                           :user-deps (makecp/read-deps config-user)
                                           :project-deps (makecp/read-deps config-project)}))
+              ;; treat all transitive deps as top-level deps
               updated-deps (reduce-kv (fn [m lib {:keys [dependents] :as coord}]
                                         (if (seq dependents) m (assoc m lib coord)))
                              {} (:libs mod-map))]

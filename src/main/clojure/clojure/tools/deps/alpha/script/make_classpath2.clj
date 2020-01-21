@@ -71,7 +71,19 @@
     (printerrln "WARNING: Specified aliases are undeclared:" (vec unknown))))
 
 (defn run-core
-  "Run make-classpath script from/to data (no file stuff)"
+  "Run make-classpath script from/to data (no file stuff). Returns:
+    {;; Main outputs:
+     :libs lib-map          ;; from resolve-deps, .libs file
+     :cp classpath          ;; from make-classpath, .cp file
+     :main main-opts        ;; effective main opts, .main file
+     :jvm jvm-opts          ;; effective jvm opts, .jvm file
+     :trace trace-log       ;; from resolve-deps, if requested, trace.edn file
+
+     ;; Intermediate/source data:
+     :deps merged-deps      ;; effective merged :deps
+     :paths local-paths     ;; from make-classpath, just effective local paths
+     ;; and any other qualified keys from top level merged deps
+    }"
   [{:keys [install-deps user-deps project-deps config-data ;; all deps.edn maps
            resolve-aliases makecp-aliases jvmopt-aliases main-aliases aliases] :as opts}]
   (let [deps-map (reader/merge-deps (remove nil? [install-deps user-deps project-deps config-data]))]
@@ -81,8 +93,9 @@
                       deps-map)
           cp-data (create-classpath deps-map' opts)
           jvm (seq (get (deps/combine-aliases deps-map (concat aliases jvmopt-aliases)) :jvm-opts))
-          main (seq (get (deps/combine-aliases deps-map (concat aliases main-aliases)) :main-opts))]
-      (cond-> (merge cp-data {:deps (:deps deps-map')})
+          main (seq (get (deps/combine-aliases deps-map (concat aliases main-aliases)) :main-opts))
+          repo-config (reduce-kv (fn [m k v] (if (qualified-keyword? k) (assoc m k v) m)) {} deps-map)]
+      (cond-> (merge repo-config cp-data {:deps (:deps deps-map')})
         jvm (assoc :jvm jvm)
         main (assoc :main main)))))
 
