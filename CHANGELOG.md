@@ -2,6 +2,8 @@ Changelog
 ===========
 
 * next
+  * Fix regression in -Spom no longer populating <repositories>
+* 0.8.640 on Jan 20, 2020
   * Added tests for pom deps and gen pom
 * 0.8.633 on Jan 17, 2020
   * Fix regression with reading pom models with dep set from 0.8.264
