@@ -155,10 +155,8 @@
       (let [event ^TransferEvent event
             resource (.getResource event)
             name (.getResourceName resource)
-            url (.getRepositoryUrl resource)
-            urlc (count url)
-            report-url (if (pos? urlc) (subs url 0 (dec urlc)) url)] ;; chop trailing /
-        (printerrln "Downloading:" name "from" report-url)))
+            repo (.getRepositoryId resource)]
+        (printerrln "Downloading:" name "from" repo)))
     (transferCorrupted [_ event]
       (printerrln "Download corrupted:" (.. ^TransferEvent event getException getMessage)))
     (transferFailed [_ event]
