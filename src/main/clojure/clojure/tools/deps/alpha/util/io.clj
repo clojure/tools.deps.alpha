@@ -9,15 +9,20 @@
 (ns clojure.tools.deps.alpha.util.io
   (:require
     [clojure.edn :as edn]
-    [clojure.java.io :as jio])
+    [clojure.java.io :as jio]
+    [clojure.string :as str])
   (:import
     [java.io Reader FileReader PushbackReader]))
+
+(defonce ^:private nl (System/getProperty "line.separator"))
 
 (defn printerrln
   "println to *err*"
   [& msgs]
-  (binding [*out* *err*]
-    (apply println msgs)))
+  (binding [*out* *err*
+            *print-readably* nil]
+    (pr (str (str/join " " msgs) nl))
+    (flush)))
 
 (defn read-edn
   "Read the edn file from the specified `reader`.
