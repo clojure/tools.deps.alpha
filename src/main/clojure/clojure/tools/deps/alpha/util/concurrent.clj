@@ -27,9 +27,9 @@
 
 (defn submit-task
   ^Future [^ExecutorService executor f]
-  (let [frame (clojure.lang.Var/cloneThreadBindingFrame)
+  (let [bindings (get-thread-bindings)
         task #(do
-                (clojure.lang.Var/resetThreadBindingFrame frame)
+                (push-thread-bindings bindings)
                 (f))]
     (.submit executor ^Callable task)))
 
