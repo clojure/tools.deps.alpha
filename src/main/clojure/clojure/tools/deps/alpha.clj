@@ -11,6 +11,7 @@
     [clojure.java.io :as jio]
     [clojure.pprint :refer [pprint]]
     [clojure.string :as str]
+    [clojure.tools.deps.alpha.util.concurrent :as concurrent]
     [clojure.tools.deps.alpha.util.dir :as dir]
     [clojure.tools.deps.alpha.extensions :as ext]
 
@@ -23,7 +24,7 @@
   (:import
     [clojure.lang PersistentQueue]
     [java.io File]
-    [java.util.concurrent Callable Executors ThreadFactory TimeUnit]))
+    [java.util.concurrent Callable Executors ExecutorService ThreadFactory TimeUnit]))
 
 (set! *warn-on-reflection* true)
 
@@ -212,38 +213,25 @@
         (assoc ret lib (cond-> coord (seq paths) (assoc :dependents paths)))))
     {} version-map))
 
-(defonce ^:private thread-factory
-  (reify ThreadFactory
-    (newThread [_ r]
-      (doto (Thread. r)
-        (.setName "tools.deps download")
-        (.setDaemon true)))))
-
 (defn- download-libs
-  [^long n lib-map config]
-  (let [executor (Executors/newFixedThreadPool n ^ThreadFactory thread-factory)
-        lib-futs (reduce-kv
+  [executor lib-map config]
+  (let [lib-futs (reduce-kv
                    (fn [fs lib coord]
-                     (let [frame (clojure.lang.Var/cloneThreadBindingFrame)
-                           task #(try
-                                   (clojure.lang.Var/resetThreadBindingFrame frame)
-                                   (ext/coord-paths lib coord (:deps/manifest coord) config)
-                                   (catch Throwable t t))
-                           fut (.submit executor ^Callable task)]
+                     (let [fut (concurrent/submit-task
+                                 executor
+                                 #(try
+                                    (ext/coord-paths lib coord (:deps/manifest coord) config)
+                                    (catch Throwable t t)))]
                        (assoc fs lib fut)))
                    {} lib-map)]
     (reduce-kv (fn [lm lib fut]
                  (let [result @fut]
                    (if (instance? Throwable result)
                      (do
-                       ;; allow tasks to stop writing to stderr
-                       (.shutdownNow executor)
-                       (.awaitTermination executor 1 TimeUnit/SECONDS)
+                       (concurrent/shutdown-on-error executor)
                        (throw ^Throwable result))
                      (assoc-in lm [lib :paths] result))))
       lib-map lib-futs)))
-
-(def ^:private processors (.availableProcessors (Runtime/getRuntime)))
 
 (defn resolve-deps
   "Takes a deps configuration map and resolves the transitive dependency graph
@@ -263,15 +251,16 @@
     (resolve-deps deps-map args-map nil))
   ([deps-map args-map settings]
    (let [{:keys [extra-deps default-deps override-deps]} args-map
+         n (if-let [threads (:threads settings)]
+             (Long/parseLong threads)
+             (min concurrent/processors 8))
+         executor (concurrent/new-executor n)
          deps (merge (:deps deps-map) extra-deps)
          version-map (-> deps
                        (canonicalize-deps deps-map)
                        (expand-deps default-deps override-deps deps-map (:trace settings)))
          lib-map (lib-paths version-map)
-         n (if-let [threads (:threads settings)]
-             (Long/parseLong threads)
-             (min processors 8))
-         lib-map' (download-libs n lib-map deps-map)]
+         lib-map' (download-libs executor lib-map deps-map)]
      (with-meta lib-map' (meta version-map)))))
 
 (defn- make-tree
