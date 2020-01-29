@@ -23,8 +23,7 @@
     [clojure.tools.deps.alpha.extensions.pom])
   (:import
     [clojure.lang PersistentQueue]
-    [java.io File]
-    [java.util.concurrent Callable Executors ExecutorService ThreadFactory TimeUnit]))
+    [java.io File]))
 
 (set! *warn-on-reflection* true)
 
