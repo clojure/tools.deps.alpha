@@ -38,7 +38,8 @@
    ["-M" "--main-aliases ALIASES" "Concatenated main option alias names" :parse-fn parse/parse-kws]
    ["-A" "--aliases ALIASES" "Concatenated generic alias names" :parse-fn parse/parse-kws]
    ;; options
-   [nil "--trace" "Emit trace log to trace.edn"]])
+   [nil "--trace" "Emit trace log to trace.edn"]
+   [nil "--threads THREADS" "Threads for concurrent downloads"]])
 
 (defn parse-opts
   "Parse the command line opts to make-classpath"
@@ -49,11 +50,11 @@
   "Given parsed-opts describing the input config files, and aliases to use,
   return the output lib map and classpath."
   [deps-map
-   {:keys [resolve-aliases makecp-aliases aliases trace] :as _opts}]
+   {:keys [resolve-aliases makecp-aliases aliases threads trace] :as _opts}]
   (session/with-session
     (let [resolve-args (deps/combine-aliases deps-map (concat aliases resolve-aliases))
           cp-args (deps/combine-aliases deps-map (concat aliases makecp-aliases))
-          libs (deps/resolve-deps deps-map resolve-args {:trace trace})
+          libs (deps/resolve-deps deps-map resolve-args {:threads threads, :trace trace})
           trace-log (-> libs meta :trace)
           effective-paths (or (:paths (deps/combine-aliases deps-map aliases))
                            (:paths deps-map))
