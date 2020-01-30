@@ -2,6 +2,7 @@ Changelog
 ===========
 
 * next
+  * New: concurrent downloading of deps and metadata
   * Fix regression in -Spom no longer populating <repositories> from 0.8.573
   * Fix manifest type lookup for git deps after coordinate resolution
 * 0.8.640 on Jan 20, 2020
