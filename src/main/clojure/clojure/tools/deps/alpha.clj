@@ -307,6 +307,26 @@
       (doseq [[lib coord] tree :when (-> coord :dependents nil?)]
         (print-node lib "")))))
 
+(defn make-classpath-roots
+  "Takes a lib map, and a set of explicit paths. Extracts the paths for each chosen
+  lib coordinate, and assembles a classpath string using the system path separator.
+  The classpath-args is a map with keys that can be used to modify the classpath
+  building operation:
+
+    :extra-paths - extra classpath paths to add to the classpath
+    :classpath-overrides - a map of lib to path, where path is used instead of the coord's paths
+
+  Returns the classpath as a vector of string paths."
+  [lib-map paths {:keys [classpath-overrides extra-paths] :as classpath-args}]
+  (let [libs (merge-with (fn [coord path] (assoc coord :paths [path])) lib-map classpath-overrides)
+        lib-paths (mapcat :paths (vals libs))]
+    (remove str/blank? (concat extra-paths paths lib-paths))))
+
+(defn join-classpath
+  "Takes a coll of string classpath roots and creates a platform sensitive classpath"
+  [roots]
+  (str/join File/pathSeparator roots))
+
 (defn make-classpath
   "Takes a lib map, and a set of explicit paths. Extracts the paths for each chosen
   lib coordinate, and assembles a classpath string using the system path separator.
@@ -317,10 +337,8 @@
     :classpath-overrides - a map of lib to path, where path is used instead of the coord's paths
 
   Returns the classpath as a string."
-  [lib-map paths {:keys [classpath-overrides extra-paths] :as classpath-args}]
-  (let [libs (merge-with (fn [coord path] (assoc coord :paths [path])) lib-map classpath-overrides)
-        lib-paths (mapcat :paths (vals libs))]
-    (str/join File/pathSeparator (remove str/blank? (concat extra-paths paths lib-paths)))))
+  [lib-map paths classpath-args]
+  (-> (make-classpath-roots lib-map paths classpath-args) join-classpath))
 
 (comment
   (require '[clojure.tools.deps.alpha.util.maven :as mvn])
