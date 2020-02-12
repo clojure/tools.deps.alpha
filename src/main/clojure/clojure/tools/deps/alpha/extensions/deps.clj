@@ -19,7 +19,7 @@
   (let [f (jio/file dir "deps.edn")]
     (if (.exists f)
       (reader/merge-deps [(reader/install-deps) (reader/slurp-deps f)])
-      config)))
+      (reader/install-deps))))
 
 (defmethod ext/coord-deps :deps
   [_lib {:keys [deps/root] :as _coord} _mf config]
