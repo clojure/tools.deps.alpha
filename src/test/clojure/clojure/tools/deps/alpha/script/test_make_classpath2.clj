@@ -130,6 +130,14 @@
   (let [cp-data (mc/run-core {:install-deps install-data})] ;; install-data has central and clojars
     (is (= #{"central" "clojars"} (-> cp-data :mvn/repos keys set)))))
 
+;; skip-cp flag prevents resolve-deps/make-classpath
+(deftest skip-cp-flag
+  (let [cp-data (mc/run-core {:install-deps install-data
+                              :project-deps {:deps {'org.clojure/clojure {:mvn/version "1.10.0"}}}
+                              :skip-cp true})]
+    (is (nil? (:cp cp-data)))
+    (is (nil? (:libs cp-data)))))
+
 (comment
   (clojure.test/run-tests)
 )

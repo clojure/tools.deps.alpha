@@ -86,13 +86,14 @@
      ;; and any other qualified keys from top level merged deps
     }"
   [{:keys [install-deps user-deps project-deps config-data ;; all deps.edn maps
-           resolve-aliases makecp-aliases jvmopt-aliases main-aliases aliases] :as opts}]
+           resolve-aliases makecp-aliases jvmopt-aliases main-aliases aliases
+           skip-cp] :as opts}]
   (let [deps-map (reader/merge-deps (remove nil? [install-deps user-deps project-deps config-data]))]
     (check-aliases deps-map (concat resolve-aliases makecp-aliases jvmopt-aliases main-aliases aliases))
     (let [deps-map' (if-let [replace-deps (get (deps/combine-aliases deps-map aliases) :deps)]
                       (reader/merge-deps (remove nil? [install-deps user-deps (merge project-deps {:deps replace-deps}) config-data]))
                       deps-map)
-          cp-data (create-classpath deps-map' opts)
+          cp-data (when-not skip-cp (create-classpath deps-map' opts))
           jvm (seq (get (deps/combine-aliases deps-map (concat aliases jvmopt-aliases)) :jvm-opts))
           main (seq (get (deps/combine-aliases deps-map (concat aliases main-aliases)) :main-opts))
           repo-config (reduce-kv (fn [m k v] (if (qualified-keyword? k) (assoc m k v) m)) {} deps-map)]
