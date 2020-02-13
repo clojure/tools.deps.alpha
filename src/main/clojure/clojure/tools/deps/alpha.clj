@@ -307,7 +307,7 @@
       (doseq [[lib coord] tree :when (-> coord :dependents nil?)]
         (print-node lib "")))))
 
-(defn make-classpath-roots
+(defn- make-classpath-roots
   "Takes a lib map, and a set of explicit paths. Extracts the paths for each chosen
   lib coordinate, and assembles a classpath string using the system path separator.
   The classpath-args is a map with keys that can be used to modify the classpath
@@ -322,7 +322,7 @@
         lib-paths (mapcat :paths (vals libs))]
     (remove str/blank? (concat extra-paths paths lib-paths))))
 
-(defn join-classpath
+(defn- join-classpath
   "Takes a coll of string classpath roots and creates a platform sensitive classpath"
   [roots]
   (str/join File/pathSeparator roots))
