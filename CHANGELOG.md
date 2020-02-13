@@ -4,8 +4,6 @@ Changelog
 * next
   * TDEPS-150 - Fix regression in supporting -Scp flag (avoid resolving deps)
   * TDEPS-148 - Fix incorrect path resolution for git/local dep without deps.edn
-* 0.8.666 on Feb 6, 2020
-  * Decompose make-classpath api into make-classpath-roots and join-classpath
 * 0.8.661 on Jan 30, 2020 
   * New: concurrent downloading of deps and metadata
   * Fix regression in -Spom no longer populating <repositories> from 0.8.573
