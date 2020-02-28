@@ -99,7 +99,7 @@
     <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>tools.cli</artifactId>
-      <version>0.4.2</version>
+      <version>1.0.194</version>
     </dependency>
     <dependency>
       <groupId>com.cognitect.aws</groupId>
