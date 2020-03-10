@@ -1,6 +1,8 @@
 Changelog
 ===========
 
+*Also see [https://github.com/clojure/brew-install/blob/1.10.1/CHANGELOG.md](Tools and installer changelog)*
+
 * 0.8.677 on Feb 14, 2020
   * TDEPS-150 - Fix regression in supporting -Scp flag (avoid resolving deps)
   * TDEPS-148 - Fix incorrect path resolution for git/local dep without deps.edn
