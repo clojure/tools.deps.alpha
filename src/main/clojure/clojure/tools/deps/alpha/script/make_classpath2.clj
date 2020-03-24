@@ -36,6 +36,7 @@
    ["-C" "--makecp-aliases ALIASES" "Concatenated make-classpath alias names" :parse-fn parse/parse-kws]
    ["-J" "--jvmopt-aliases ALIASES" "Concatenated jvm option alias names" :parse-fn parse/parse-kws]
    ["-M" "--main-aliases ALIASES" "Concatenated main option alias names" :parse-fn parse/parse-kws]
+   ["-T" "--tool-aliases ALIASES" "Concatenated tool alias names" :parse-fn parse/parse-kws]
    ["-A" "--aliases ALIASES" "Concatenated generic alias names" :parse-fn parse/parse-kws]
    ;; options
    [nil "--trace" "Emit trace log to trace.edn"]
@@ -101,6 +102,50 @@
         jvm (assoc :jvm jvm)
         main (assoc :main main)))))
 
+(defn run-core2
+  "Run make-classpath script from/to data (no file stuff). Returns:
+    {;; Main outputs:
+     :libs lib-map          ;; from resolve-deps, .libs file
+     :cp classpath          ;; from make-classpath, .cp file
+     :main main-opts        ;; effective main opts, .main file
+     :jvm jvm-opts          ;; effective jvm opts, .jvm file
+     :trace trace-log       ;; from resolve-deps, if requested, trace.edn file
+
+     ;; Intermediate/source data:
+     :deps merged-deps      ;; effective merged :deps
+     :paths local-paths     ;; from make-classpath, just effective local paths
+     ;; and any other qualified keys from top level merged deps
+    }"
+  [{:keys [install-deps user-deps project-deps config-data ;; all deps.edn maps
+           resolve-aliases makecp-aliases jvmopt-aliases main-aliases tool-aliases aliases
+           skip-cp threads trace] :as opts}]
+  (let [;; tool use - replace :deps / :paths if needed
+        tool-args (deps/combine-aliases
+                    (deps/merge-edns [install-deps user-deps project-deps config-data]) ;; merge just to get all aliases
+                    (concat tool-aliases aliases))
+        project-deps (deps/tool project-deps tool-args)
+
+        ;; calc basis
+        merge-edn (deps/merge-edns [install-deps user-deps project-deps config-data])
+        _ (check-aliases merge-edn (concat resolve-aliases makecp-aliases jvmopt-aliases main-aliases tool-aliases aliases))
+        resolve-args (cond-> (deps/combine-aliases merge-edn (concat resolve-aliases aliases))
+                       threads (assoc :threads threads)
+                       trace (assoc :trace trace))
+        cp-args (deps/combine-aliases merge-edn (concat makecp-aliases aliases))
+        basis (when-not skip-cp (deps/calc-basis merge-edn :resolve-args resolve-args :classpath-args cp-args))
+        trace-log (-> basis :libs meta :trace)
+
+        ;; handle jvm and main opts
+        jvm (seq (get (deps/combine-aliases merge-edn (concat jvmopt-aliases aliases)) :jvm-opts))
+        main (seq (get (deps/combine-aliases merge-edn (concat main-aliases aliases)) :main-opts))]
+    ;; TODO this is just adapting back to the old contract for now, should just return the basis
+    (cond-> (merge basis
+              {:paths (reduce-kv (fn [ps p why] (cond-> ps (:path-key why) (conj p))) [] (:classpath basis))})
+      (not skip-cp) (assoc :cp (-> (:classpath basis) keys deps/join-classpath))
+      trace-log (assoc :trace trace-log)
+      jvm (assoc :jvm jvm)
+      main (assoc :main main))))
+
 (defn read-deps
   [name]
   (when (not (str/blank? name))
@@ -146,6 +191,7 @@
     -Cmakecp-aliases - concatenated make-classpath alias names
     -Jjvmopt-aliases - concatenated jvm-opt alias names
     -Mmain-aliases - concatenated main-opt alias names
+    -Ttool-aliases - concatenated tool alias names
     -Aaliases - concatenated generic alias names
 
   Resolves the dependencies and updates the lib, classpath, etc files.
