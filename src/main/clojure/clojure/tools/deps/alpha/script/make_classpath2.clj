@@ -87,36 +87,6 @@
      ;; and any other qualified keys from top level merged deps
     }"
   [{:keys [install-deps user-deps project-deps config-data ;; all deps.edn maps
-           resolve-aliases makecp-aliases jvmopt-aliases main-aliases aliases
-           skip-cp] :as opts}]
-  (let [deps-map (reader/merge-deps (remove nil? [install-deps user-deps project-deps config-data]))]
-    (check-aliases deps-map (concat resolve-aliases makecp-aliases jvmopt-aliases main-aliases aliases))
-    (let [deps-map' (if-let [replace-deps (get (deps/combine-aliases deps-map aliases) :deps)]
-                      (reader/merge-deps (remove nil? [install-deps user-deps (merge project-deps {:deps replace-deps}) config-data]))
-                      deps-map)
-          cp-data (when-not skip-cp (create-classpath deps-map' opts))
-          jvm (seq (get (deps/combine-aliases deps-map (concat aliases jvmopt-aliases)) :jvm-opts))
-          main (seq (get (deps/combine-aliases deps-map (concat aliases main-aliases)) :main-opts))
-          repo-config (reduce-kv (fn [m k v] (if (qualified-keyword? k) (assoc m k v) m)) {} deps-map)]
-      (cond-> (merge repo-config cp-data {:deps (:deps deps-map')})
-        jvm (assoc :jvm jvm)
-        main (assoc :main main)))))
-
-(defn run-core2
-  "Run make-classpath script from/to data (no file stuff). Returns:
-    {;; Main outputs:
-     :libs lib-map          ;; from resolve-deps, .libs file
-     :cp classpath          ;; from make-classpath, .cp file
-     :main main-opts        ;; effective main opts, .main file
-     :jvm jvm-opts          ;; effective jvm opts, .jvm file
-     :trace trace-log       ;; from resolve-deps, if requested, trace.edn file
-
-     ;; Intermediate/source data:
-     :deps merged-deps      ;; effective merged :deps
-     :paths local-paths     ;; from make-classpath, just effective local paths
-     ;; and any other qualified keys from top level merged deps
-    }"
-  [{:keys [install-deps user-deps project-deps config-data ;; all deps.edn maps
            resolve-aliases makecp-aliases jvmopt-aliases main-aliases tool-aliases aliases
            skip-cp threads trace] :as opts}]
   (let [;; tool use - replace :deps / :paths if needed
@@ -138,11 +108,7 @@
         ;; handle jvm and main opts
         jvm (seq (get (deps/combine-aliases merge-edn (concat jvmopt-aliases aliases)) :jvm-opts))
         main (seq (get (deps/combine-aliases merge-edn (concat main-aliases aliases)) :main-opts))]
-    ;; TODO this is just adapting back to the old contract for now, should just return the basis
-    (cond-> (merge basis
-              {:paths (reduce-kv (fn [ps p why] (cond-> ps (:path-key why) (conj p))) [] (:classpath basis))})
-      (not skip-cp) (assoc :cp (-> (:classpath basis) keys deps/join-classpath))
-      trace-log (assoc :trace trace-log)
+    (cond-> basis
       jvm (assoc :jvm jvm)
       main (assoc :main main))))
 
@@ -159,12 +125,13 @@
   (let [opts' (merge opts {:install-deps (reader/install-deps)
                            :user-deps (read-deps config-user)
                            :project-deps (read-deps config-project)})
-        {:keys [libs cp jvm main trace] :as o} (run-core opts')]
+        {:keys [libs classpath jvm main] :as o} (run-core opts')
+        trace (-> libs meta :trace)]
     (when trace
       (spit "trace.edn" (binding [*print-namespace-maps* false] (with-out-str (clojure.pprint/pprint trace)))))
     (when-not skip-cp
       (io/write-file libs-file (pr-str libs))
-      (io/write-file cp-file cp))
+      (io/write-file cp-file (-> classpath keys deps/join-classpath)))
     (if jvm
       (io/write-file jvm-file (str/join " " jvm))
       (let [jf (jio/file jvm-file)]
