@@ -47,25 +47,6 @@
   [args]
   (cli/parse-opts args opts))
 
-(defn create-classpath
-  "Given parsed-opts describing the input config files, and aliases to use,
-  return the output lib map and classpath."
-  [deps-map
-   {:keys [resolve-aliases makecp-aliases aliases threads trace] :as _opts}]
-  (session/with-session
-    (let [resolve-args (deps/combine-aliases deps-map (concat aliases resolve-aliases))
-          cp-args (deps/combine-aliases deps-map (concat aliases makecp-aliases))
-          libs (deps/resolve-deps deps-map resolve-args {:threads threads, :trace trace})
-          trace-log (-> libs meta :trace)
-          effective-paths (or (:paths (deps/combine-aliases deps-map aliases))
-                           (:paths deps-map))
-          cp (deps/make-classpath libs effective-paths cp-args)]
-      (cond->
-        {:paths (vec (concat (:extra-paths cp-args) effective-paths))
-         :libs libs
-         :cp cp}
-        trace (assoc :trace trace-log)))))
-
 (defn check-aliases
   "Check that all aliases are known and warn if aliases are undeclared"
   [deps aliases]
@@ -99,10 +80,10 @@
         merge-edn (deps/merge-edns [install-deps user-deps project-deps config-data])
         _ (check-aliases merge-edn (concat resolve-aliases makecp-aliases jvmopt-aliases main-aliases tool-aliases aliases))
         resolve-args (cond-> (deps/combine-aliases merge-edn (concat resolve-aliases aliases))
-                       threads (assoc :threads threads)
+                       threads (assoc :threads (Long/parseLong threads))
                        trace (assoc :trace trace))
         cp-args (deps/combine-aliases merge-edn (concat makecp-aliases aliases))
-        basis (when-not skip-cp (deps/calc-basis merge-edn :resolve-args resolve-args :classpath-args cp-args))
+        basis (when-not skip-cp (deps/calc-basis merge-edn {:resolve-args resolve-args :classpath-args cp-args}))
         trace-log (-> basis :libs meta :trace)
 
         ;; handle jvm and main opts

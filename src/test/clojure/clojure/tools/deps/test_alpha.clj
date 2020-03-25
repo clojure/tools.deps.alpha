@@ -185,7 +185,7 @@
 
 (deftest calc-basis-extra-deps
   (let [ra {:extra-deps {'org.clojure/tools.deps.alpha {:mvn/version "0.8.677"}}}
-        {:keys [resolve-args libs] :as basis} (deps/calc-basis install-data :resolve-args ra)]
+        {:keys [resolve-args libs] :as basis} (deps/calc-basis install-data {:resolve-args ra})]
     ;; basis contains resolve-args
     (is (= resolve-args ra))
 
@@ -196,7 +196,7 @@
 
 (deftest calc-basis-override-deps
   (let [ra {:extra-deps {'org.clojure/clojure {:mvn/version "1.6.0"}}}
-        {:keys [resolve-args libs] :as basis} (deps/calc-basis install-data :resolve-args ra)]
+        {:keys [resolve-args libs] :as basis} (deps/calc-basis install-data {:resolve-args ra})]
     ;; basis contains resolve-args
     (is (= resolve-args ra))
 
@@ -205,7 +205,7 @@
 
 (deftest calc-basis-extra-paths
   (let [cpa {:extra-paths ["x" "y"]}
-        {:keys [classpath-args classpath] :as basis} (deps/calc-basis install-data :classpath-args cpa)]
+        {:keys [classpath-args classpath] :as basis} (deps/calc-basis install-data {:classpath-args cpa})]
     ;; basis contains classpath-args
     (is (= classpath-args cpa))
 
@@ -215,7 +215,7 @@
 
 (deftest calc-basis-classpath-overrides
   (let [cpa {:classpath-overrides {'org.clojure/clojure "foo"}}
-        {:keys [classpath-args classpath] :as basis} (deps/calc-basis install-data :classpath-args cpa)]
+        {:keys [classpath-args classpath] :as basis} (deps/calc-basis install-data {:classpath-args cpa})]
     ;; basis contains classpath-args
     (is (= classpath-args cpa))
 

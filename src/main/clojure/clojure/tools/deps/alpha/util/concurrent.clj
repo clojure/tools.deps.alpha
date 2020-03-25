@@ -23,7 +23,7 @@
   ^ExecutorService [^long n]
   (Executors/newFixedThreadPool n ^ThreadFactory thread-factory))
 
-(def processors (.availableProcessors (Runtime/getRuntime)))
+(def processors (long (.availableProcessors (Runtime/getRuntime))))
 
 (defn submit-task
   ^Future [^ExecutorService executor f]

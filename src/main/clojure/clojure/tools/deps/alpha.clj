@@ -261,27 +261,25 @@
     :extra-deps - a map from lib to coord of deps to add to the main deps
     :override-deps - a map from lib to coord of coord to use instead of those in the graph
     :default-deps - a map from lib to coord of deps to use if no coord specified
-
-  settings is an optional map of settings:
     :trace - boolean. If true, the returned lib map will have metadata with :trace log
-    :threads - int. If provided, sets the number of concurrent download threads
+    :threads - long. If provided, sets the number of concurrent download threads
 
   Returns a lib map (map of lib to coordinate chosen)."
+  {:arglists '([deps-map args-map])}
   ([deps-map args-map]
-    (resolve-deps deps-map args-map nil))
-  ([deps-map args-map settings]
-   (let [{:keys [extra-deps default-deps override-deps]} args-map
-         n (if-let [threads (:threads settings)]
-             (Long/parseLong threads)
-             concurrent/processors)
+   (let [{:keys [extra-deps default-deps override-deps threads trace]} args-map
+         n (or threads concurrent/processors)
          executor (concurrent/new-executor n)
          deps (merge (:deps deps-map) extra-deps)
          version-map (-> deps
                        (canonicalize-deps deps-map)
-                       (expand-deps default-deps override-deps deps-map executor (:trace settings)))
+                       (expand-deps default-deps override-deps deps-map executor trace))
          lib-map (lib-paths version-map)
          lib-map' (download-libs executor lib-map deps-map)]
-     (with-meta lib-map' (meta version-map)))))
+     (with-meta lib-map' (meta version-map))))
+  ;; deprecated arity, retained for backwards compatibility
+  ([deps-map args-map settings]
+   (resolve-deps deps-map (merge args-map settings))))
 
 (defn- make-tree
   [lib-map]
@@ -375,29 +373,32 @@
    resolve-deps and make-classpath args as needed.
 
     master-edn - a master deps edn map
-    resolve-args - map of args to resolve-deps, with possible keys:
-      :extra-deps
-      :override-deps
-      :default-deps
-      :threads - number of threads to use during deps resolution
-      :trace - flag to record a trace log
-    classpath-args - map of args to make-classpath-map, with possible keys:
-      :extra-paths
-      :classpath-overrides
+    args - an optional map of arguments to constituent steps, keys:
+      :resolve-args - map of args to resolve-deps, with possible keys:
+        :extra-deps
+        :override-deps
+        :default-deps
+        :threads - number of threads to use during deps resolution
+        :trace - flag to record a trace log
+      :classpath-args - map of args to make-classpath-map, with possible keys:
+        :extra-paths
+        :classpath-overrides
 
   Returns the runtime basis, which is the initial deps edn map plus these keys:
     :resolve-args - the resolve args passed in, if any
     :classpath-args - the classpath args passed in, if any
     :libs - lib map, per resolve-deps
     :classpath - classpath map per make-classpath-map"
-  [master-edn & {:keys [resolve-args classpath-args]}]
-  (session/with-session
-    (let [libs (resolve-deps master-edn resolve-args resolve-args) ;; TODO: use one option map
-          cp (make-classpath-map master-edn libs classpath-args)]
-      (cond->
-        (merge master-edn {:libs libs, :classpath cp})
-        resolve-args (assoc :resolve-args resolve-args)
-        classpath-args (assoc :classpath-args classpath-args)))))
+  ([master-edn]
+    (calc-basis master-edn nil))
+  ([master-edn {:keys [resolve-args classpath-args]}]
+   (session/with-session
+     (let [libs (resolve-deps master-edn resolve-args)
+           cp (make-classpath-map master-edn libs classpath-args)]
+       (cond->
+         (merge master-edn {:libs libs, :classpath cp})
+         resolve-args (assoc :resolve-args resolve-args)
+         classpath-args (assoc :classpath-args classpath-args))))))
 
 (comment
   (require '[clojure.tools.deps.alpha.util.maven :as mvn])
@@ -410,8 +411,7 @@
      :deps {'org.clojure/clojure {:mvn/version "1.9.0"}
             'org.clojure/core.memoize {:mvn/version "0.5.8"}}
      :aliases {:x {:extra-paths ["a" "b"]}}}
-    nil
-    {:extra-paths ["a" "b"]})
+    {:classpath-args {:extra-paths ["a" "b"]}})
 
   (expand-deps {'org.clojure/clojure {:mvn/version "1.9.0"}}
     nil nil {:mvn/repos mvn/standard-repos} ex-svc true)
