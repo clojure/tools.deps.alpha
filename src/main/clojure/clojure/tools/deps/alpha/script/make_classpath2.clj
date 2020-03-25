@@ -112,9 +112,9 @@
     (when trace
       (spit "trace.edn" (binding [*print-namespace-maps* false] (with-out-str (clojure.pprint/pprint trace)))))
     (when-not skip-cp
-      (io/write-file libs-file (pr-str libs))
+      (io/write-file libs-file (binding [*print-namespace-maps* false] (pr-str libs)))
       (io/write-file cp-file (-> classpath keys deps/join-classpath)))
-    (io/write-file basis-file (pr-str basis))
+    (io/write-file basis-file (binding [*print-namespace-maps* false] (pr-str basis)))
     (if jvm
       (io/write-file jvm-file (str/join " " jvm))
       (let [jf (jio/file jvm-file)]
