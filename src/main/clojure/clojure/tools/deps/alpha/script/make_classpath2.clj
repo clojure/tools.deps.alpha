@@ -30,6 +30,7 @@
    [nil "--cp-file PATH" "Classpatch cache file to write"]
    [nil "--jvm-file PATH" "JVM options file"]
    [nil "--main-file PATH" "Main options file"]
+   [nil "--basis-file PATH" "Basis file"]
    [nil "--skip-cp" "Skip writing .cp and .libs files"]
    ;; aliases
    ["-R" "--resolve-aliases ALIASES" "Concatenated resolve-deps alias names" :parse-fn parse/parse-kws]
@@ -102,17 +103,18 @@
 
 (defn run
   "Run make-classpath script. See -main for details."
-  [{:keys [config-user config-project libs-file cp-file jvm-file main-file skip-cp] :as opts}]
+  [{:keys [config-user config-project libs-file cp-file jvm-file main-file basis-file skip-cp] :as opts}]
   (let [opts' (merge opts {:install-deps (reader/install-deps)
                            :user-deps (read-deps config-user)
                            :project-deps (read-deps config-project)})
-        {:keys [libs classpath jvm main] :as o} (run-core opts')
+        {:keys [libs classpath jvm main] :as basis} (run-core opts')
         trace (-> libs meta :trace)]
     (when trace
       (spit "trace.edn" (binding [*print-namespace-maps* false] (with-out-str (clojure.pprint/pprint trace)))))
     (when-not skip-cp
       (io/write-file libs-file (pr-str libs))
       (io/write-file cp-file (-> classpath keys deps/join-classpath)))
+    (io/write-file basis-file (pr-str basis))
     (if jvm
       (io/write-file jvm-file (str/join " " jvm))
       (let [jf (jio/file jvm-file)]
@@ -135,6 +137,7 @@
     --cp-file=path - cp cache file to write
     --jvm-file=path - jvm opts file to write
     --main-file=path - main opts file to write
+    --basis-file=path - basis file to write
     -Rresolve-aliases - concatenated resolve-deps alias names
     -Cmakecp-aliases - concatenated make-classpath alias names
     -Jjvmopt-aliases - concatenated jvm-opt alias names
