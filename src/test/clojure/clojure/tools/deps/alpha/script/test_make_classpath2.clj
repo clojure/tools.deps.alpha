@@ -9,7 +9,8 @@
 (def install-data
   {:paths ["src"]
    :deps {'org.clojure/clojure {:mvn/version "1.10.1"}}
-   :aliases {:test {:extra-paths ["test"]}}
+   :aliases {:deps {:extra-deps {'org.clojure/tools.deps.alpha {:mvn/version "${project.version}"}}}
+             :test {:extra-paths ["test"]}}
    :mvn/repos {"central" {:url "https://repo1.maven.org/maven2/"}
                "clojars" {:url "https://repo.clojars.org/"}}})
 
@@ -23,136 +24,119 @@
     (= m1 m2)))
 
 (deftest outside-project
-  (let [basis (mc/run-core {:install-deps install-data})]
+  (let [cp-data (mc/run-core {:install-deps install-data})]
     (is (submap?
           {:libs {'org.clojure/clojure {:mvn/version "1.10.1"}
                   'org.clojure/spec.alpha {:mvn/version "0.2.176"}
                   'org.clojure/core.specs.alpha {:mvn/version "0.2.44"}}}
-          basis))))
+          cp-data))))
 
 (deftest in-project
-  (let [basis (mc/run-core {:install-deps install-data
-                             :project-deps {:deps {'org.clojure/clojure {:mvn/version "1.9.0"}}}})]
+  (let [cp-data (mc/run-core {:install-deps install-data
+                                  :project-deps {:deps {'org.clojure/clojure {:mvn/version "1.9.0"}}}})]
     (is (submap?
           {:libs {'org.clojure/clojure {:mvn/version "1.9.0"}
                   'org.clojure/spec.alpha {:mvn/version "0.1.143"}
                   'org.clojure/core.specs.alpha {:mvn/version "0.1.24"}}}
-          basis))))
+          cp-data))))
 
 ;; alias  :e with :extra-deps extends the project deps
 (deftest extra-deps
-  (let [basis (mc/run-core {:install-deps install-data
-                             :project-deps {:deps {'org.clojure/clojure {:mvn/version "1.9.0"}}
-                                            :aliases {:e {:extra-deps {'org.clojure/test.check {:mvn/version "0.9.0"}}}}}
-                             :aliases [:e]})]
+  (let [cp-data (mc/run-core {:install-deps install-data
+                                  :project-deps {:deps {'org.clojure/clojure {:mvn/version "1.9.0"}}
+                                                 :aliases {:e {:extra-deps {'org.clojure/test.check {:mvn/version "0.9.0"}}}}}
+                                  :aliases [:e]})]
     (is (submap?
-          {:resolve-args {:extra-deps {'org.clojure/test.check {:mvn/version "0.9.0"}}}
-           :libs {'org.clojure/clojure {:mvn/version "1.9.0"}
+          {:libs {'org.clojure/clojure {:mvn/version "1.9.0"}
                   'org.clojure/spec.alpha {:mvn/version "0.1.143"}
                   'org.clojure/core.specs.alpha {:mvn/version "0.1.24"}
                   'org.clojure/test.check {:mvn/version "0.9.0"}}}
-          basis))))
+          cp-data))))
 
 ;; alias :e with :deps replaces the project deps
 (deftest tool-deps
-  (let [basis (mc/run-core {:install-deps install-data
-                             :project-deps {:deps {'org.clojure/clojure {:mvn/version "1.9.0"}}
-                                            :aliases {:t {:deps {'org.clojure/test.check {:mvn/version "0.9.0"}}}}}
-                             :aliases [:t]})]
+  (let [cp-data (mc/run-core {:install-deps install-data
+                                  :project-deps {:deps {'org.clojure/clojure {:mvn/version "1.9.0"}}
+                                                 :aliases {:t {:deps {'org.clojure/test.check {:mvn/version "0.9.0"}}}}}
+                                  :aliases [:t]})]
     (is (submap?
-          {:paths ["src"]
-           :deps {'org.clojure/test.check {:mvn/version "0.9.0"}}
-           :libs {'org.clojure/clojure {:mvn/version "1.10.1"}
+          {:libs {'org.clojure/clojure {:mvn/version "1.10.1"}
                   'org.clojure/spec.alpha {:mvn/version "0.2.176"}
                   'org.clojure/core.specs.alpha {:mvn/version "0.2.44"}
                   'org.clojure/test.check {:mvn/version "0.9.0"}}}
-          basis))))
+          cp-data))))
 
 ;; alias :o with :override-deps overrides the version to use
 (deftest override-deps
-  (let [basis (mc/run-core {:install-deps install-data
-                             :project-deps {:aliases {:o {:override-deps {'org.clojure/clojure {:mvn/version "1.6.0"}}}}}
-                             :aliases [:o]})]
+  (let [cp-data (mc/run-core {:install-deps install-data
+                                  :project-deps {:aliases {:o {:override-deps {'org.clojure/clojure {:mvn/version "1.6.0"}}}}}
+                                  :aliases [:o]})]
     (is (submap?
-          {:resolve-args {:override-deps {'org.clojure/clojure {:mvn/version "1.6.0"}}}
-           :libs {'org.clojure/clojure {:mvn/version "1.6.0"}}}
-          basis))))
-
-(defn select-cp
-  [classpath key]
-  (->> classpath (filter #(contains? (val %) key)) (apply conj {})))
+          {:libs {'org.clojure/clojure {:mvn/version "1.6.0"}}}
+          cp-data))))
 
 ;; paths and deps in alias replace
 (deftest alias-paths-and-deps
-  (let [basis (mc/run-core {:install-deps install-data
-                             :project-deps {:paths ["a" "b"]
-                                            :aliases {:q {:paths ["a" "c"]
-                                                          :deps {'org.clojure/clojure {:mvn/version "1.6.0"}}}}}
-                             :aliases [:q]})]
-    (is (submap?
-          {:paths ["a" "c"]
-           :deps {'org.clojure/clojure {:mvn/version "1.6.0"}}}
-          basis))
-    (is (= #{"a" "c"} (-> basis :classpath (select-cp :path-key) keys set)))))
+  (let [cp-data (mc/run-core {:install-deps install-data
+                              :project-deps {:paths ["a" "b"]
+                                             :aliases {:q {:paths ["a" "c"]
+                                                           :deps {'org.clojure/clojure {:mvn/version "1.6.0"}}}}}
+                              :aliases [:q]})]
+    (is (= #{"a" "c"} (set (:paths cp-data))))))
 
 ;; paths replace in chain
 (deftest paths-replace
-  (let [basis (mc/run-core {:install-deps install-data
-                             :user-deps {:paths ["x"]}
-                             :project-deps {:paths ["y"]}
-                             :config-data {:paths ["z"]}})]
-    (is (submap? {:paths ["z"]} basis))
-    (is (= #{"z"} (-> basis :classpath (select-cp :path-key) keys set)))))
+  (let [cp-data (mc/run-core {:install-deps install-data
+                              :user-deps {:paths ["x"]}
+                              :project-deps {:paths ["y"]}
+                              :config-data {:paths ["z"]}})]
+    (is (= #{"z"} (set (:paths cp-data))))))
 
 ;; :paths in alias replaces, multiple alias :paths will be combined
 (deftest alias-paths-replace
-  (let [basis (mc/run-core {:install-deps install-data
-                             :user-deps {:aliases {:p {:paths ["x" "y"]}}}
-                             :project-deps {:aliases {:q {:paths ["z"]}}}
-                             :aliases [:p :q]})]
-    (is (submap? {:paths ["x" "y" "z"]} basis))
-    (is (= #{"x" "y" "z"} (-> basis :classpath (select-cp :path-key) keys set)))))
+  (let [cp-data (mc/run-core {:install-deps install-data
+                                  :user-deps {:aliases {:p {:paths ["x" "y"]}}}
+                                  :project-deps {:aliases {:q {:paths ["z"]}}}
+                                  :aliases [:p :q]})]
+    (is (= #{"x" "y" "z"} (set (:paths cp-data))))))
 
 ;; :extra-paths add
 (deftest extra-paths-add
-  (let [basis (mc/run-core {:install-deps install-data
-                             :user-deps {:aliases {:p {:extra-paths ["x" "y"]}}}
-                             :project-deps {:aliases {:q {:extra-paths ["z"]}}}
-                             :aliases [:p :q]})]
-    (is (submap?
-          {:paths ["src"]
-           :classpath-args {:extra-paths ["x" "y" "z"]}}
-          basis))
-    (is (= #{"src" "x" "y" "z"} (-> basis :classpath (select-cp :path-key) keys set)))))
+  (let [cp-data (mc/run-core {:install-deps install-data
+                              :user-deps {:aliases {:p {:extra-paths ["x" "y"]}}}
+                              :project-deps {:aliases {:q {:extra-paths ["z"]}}}
+                              :aliases [:p :q]})]
+    (is (= #{"src" "x" "y" "z"} (set (:paths cp-data))))
+    (is (true? (str/starts-with? (:cp cp-data) "x:y:z:src:")))))
 
 ;; java opts in aliases are additive
 (deftest jvm-opts-add
-  (let [basis (mc/run-core {:install-deps install-data
-                             :user-deps {:aliases {:j1 {:jvm-opts ["-server" "-Xms100m"]}}}
-                             :project-deps {:aliases {:j2 {:jvm-opts ["-Xmx200m"]}}}
-                             :aliases [:j1 :j2]})]
-    (is (= ["-server" "-Xms100m" "-Xmx200m"] (:jvm basis)))))
+  (let [cp-data (mc/run-core {:install-deps install-data
+                                  :user-deps {:aliases {:j1 {:jvm-opts ["-server" "-Xms100m"]}}}
+                                  :project-deps {:aliases {:j2 {:jvm-opts ["-Xmx200m"]}}}
+                                  :aliases [:j1 :j2]})]
+    (is (= ["-server" "-Xms100m" "-Xmx200m"] (:jvm cp-data)))))
 
-;;; main opts replace
+;; main opts replace
 (deftest main-opts-replace
-  (let [basis (mc/run-core {:install-deps install-data
-                             :user-deps {:aliases {:m1 {:main-opts ["a" "b"]}}}
-                             :project-deps {:aliases {:m2 {:main-opts ["c"]}}}
-                             :aliases [:m1 :m2]})]
-    (is (= ["c"] (:main basis)))))
+  (let [cp-data (mc/run-core {:install-deps install-data
+                              :user-deps {:aliases {:m1 {:main-opts ["a" "b"]}}}
+                              :project-deps {:aliases {:m2 {:main-opts ["c"]}}}
+                              :aliases [:m1 :m2]})]
+    (is (= ["c"] (:main cp-data)))))
 
 ;; repositories should be retained for generate-manifest2's use
 (deftest repo-config-retained
-  (let [basis (mc/run-core {:install-deps install-data})] ;; install-data has central and clojars
-    (is (= #{"central" "clojars"} (-> basis :mvn/repos keys set)))))
+  (let [cp-data (mc/run-core {:install-deps install-data})] ;; install-data has central and clojars
+    (is (= #{"central" "clojars"} (-> cp-data :mvn/repos keys set)))))
 
 ;; skip-cp flag prevents resolve-deps/make-classpath
 (deftest skip-cp-flag
-  (let [basis (mc/run-core {:install-deps install-data
-                             :project-deps {:deps {'org.clojure/clojure {:mvn/version "1.10.0"}}}
-                             :skip-cp true})]
-    (is (nil? (:cp basis)))
-    (is (nil? (:libs basis)))))
+  (let [cp-data (mc/run-core {:install-deps install-data
+                              :project-deps {:deps {'org.clojure/clojure {:mvn/version "1.10.0"}}}
+                              :skip-cp true})]
+    (is (nil? (:cp cp-data)))
+    (is (nil? (:libs cp-data)))))
 
 (comment
   (clojure.test/run-tests)

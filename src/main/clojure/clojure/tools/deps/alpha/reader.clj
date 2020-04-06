@@ -82,10 +82,7 @@
       nil vals)))
 
 (defn merge-deps
-  "Merge multiple deps maps from left to right into a single deps map.
-
-  DEPRECATED - use clojure.tools.deps.alpha/merge-edns instead"
-  {:deprecated "Use clojure.tools.deps.alpha/merge-edns instead"}
+  "Merge multiple deps maps from left to right into a single deps map."
   [deps-maps]
   (apply merge-with merge-or-replace deps-maps))
 
@@ -125,22 +122,3 @@
   []
   (filterv #(-> % jio/file .exists)
     [(user-deps-location) (str dir/*the-dir* File/separator "deps.edn")]))
-
-(defn find-edn-maps
-  "Finds and returns standard deps edn maps in a map with keys
-    :install-edn, :user-edn, :project-edn
-  If no project-edn is supplied, use the deps.edn in current directory"
-  ([]
-    (find-edn-maps nil))
-  ([project-edn-file]
-   (let [user-loc (jio/file (user-deps-location))
-         project-loc (jio/file (if project-edn-file project-edn-file (str dir/*the-dir* File/separator "deps.edn")))]
-     (cond-> {:install-edn (install-deps)}
-       (.exists user-loc) (assoc :user-edn (slurp-deps user-loc))
-       (.exists project-loc) (assoc :project-edn (slurp-deps project-loc))))))
-
-(defn order-edn-maps
-  "Takes a map of edn maps, as returned by find-edn-maps, and orders them into
-  a seq of non-nil edn maps (install, user, project)"
-  [{:keys [install-edn user-edn project-edn] :as named-edn-maps}]
-  (remove nil? [install-edn user-edn project-edn]))
