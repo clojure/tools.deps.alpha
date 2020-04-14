@@ -138,9 +138,3 @@
      (cond-> {:install-edn (install-deps)}
        (.exists user-loc) (assoc :user-edn (slurp-deps user-loc))
        (.exists project-loc) (assoc :project-edn (slurp-deps project-loc))))))
-
-(defn order-edn-maps
-  "Takes a map of edn maps, as returned by find-edn-maps, and orders them into
-  a seq of non-nil edn maps (install, user, project)"
-  [{:keys [install-edn user-edn project-edn] :as named-edn-maps}]
-  (remove nil? [install-edn user-edn project-edn]))
