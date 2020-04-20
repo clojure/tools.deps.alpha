@@ -13,7 +13,8 @@
             [clojure.data.xml.event :as event]
             [clojure.zip :as zip]
             [clojure.tools.deps.alpha.util.maven :as maven]
-            [clojure.tools.deps.alpha.util.io :refer [printerrln]])
+            [clojure.tools.deps.alpha.util.io :refer [printerrln]]
+            [clojure.tools.deps.alpha :as deps])
   (:import [java.io File Reader]
            [clojure.data.xml.node Element]))
 
@@ -63,23 +64,27 @@
   [::pom/repositories
    (map to-repo repos)])
 
+; [deps [path & paths] repos project-name]
+
 (defn- gen-pom
-  [deps [path & paths] repos project-name]
-  (xml/sexp-as-element
-    [::pom/project
-     {:xmlns "http://maven.apache.org/POM/4.0.0"
-               (keyword "xmlns:xsi") "http://www.w3.org/2001/XMLSchema-instance"
-               (keyword "xsi:schemaLocation") "http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"}
-     [::pom/modelVersion "4.0.0"]
-     [::pom/groupId project-name]
-     [::pom/artifactId project-name]
-     [::pom/version "0.1.0"]
-     [::pom/name project-name]
-     (gen-deps deps)
-     (when path
-       (when (seq paths) (apply printerrln "Skipping paths:" paths))
-       [::pom/build (gen-source-dir path)])
-     (gen-repos repos)]))
+  [{:keys [deps src-paths resource-paths repos group artifact version]
+    :or {version "0.1.0"}}]
+  (let [[path & paths] src-paths]
+    (xml/sexp-as-element
+      [::pom/project
+       {:xmlns "http://maven.apache.org/POM/4.0.0"
+        (keyword "xmlns:xsi") "http://www.w3.org/2001/XMLSchema-instance"
+        (keyword "xsi:schemaLocation") "http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"}
+       [::pom/modelVersion "4.0.0"]
+       [::pom/groupId group]
+       [::pom/artifactId artifact]
+       [::pom/version version]
+       [::pom/name artifact]
+       (gen-deps deps)
+       (when path
+         (when (seq paths) (apply printerrln "Skipping paths:" paths))
+         [::pom/build (gen-source-dir path)])
+       (gen-repos repos)])))
 
 (defn- make-xml-element
   [{:keys [tag attrs] :as node} children]
@@ -116,6 +121,21 @@
     (xml-update pom [::pom/repositories] (xml/sexp-as-element (gen-repos repos)))
     pom))
 
+(defn- replace-lib
+  [pom lib]
+  (if lib
+    (-> pom
+      (xml-update [::pom/groupId] (xml/sexp-as-element [::pom/groupId (namespace lib)]))
+      (xml-update [::pom/artifactId] (xml/sexp-as-element [::pom/artifactId (name lib)]))
+      (xml-update [::pom/name] (xml/sexp-as-element [::pom/name (name lib)])))
+    pom))
+
+(defn- replace-version
+  [pom version]
+  (if version
+    (xml-update pom [::pom/version] (xml/sexp-as-element [::pom/version version]))
+    pom))
+
 (defn- parse-xml
   [^Reader rdr]
   (let [roots (tree/seq-tree event/event-element event/event-exit? event/event-node
@@ -124,23 +144,68 @@
     (first (filter #(instance? Element %) (first roots)))))
 
 (defn sync-pom
-  [{:keys [deps paths :mvn/repos]} ^File dir]
-  (let [repos (remove #(= "https://repo1.maven.org/maven2/" (-> % val :url)) repos)
-        pom-file (jio/file dir "pom.xml")
-        pom (if (.exists pom-file)
-              (with-open [rdr (jio/reader pom-file)]
-                (-> rdr
-                  parse-xml
-                  (replace-deps deps)
-                  (replace-paths paths)
-                  (replace-repos repos)))
-              (gen-pom deps paths repos (.. dir getCanonicalFile getName)))]
-    (spit pom-file (xml/indent-str pom))))
+  "Creates or synchronizes a pom given a map of :basis and :params.
+
+  From basis, uses:
+    :deps to build <dependencies>
+    :paths to build <srcDirectory>
+    :mvn/repos to build <repositories> (omits maven central, included by default)
+
+  Params:
+    :target-dir Path to target output directory (required)
+    :src-pom Path to source pom file (optional, default = \"pom.xml\"
+    :lib Symbol of groupId/artifactId (required for new, optional for existing)
+    :version String of project version (optional)"
+  ([{:keys [basis params]}]
+   (let [{:keys [deps paths :mvn/repos]} basis
+         {:keys [target-dir src-pom lib version] :or {src-pom "pom.xml"}} params
+         repos (remove #(= "https://repo1.maven.org/maven2/" (-> % val :url)) repos)
+         pom-file (jio/file src-pom)
+         pom (if (.exists pom-file)
+               (with-open [rdr (jio/reader pom-file)]
+                 (-> rdr
+                   parse-xml
+                   (replace-deps deps)
+                   (replace-paths paths)
+                   (replace-repos repos)
+                   (replace-lib lib)
+                   (replace-version version)))
+               (gen-pom
+                 (cond->
+                   {:deps deps
+                    :src-paths paths
+                    :repos repos
+                    :group (namespace lib)
+                    :artifact (name lib)}
+                   version (assoc :version version))))
+         target-pom (jio/file target-dir "pom.xml")]
+     (spit target-pom (xml/indent-str pom))))
+
+  ;; deprecated arity
+  ([{:keys [deps paths :mvn/repos]} ^File dir]
+   (let [artifact-name (.. dir getCanonicalFile getName)]
+     (sync-pom {:basis {:deps deps
+                        :paths paths
+                        :mvn/repos repos}
+                :params {:target-dir (.getCanonicalPath dir)
+                         :src-pom (.getCanonicalPath (jio/file dir "pom.xml"))
+                         :lib (symbol artifact-name artifact-name)}}))))
 
 (comment
-  (require '[clojure.tools.deps.alpha.reader :as r])
-  (sync-pom
-    (r/read-deps [(jio/file "/usr/local/Cellar/clojure/1.9.0.302/deps.edn")
-                  (jio/file "deps.edn")])
-    (jio/file "."))
+  (require '[clojure.tools.deps.alpha :as deps] '[clojure.tools.deps.alpha.reader :as r])
+
+  (let [{:keys [install-edn user-edn project-edn]} (r/find-edn-maps)
+        edn (deps/merge-edns [install-edn user-edn project-edn])
+        basis (deps/calc-basis edn)]
+    (sync-pom basis (jio/file ".")))
+
+  (let [{:keys [install-edn user-edn project-edn]} (r/find-edn-maps)
+        edn (deps/merge-edns [install-edn user-edn project-edn])
+        basis (deps/calc-basis edn)]
+    (sync-pom
+      {:basis basis
+       :params {:src-pom "/tmp/pom.xml"
+                :target-dir "../../tmp"
+                :lib 'foo/bar
+                :version "1.2.3"}}))
   )
