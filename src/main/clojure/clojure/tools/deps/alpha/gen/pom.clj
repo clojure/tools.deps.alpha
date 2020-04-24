@@ -64,8 +64,6 @@
   [::pom/repositories
    (map to-repo repos)])
 
-; [deps [path & paths] repos project-name]
-
 (defn- gen-pom
   [{:keys [deps src-paths resource-paths repos group artifact version]
     :or {version "0.1.0"}}]
@@ -76,6 +74,7 @@
         (keyword "xmlns:xsi") "http://www.w3.org/2001/XMLSchema-instance"
         (keyword "xsi:schemaLocation") "http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"}
        [::pom/modelVersion "4.0.0"]
+       [::pom/packaging "jar"]
        [::pom/groupId group]
        [::pom/artifactId artifact]
        [::pom/version version]
@@ -153,12 +152,13 @@
 
   Params:
     :target-dir Path to target output directory (required)
-    :src-pom Path to source pom file (optional, default = \"pom.xml\"
+    :src-pom Path to source pom file (optional, default = \"pom.xml\")
     :lib Symbol of groupId/artifactId (required for new, optional for existing)
     :version String of project version (optional)"
   ([{:keys [basis params]}]
    (let [{:keys [deps paths :mvn/repos]} basis
          {:keys [target-dir src-pom lib version] :or {src-pom "pom.xml"}} params
+         resolved-paths (deps/resolve-path-ref paths basis)
          repos (remove #(= "https://repo1.maven.org/maven2/" (-> % val :url)) repos)
          pom-file (jio/file src-pom)
          pom (if (.exists pom-file)
@@ -166,14 +166,14 @@
                  (-> rdr
                    parse-xml
                    (replace-deps deps)
-                   (replace-paths paths)
+                   (replace-paths resolved-paths)
                    (replace-repos repos)
                    (replace-lib lib)
                    (replace-version version)))
                (gen-pom
                  (cond->
                    {:deps deps
-                    :src-paths paths
+                    :src-paths resolved-paths
                     :repos repos
                     :group (namespace lib)
                     :artifact (name lib)}
@@ -182,10 +182,11 @@
      (spit target-pom (xml/indent-str pom))))
 
   ;; deprecated arity
-  ([{:keys [deps paths :mvn/repos]} ^File dir]
-   (let [artifact-name (.. dir getCanonicalFile getName)]
+  ([{:keys [deps paths :mvn/repos] :as deps-edn} ^File dir]
+   (let [artifact-name (.. dir getCanonicalFile getName)
+         resolved-paths (deps/resolve-path-ref paths deps-edn)]
      (sync-pom {:basis {:deps deps
-                        :paths paths
+                        :paths resolved-paths
                         :mvn/repos repos}
                 :params {:target-dir (.getCanonicalPath dir)
                          :src-pom (.getCanonicalPath (jio/file dir "pom.xml"))
@@ -204,7 +205,7 @@
         basis (deps/calc-basis edn)]
     (sync-pom
       {:basis basis
-       :params {:src-pom "/tmp/pom.xml"
+       :params {:src-pom "../../tmp/pom2.xml"
                 :target-dir "../../tmp"
                 :lib 'foo/bar
                 :version "1.2.3"}}))
