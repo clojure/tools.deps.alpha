@@ -38,10 +38,24 @@
 
    ;; testing various scenarios
    'e1/a {{:fkn/version "1"} [['e1/b {:fkn/version "1"}]
-                             ['e1/c {:fkn/version "2"}]]}
+                              ['e1/c {:fkn/version "2"}]]}
    'e1/b {{:fkn/version "1"} [['e1/c {:fkn/version "1"}]]}
    'e1/c {{:fkn/version "1"} nil
-         {:fkn/version "2"} nil}})
+          {:fkn/version "2"} nil}
+   'opt/a {{:fkn/version "1"} [['opt/b {:fkn/version "1" :optional true}]
+                               ['opt/c {:fkn/version "1"}]]}
+   'opt/b {{:fkn/version "1"} nil}
+   'opt/c {{:fkn/version "1"} nil}})
+
+(deftest test-top-optional-included
+  (fkn/with-libs repo
+    (is (= (set (keys (deps/resolve-deps {:deps {'opt/b {:fkn/version "1"}}} nil)))
+          #{'opt/b}))))
+
+(deftest test-transitive-optional-not-included
+  (fkn/with-libs repo
+    (is (= (set (keys (deps/resolve-deps {:deps {'opt/a {:fkn/version "1"}}} nil)))
+          #{'opt/a 'opt/c}))))
 
 (deftest test-basic-expand
   (fkn/with-libs repo
@@ -221,3 +235,12 @@
 
     ;; classpath has replaced path
     (= (get classpath "foo") {:lib-name 'org.clojure/clojure})))
+
+(deftest optional-deps-included
+  (let [master-edn (merge install-data
+                     '{:deps {org.clojure/clojure {:mvn/version "1.10.1"}
+                              org.clojure/core.async {:mvn/version "1.1.587" :optional true}}})
+        {:keys [libs] :as basis} (deps/calc-basis master-edn)]
+
+    ;; libs contains optional dep
+    (is (= (get-in libs ['org.clojure/core.async :mvn/version]) "1.1.587"))))

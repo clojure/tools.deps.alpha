@@ -18,3 +18,16 @@
       temp-dir)
     (is (.exists pom))
     (is (not (str/blank? (slurp pom))))))
+
+;; check that optional deps are marked optional
+(deftest test-optional
+  (let [temp-dir (.getParentFile (File/createTempFile "dummy" nil))
+        pom (jio/file temp-dir "pom.xml")]
+    (.delete pom)
+    (gen-pom/sync-pom
+      '{:deps {org.clojure/core.async {:mvn/version "1.1.587" :optional true}}}
+      temp-dir)
+    (is (.exists pom))
+    (let [generated (slurp pom)]
+      (is (str/includes? generated "core.async"))
+      (is (str/includes? generated "<optional>true</optional>")))))

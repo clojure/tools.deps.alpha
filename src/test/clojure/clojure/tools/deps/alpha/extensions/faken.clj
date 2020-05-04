@@ -45,7 +45,9 @@
 
 (defmethod ext/coord-deps :fkn
   [lib coord _manifest config]
-  (get-in repo [lib (ext/dep-id lib coord config)]))
+  (remove
+    (fn [[lib {:keys [optional]}]] optional)
+    (get-in repo [lib (ext/dep-id lib coord config)])))
 
 (defn make-path
   [lib {:keys [fkn/version]}]
