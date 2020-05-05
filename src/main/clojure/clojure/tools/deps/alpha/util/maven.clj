@@ -139,11 +139,14 @@
 ;; Delay creation, but then cache Maven ServiceLocator instance
 (def the-locator
   (delay
-    (doto (MavenRepositorySystemUtils/newServiceLocator)
-      (.addService RepositoryConnectorFactory BasicRepositoryConnectorFactory)
-      (.addService TransporterFactory FileTransporterFactory)
-      (.addService TransporterFactory HttpTransporterFactory)
-      (.addService TransporterFactory clojure.tools.deps.alpha.util.S3TransporterFactory))))
+    (let [loc (doto (MavenRepositorySystemUtils/newServiceLocator)
+                (.addService RepositoryConnectorFactory BasicRepositoryConnectorFactory)
+                (.addService TransporterFactory FileTransporterFactory)
+                (.addService TransporterFactory HttpTransporterFactory))]
+      (try
+        (.addService loc TransporterFactory clojure.tools.deps.alpha.util.S3TransporterFactory)
+        (catch ClassNotFoundException _
+          loc)))))
 
 (defn make-system
   ^RepositorySystem []
