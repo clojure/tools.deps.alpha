@@ -24,6 +24,9 @@
     [org.eclipse.aether.spi.connector.transport TransporterFactory]
     [org.eclipse.aether.spi.locator ServiceLocator]
 
+    ;; maven-resolver-impl
+    [org.eclipse.aether.impl DefaultServiceLocator]
+
     ;; maven-resolver-connector-basic
     [org.eclipse.aether.connector.basic BasicRepositoryConnectorFactory]
 
@@ -139,13 +142,16 @@
 ;; Delay creation, but then cache Maven ServiceLocator instance
 (def the-locator
   (delay
-    (let [loc (doto (MavenRepositorySystemUtils/newServiceLocator)
-                (.addService RepositoryConnectorFactory BasicRepositoryConnectorFactory)
-                (.addService TransporterFactory FileTransporterFactory)
-                (.addService TransporterFactory HttpTransporterFactory))]
+    (let [^DefaultServiceLocator loc
+          (doto (MavenRepositorySystemUtils/newServiceLocator)
+            (.addService RepositoryConnectorFactory BasicRepositoryConnectorFactory)
+            (.addService TransporterFactory FileTransporterFactory)
+            (.addService TransporterFactory HttpTransporterFactory))]
       (try
-        (.addService loc TransporterFactory clojure.tools.deps.alpha.util.S3TransporterFactory)
+        (let [c (Class/forName "clojure.tools.deps.alpha.util.S3TransporterFactor")]
+          (.addService loc TransporterFactory c))
         (catch ClassNotFoundException _
+          (printerrln "Warning: failed to load the S3TransporterFactory class")
           loc)))))
 
 (defn make-system
