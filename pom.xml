@@ -20,7 +20,7 @@
   <properties>
     <!-- used for build -->
     <clojure.warnOnReflection>true</clojure.warnOnReflection>
-    <clojure.version>1.9.0</clojure.version>
+    <clojure.version>1.10.1</clojure.version>
     <resolverVersion>1.4.1</resolverVersion>
     <mavenVersion>3.6.3</mavenVersion>
 
