@@ -5,6 +5,7 @@ Changelog
 
 * next
   * TDEPS-152 - Fix bad addition of <sourceDirectory> in pom gen
+  * Add error checking for missing :mvn/version
 * 0.8.677 on Feb 14, 2020
   * TDEPS-150 - Fix regression in supporting -Scp flag (avoid resolving deps)
   * TDEPS-148 - Fix incorrect path resolution for git/local dep without deps.edn
