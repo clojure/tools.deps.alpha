@@ -88,5 +88,5 @@
   [& args]
   (let [{:keys [fname alias args]} (parse-args args)
         basis (read-basis)
-        fargs (merge (get-in basis [:aliases alias :run-args])  args)]
-    (apply (requiring-resolve fname) fargs)))
+        fargs (merge (get-in basis [:aliases alias :run-args]) args)]
+    (apply (requiring-resolve fname) [fargs])))
