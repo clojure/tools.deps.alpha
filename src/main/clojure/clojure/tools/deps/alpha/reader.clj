@@ -52,24 +52,52 @@
       val
       (throw (io-err "Expected edn map in: %s" f)))))
 
-(defn- canonicalize-sym [s]
-  (if (and (symbol? s) (nil? (namespace s)))
-    (as-> (name s) n (symbol n n))
-    s))
+(defn- canonicalize-sym
+  ([s]
+    (canonicalize-sym s nil))
+  ([s file-name]
+   (if (simple-symbol? s)
+     (let [cs (as-> (name s) n (symbol n n))]
+       (io/printerrln "DEPRECATED: Libs must be qualified, change" s "=>" cs
+         (if file-name (str "(" file-name ")") ""))
+       cs)
+     s)))
+
+(defn- canonicalize-exclusions
+  [{:keys [exclusions] :as coord} file-name]
+  (if (seq (filter simple-symbol? exclusions))
+    (assoc coord :exclusions (mapv #(canonicalize-sym % file-name) exclusions))
+    coord))
+
+(defn- canonicalize-dep-map
+  [deps-map file-name]
+  (when deps-map
+    (reduce-kv (fn [acc lib coord]
+                 (let [new-lib (if (simple-symbol? lib) (canonicalize-sym lib file-name) lib)
+                       new-coord (canonicalize-exclusions coord file-name)]
+                   (assoc acc new-lib new-coord)))
+      {} deps-map)))
 
 (defn- canonicalize-all-syms
-  [deps-map]
-  (walk/postwalk
-    #(cond-> %
-       (map? %) (coll/map-keys canonicalize-sym)
-       (vector? %) ((fn [v] (mapv canonicalize-sym v))))
-    deps-map))
+  ([deps-edn]
+    (canonicalize-all-syms deps-edn nil))
+  ([deps-edn file-name]
+   (walk/postwalk
+     (fn [x]
+       (if (map? x)
+         (reduce (fn [xr k]
+                   (if-let [xm (get xr k)]
+                     (assoc xr k (canonicalize-dep-map xm file-name))
+                     xr))
+           x #{:deps :default-deps :override-deps :extra-deps :classpath-overrides})
+         x))
+     deps-edn)))
 
 (defn slurp-deps
   "Read a single deps.edn file from disk and canonicalize symbols,
   return a deps map."
-  [dep-file]
-  (-> dep-file slurp-edn-map canonicalize-all-syms))
+  [^File dep-file]
+  (-> dep-file slurp-edn-map (canonicalize-all-syms (.getPath dep-file))))
 
 (defn- merge-or-replace
   "If maps, merge, otherwise replace"

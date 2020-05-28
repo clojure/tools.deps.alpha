@@ -16,6 +16,6 @@
    com.cognitect.aws/api {:mvn/version "0.8.408"}
    com.cognitect.aws/endpoints {:mvn/version "1.1.11.705"}
    com.cognitect.aws/s3 {:mvn/version "784.2.593.0"}
-   javax.inject {:mvn/version "1"}
+   javax.inject/javax.inject {:mvn/version "1"}
  }
 }

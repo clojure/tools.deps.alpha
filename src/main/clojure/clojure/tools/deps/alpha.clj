@@ -470,7 +470,7 @@
                    :mvn/repos mvn/standard-repos} nil))
 
   (clojure.pprint/pprint
-    (resolve-deps {:deps {'cheshire {:mvn/version "5.7.0"}}
+    (resolve-deps {:deps {'cheshire/cheshire {:mvn/version "5.7.0"}}
                    :mvn/repos mvn/standard-repos} nil))
 
   ;; top deps win
@@ -527,15 +527,15 @@
   (resolve-deps
     {:deps '{org.clojure/clojure {:mvn/version "1.9.0"}
              org.clojure/clojurescript {:mvn/version "1.9.946"}
-             reagent {:mvn/version "0.6.0"}}
+             reagent/reagent {:mvn/version "0.6.0"}}
      :mvn/repos mvn/standard-repos}
     nil)
 
   ;; err case
-  (resolve-deps {:deps {'bogus {:mvn/version "1.2.3"}}
+  (resolve-deps {:deps {'bogus/bogus {:mvn/version "1.2.3"}}
                  :mvn/repos mvn/standard-repos} nil)
 
-  (resolve-deps {:deps {'bogus "1.2.3"}
+  (resolve-deps {:deps {'bogus/bogus "1.2.3"}
                  :mvn/repos mvn/standard-repos} nil)
 
   (require
@@ -543,8 +543,8 @@
     '[clojure.tools.deps.alpha.extensions.deps])
 
   (resolve-deps
-    {:deps {'foo {:git/url "https://github.com/clojure/core.async.git"
-                  :sha "ecea2539a724a415b15e50f12815b4ab115cfd35"}}}
+    {:deps {'foo//bar {:git/url "https://github.com/clojure/core.async.git"
+                       :sha "ecea2539a724a415b15e50f12815b4ab115cfd35"}}}
     nil)
 
   (require '[clojure.tools.deps.alpha.util.session :as session])
