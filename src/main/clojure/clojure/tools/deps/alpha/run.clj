@@ -65,28 +65,17 @@
         (cond-> {:alias fread}
           (and (pos? arg-count) (even? arg-count)) (assoc :args (parse-kvs args)))))))
 
-(comment
-  ;; errors
-  (parse-args [])
-  (parse-args ["foo"])
-  (parse-args ["-X:foo" ":bar"])
-  (parse-args ["-Xf"])
-  (parse-args ["-X100"])
-
-  ;; base alias + params
-  (parse-args ["-X:foo"])
-  (parse-args ["-X:foo" ":bar" "100" ":baz:qux" "hi" ":zaz" "\"abc\""])
-
-  ;; fn (+ base alias) (+ params)
-  (parse-args ["-Xf/q"])
-  (parse-args ["-Xf/q" ":base"])
-  (parse-args ["-Xf/q" ":base" ":arg1" "100"])
-  (parse-args ["-Xf/q" ":arg1" "100"])
-  )
+(defn- deep-merge
+  [m1 m2]
+  (if
+    (and (map? m1) (map? m2)) (merge-with deep-merge m1 m2)
+    m2))
 
 (defn -main
   [& args]
   (let [{:keys [fname alias args]} (parse-args args)
         basis (read-basis)
-        fargs (merge (get-in basis [:aliases alias :run-args]) args)]
-    (apply (requiring-resolve fname) [fargs])))
+        config-args (get-in basis [:aliases alias :run-args])
+        config-args (if (keyword? config-args) (get-in basis [:aliases config-args]) config-args)
+        fargs (deep-merge config-args args)]
+    ((requiring-resolve fname) fargs)))
