@@ -67,9 +67,10 @@
 
 (defn- deep-merge
   [m1 m2]
-  (if
+  (cond
     (and (map? m1) (map? m2)) (merge-with deep-merge m1 m2)
-    m2))
+    (and (map? m1) (nil? m2)) m1
+    :else m2))
 
 (defn -main
   [& args]

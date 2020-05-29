@@ -19,3 +19,15 @@
     ["-Xf/q" ":base" ":arg1" "100"] '{:fname f/q :alias :base :args {:arg1 100}}
     ["-Xf/q" ":arg1" "100"] '{:fname f/q :args {:arg1 100}}))
 
+(deftest test-deep-merge
+  (are [a b expected] (= expected (#'run/deep-merge a b))
+    nil nil nil
+    1 2 2
+    {} {} {}
+    {:a 1} {:b 2} {:a 1 :b 2}
+    {:a 1} {:a 2} {:a 2}
+    {:a 1} 2 2
+    {:a {:b 1}} {:a {:b 2}} {:a {:b 2}}
+    {:a {:b 2} :x 1} {:a {:c 3} :y 2} {:a {:b 2 :c 3} :x 1 :y 2}
+    {:a 1} nil {:a 1}
+    nil {:a 1} {:a 1}))
