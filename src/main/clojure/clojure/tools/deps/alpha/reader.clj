@@ -12,7 +12,6 @@
             [clojure.string :as str]
             [clojure.walk :as walk]
             [clojure.tools.deps.alpha.util.dir :as dir]
-            [clojure.tools.deps.alpha.util.coll :as coll]
             [clojure.tools.deps.alpha.util.io :as io])
   (:import [java.io File InputStreamReader BufferedReader]
            [clojure.lang EdnReader$ReaderException]))
