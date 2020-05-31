@@ -78,5 +78,6 @@
         basis (read-basis)
         config-args (get-in basis [:aliases alias :run-args])
         config-args (if (keyword? config-args) (get-in basis [:aliases config-args]) config-args)
+        f (or fname (get-in basis [:aliases alias :run-fn]))
         fargs (deep-merge config-args args)]
-    ((requiring-resolve fname) fargs)))
+    ((requiring-resolve f) fargs)))
