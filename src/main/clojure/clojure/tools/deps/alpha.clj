@@ -39,16 +39,18 @@
    :jvm-opts (comp vec concat)
    :main-opts (comp last #(remove nil? %) vector)})
 
-(defn- choose-rule [alias-key]
+(defn- choose-rule [alias-key val]
   (or (merge-alias-rules alias-key)
-    (throw (ex-info (format "Unknown alias key: %s" alias-key) {:key alias-key}))))
+    (if (map? val)
+      merge
+      (fn [v1 v2] v2))))
 
 (defn- merge-alias-maps
   "Like merge-with, but using custom per-alias-key merge function"
   [& ms]
   (reduce
     #(reduce
-       (fn [m [k v]] (update m k (choose-rule k) v))
+       (fn [m [k v]] (update m k (choose-rule k v) v))
        %1 %2)
     {} ms))
 
