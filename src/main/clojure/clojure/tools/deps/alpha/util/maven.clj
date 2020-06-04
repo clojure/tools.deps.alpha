@@ -148,7 +148,7 @@
             (.addService TransporterFactory FileTransporterFactory)
             (.addService TransporterFactory HttpTransporterFactory))]
       (try
-        (let [c (Class/forName "clojure.tools.deps.alpha.util.S3TransporterFactor")]
+        (let [c (Class/forName "clojure.tools.deps.alpha.util.S3TransporterFactory")]
           (.addService loc TransporterFactory c))
         (catch ClassNotFoundException _
           (printerrln "Warning: failed to load the S3TransporterFactory class")
