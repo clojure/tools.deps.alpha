@@ -11,14 +11,14 @@
     [clojure.edn :as edn]
     [clojure.java.io :as jio]
     [clojure.string :as str]
-    [clojure.tools.deps.alpha.reader :as reader]
+    [clojure.tools.deps.alpha :as deps]
     [clojure.tools.deps.alpha.script.parse :as parse]))
 
 (defn- read-basis
   []
   (when-let [f (jio/file (System/getProperty "clojure.basis"))]
     (if (and f (.exists f))
-      (reader/slurp-deps f)
+      (deps/slurp-deps f)
       (throw (IllegalArgumentException. "No basis declared in clojure.basis system property")))))
 
 (defn- check-first
@@ -43,7 +43,7 @@
   (reduce (fn [m [k v]] (assoc-in m (parse-key k) (edn/read-string v)))
     {} (partition 2 args)))
 
-(defn- parse-args
+(defn parse-args
   [[arg & args]]
   (let [fread (check-first arg)
         arg-count (count args)]
@@ -75,9 +75,14 @@
 (defn -main
   [& args]
   (let [{:keys [fname alias args]} (parse-args args)
+        ;_ (println "fname" fname "alias" alias "args" args)
         basis (read-basis)
         config-args (get-in basis [:aliases alias :run-args])
         config-args (if (keyword? config-args) (get-in basis [:aliases config-args]) config-args)
         f (or fname (get-in basis [:aliases alias :run-fn]))
         fargs (deep-merge config-args args)]
+    ;(println "config-args" config-args)
+    ;(println "f" f)
+    ;(println "fargs" fargs)
+    ;(println)
     ((requiring-resolve f) fargs)))

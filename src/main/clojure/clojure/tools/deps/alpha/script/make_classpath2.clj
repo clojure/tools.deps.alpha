@@ -13,7 +13,6 @@
     [clojure.string :as str]
     [clojure.tools.cli :as cli]
     [clojure.tools.deps.alpha :as deps]
-    [clojure.tools.deps.alpha.reader :as reader]
     [clojure.tools.deps.alpha.util.io :as io :refer [printerrln]]
     [clojure.tools.deps.alpha.util.session :as session]
     [clojure.tools.deps.alpha.script.parse :as parse])
@@ -99,12 +98,12 @@
   (when (not (str/blank? name))
     (let [f (jio/file name)]
       (when (.exists f)
-        (reader/slurp-deps f)))))
+        (deps/slurp-deps f)))))
 
 (defn run
   "Run make-classpath script. See -main for details."
   [{:keys [config-user config-project libs-file cp-file jvm-file main-file basis-file skip-cp] :as opts}]
-  (let [opts' (merge opts {:install-deps (reader/install-deps)
+  (let [opts' (merge opts {:install-deps (deps/root-deps)
                            :user-deps (read-deps config-user)
                            :project-deps (read-deps config-project)})
         {:keys [libs classpath jvm main] :as basis} (run-core opts')

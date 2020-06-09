@@ -10,16 +10,16 @@
   clojure.tools.deps.alpha.extensions.deps
   (:require
     [clojure.java.io :as jio]
+    [clojure.tools.deps.alpha :as deps]
     [clojure.tools.deps.alpha.extensions :as ext]
-    [clojure.tools.deps.alpha.reader :as reader]
     [clojure.tools.deps.alpha.util.dir :as dir]))
 
 (defn- deps-map
   [config dir]
   (let [f (jio/file dir "deps.edn")]
     (if (.exists f)
-      (reader/merge-deps [(reader/install-deps) (reader/slurp-deps f)])
-      (reader/install-deps))))
+      (deps/merge-edns [(deps/root-deps) (deps/slurp-deps f)])
+      (deps/root-deps))))
 
 (defmethod ext/coord-deps :deps
   [_lib {:keys [deps/root] :as _coord} _mf config]

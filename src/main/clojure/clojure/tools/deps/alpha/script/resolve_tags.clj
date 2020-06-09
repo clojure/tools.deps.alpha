@@ -12,7 +12,7 @@
     [clojure.java.io :as jio]
     [clojure.pprint :as pp]
     [clojure.walk :as walk]
-    [clojure.tools.deps.alpha.reader :as reader]
+    [clojure.tools.deps.alpha :as deps]
     [clojure.tools.deps.alpha.util.io :refer [printerrln]]
     [clojure.tools.gitlibs :as gitlibs]
     [clojure.tools.cli :as cli])
@@ -59,7 +59,7 @@
   (try
     (let [{:keys [options]} (cli/parse-opts args opts)
           {:keys [deps-file]} options
-          deps-map (reader/slurp-deps (jio/file deps-file))
+          deps-map (deps/slurp-deps (jio/file deps-file))
           counter (atom 0)]
       (printerrln "Resolving git tags in" deps-file "...")
       (let [resolved-map (resolve-git-deps counter deps-map)]

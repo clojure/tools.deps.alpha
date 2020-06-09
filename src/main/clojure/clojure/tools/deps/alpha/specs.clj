@@ -92,7 +92,7 @@
   ;; a root directory whether it's valid against the specs
   (require
     '[clojure.spec.test.alpha :as stest]
-    '[clojure.tools.deps.alpha.reader :as trdr]
+    '[clojure.tools.deps.alpha :as deps]
     '[clojure.java.io :as jio])
   (import '[java.nio.file Files Paths FileVisitor FileVisitResult])
   (stest/instrument (stest/enumerate-namespace 'clojure.tools.deps.alpha))
@@ -106,9 +106,9 @@
       (visitFile [_ f attrs]
         (when (.endsWith (str f) "/deps.edn")
           (print "Checking" (str f))
-          (let [v (s/valid? ::deps-map (#'trdr/slurp-edn-map (.toFile f)))]
+          (let [v (s/valid? ::deps-map (#'deps/slurp-edn-map (.toFile f)))]
             (println ":" v)
             (when-not v
-              (s/explain ::deps-map (#'trdr/slurp-edn-map (.toFile f))))))
+              (s/explain ::deps-map (#'deps/slurp-edn-map (.toFile f))))))
         FileVisitResult/CONTINUE)))
   )

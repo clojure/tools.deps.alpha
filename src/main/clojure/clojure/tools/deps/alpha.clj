@@ -13,20 +13,134 @@
     [clojure.string :as str]
     [clojure.tools.deps.alpha.util.concurrent :as concurrent]
     [clojure.tools.deps.alpha.util.dir :as dir]
+    [clojure.tools.deps.alpha.util.io :as io]
     [clojure.tools.deps.alpha.util.session :as session]
     [clojure.tools.deps.alpha.extensions :as ext]
-
-    ;; Load extensions
-    [clojure.tools.deps.alpha.extensions.maven]
-    [clojure.tools.deps.alpha.extensions.local]
-    [clojure.tools.deps.alpha.extensions.git]
-    [clojure.tools.deps.alpha.extensions.deps]
-    [clojure.tools.deps.alpha.extensions.pom])
+    [clojure.walk :as walk])
   (:import
+    [clojure.lang EdnReader$ReaderException]
     [clojure.lang PersistentQueue]
-    [java.io File]))
+    [java.io File InputStreamReader BufferedReader]))
 
 (set! *warn-on-reflection* true)
+
+;;;; deps.edn reading
+
+(defn- io-err
+  ^Throwable [fmt ^File f]
+  (let [path (.getAbsolutePath f)]
+    (ex-info (format fmt path) {:path path})))
+
+(defn- slurp-edn-map
+  "Read the file specified by the path-segments, slurp it, and read it as edn."
+  [^File f]
+  (let [val (try (io/slurp-edn f)
+                 (catch EdnReader$ReaderException e (throw (io-err (str (.getMessage e) " (%s)") f)))
+                 (catch RuntimeException t
+                   (if (str/starts-with? (.getMessage t) "EOF while reading")
+                     (throw (io-err "Error reading edn, delimiter unmatched (%s)" f))
+                     (throw (io-err (str "Error reading edn. " (.getMessage t) " (%s)") f)))))]
+    (if (map? val)
+      val
+      (throw (io-err "Expected edn map in: %s" f)))))
+
+;; all this canonicalization is deprecated and will eventually be removed
+
+(defn- canonicalize-sym
+  ([s]
+   (canonicalize-sym s nil))
+  ([s file-name]
+   (if (simple-symbol? s)
+     (let [cs (as-> (name s) n (symbol n n))]
+       (io/printerrln "DEPRECATED: Libs must be qualified, change" s "=>" cs
+         (if file-name (str "(" file-name ")") ""))
+       cs)
+     s)))
+
+(defn- canonicalize-exclusions
+  [{:keys [exclusions] :as coord} file-name]
+  (if (seq (filter simple-symbol? exclusions))
+    (assoc coord :exclusions (mapv #(canonicalize-sym % file-name) exclusions))
+    coord))
+
+(defn- canonicalize-dep-map
+  [deps-map file-name]
+  (when deps-map
+    (reduce-kv (fn [acc lib coord]
+                 (let [new-lib (if (simple-symbol? lib) (canonicalize-sym lib file-name) lib)
+                       new-coord (canonicalize-exclusions coord file-name)]
+                   (assoc acc new-lib new-coord)))
+      {} deps-map)))
+
+(defn- canonicalize-all-syms
+  ([deps-edn]
+   (canonicalize-all-syms deps-edn nil))
+  ([deps-edn file-name]
+   (walk/postwalk
+     (fn [x]
+       (if (map? x)
+         (reduce (fn [xr k]
+                   (if-let [xm (get xr k)]
+                     (assoc xr k (canonicalize-dep-map xm file-name))
+                     xr))
+           x #{:deps :default-deps :override-deps :extra-deps :classpath-overrides})
+         x))
+     deps-edn)))
+
+(defn slurp-deps
+  "Read a single deps.edn file from disk and canonicalize symbols,
+  return a deps map."
+  [^File dep-file]
+  (-> dep-file slurp-edn-map (canonicalize-all-syms (.getPath dep-file))))
+
+(defn root-deps
+  "Read the root deps.edn resource from the classpath at the path
+  clojure/tools/deps/deps.edn"
+  []
+  (let [url (jio/resource "clojure/tools/deps/deps.edn")]
+    (io/read-edn (BufferedReader. (InputStreamReader. (.openStream url))))))
+
+(defn user-deps-path
+  "Use the same logic as clj to calculate the location of the user deps.edn.
+  Note that it's possible no file may exist at this location."
+  []
+  (let [config-env (System/getenv "CLJ_CONFIG")
+        xdg-env (System/getenv "XDG_CONFIG_HOME")
+        home (System/getProperty "user.home")
+        config-dir (cond config-env config-env
+                         xdg-env (str xdg-env File/separator "clojure")
+                         :else (str home File/separator ".clojure"))]
+    (str config-dir File/separator "deps.edn")))
+
+(defn find-edn-maps
+  "Finds and returns standard deps edn maps in a map with keys
+    :root-edn, :user-edn, :project-edn
+  If no project-edn is supplied, use the deps.edn in current directory"
+  ([]
+   (find-edn-maps nil))
+  ([project-edn-file]
+   (let [user-loc (jio/file (user-deps-path))
+         project-loc (jio/file (if project-edn-file project-edn-file (str dir/*the-dir* File/separator "deps.edn")))]
+     (cond-> {:root-edn (root-deps)}
+       (.exists user-loc) (assoc :user-edn (slurp-deps user-loc))
+       (.exists project-loc) (assoc :project-edn (slurp-deps project-loc))))))
+
+(defn- merge-or-replace
+  "If maps, merge, otherwise replace"
+  [& vals]
+  (when (some identity vals)
+    (reduce (fn [ret val]
+              (if (and (map? ret) (map? val))
+                (merge ret val)
+                (or val ret)))
+      nil vals)))
+
+(defn merge-edns
+  "Merge multiple deps edn maps from left to right into a single deps edn map."
+  [deps-edn-maps]
+  (apply merge-with merge-or-replace (remove nil? deps-edn-maps)))
+
+;;;; Aliases
 
 (def ^:private merge-alias-rules
   {:deps merge
@@ -62,7 +176,8 @@
     (map #(get-in edn-map [:aliases %]))
     (apply merge-alias-maps)))
 
-(defn resolve-path-ref
+;; remove?
+(defn- resolve-path-ref
   "Recursively resolve path refs to a coll of paths. Path refs may be:
     string - a path
     keyword - a path alias or the special alias, :paths
@@ -86,11 +201,7 @@
   [lib coord deps-config]
   (ext/lib-location lib coord deps-config))
 
-(defn- canonicalize-deps
-  [deps config]
-  (reduce
-    (fn [m [lib coord]] (conj m (ext/canonicalize lib coord config)))
-    [] deps))
+;;;; expand-deps
 
 ;; exclusions tree
 
@@ -182,7 +293,11 @@
                :reason :older-version
                :vmap vmap})))))))
 
-;; expand-deps
+(defn- canonicalize-deps
+  [deps config]
+  (reduce
+    (fn [m [lib coord]] (conj m (ext/canonicalize lib coord config)))
+    [] deps))
 
 (defn- trace+
   [trace? trace entry include reason]
@@ -373,21 +488,6 @@
   [project-edn tool-args]
   (merge project-edn tool-args))
 
-(defn- merge-or-replace
-  "If maps, merge, otherwise replace"
-  [& vals]
-  (when (some identity vals)
-    (reduce (fn [ret val]
-              (if (and (map? ret) (map? val))
-                (merge ret val)
-                (or val ret)))
-      nil vals)))
-
-(defn merge-edns
-  "Merge multiple deps edn maps from left to right into a single deps edn map."
-  [deps-edn-maps]
-  (apply merge-with merge-or-replace (remove nil? deps-edn-maps)))
-
 (defn calc-basis
   "Calculates and returns the runtime basis from a master deps edn map, modifying
    resolve-deps and make-classpath args as needed.
@@ -419,6 +519,13 @@
          (merge master-edn {:libs libs, :classpath cp})
          resolve-args (assoc :resolve-args resolve-args)
          classpath-args (assoc :classpath-args classpath-args))))))
+
+;; Load extensions
+(load "/clojure/tools/deps/alpha/extensions/maven")
+(load "/clojure/tools/deps/alpha/extensions/local")
+(load "/clojure/tools/deps/alpha/extensions/git")
+(load "/clojure/tools/deps/alpha/extensions/deps")
+(load "/clojure/tools/deps/alpha/extensions/pom")
 
 (comment
   (require '[clojure.tools.deps.alpha.util.maven :as mvn])

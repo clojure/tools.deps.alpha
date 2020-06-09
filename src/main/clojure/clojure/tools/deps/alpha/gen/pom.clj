@@ -161,7 +161,7 @@
   ([{:keys [basis params]}]
    (let [{:keys [deps paths :mvn/repos]} basis
          {:keys [target-dir src-pom lib version] :or {src-pom "pom.xml"}} params
-         resolved-paths (deps/resolve-path-ref paths basis)
+         resolved-paths (#'deps/resolve-path-ref paths basis)
          repos (remove #(= "https://repo1.maven.org/maven2/" (-> % val :url)) repos)
          pom-file (jio/file src-pom)
          pom (if (.exists pom-file)
@@ -187,7 +187,7 @@
   ;; deprecated arity
   ([{:keys [deps paths :mvn/repos] :as deps-edn} ^File dir]
    (let [artifact-name (.. dir getCanonicalFile getName)
-         resolved-paths (deps/resolve-path-ref paths deps-edn)]
+         resolved-paths (#'deps/resolve-path-ref paths deps-edn)]
      (sync-pom {:basis {:deps deps
                         :paths resolved-paths
                         :mvn/repos repos}
@@ -196,14 +196,14 @@
                          :lib (symbol artifact-name artifact-name)}}))))
 
 (comment
-  (require '[clojure.tools.deps.alpha :as deps] '[clojure.tools.deps.alpha.reader :as r])
+  (require '[clojure.tools.deps.alpha :as deps])
 
-  (let [{:keys [install-edn user-edn project-edn]} (r/find-edn-maps)
+  (let [{:keys [install-edn user-edn project-edn]} (deps/find-edn-maps)
         edn (deps/merge-edns [install-edn user-edn project-edn])
         basis (deps/calc-basis edn)]
     (sync-pom basis (jio/file ".")))
 
-  (let [{:keys [install-edn user-edn project-edn]} (r/find-edn-maps)
+  (let [{:keys [install-edn user-edn project-edn]} (deps/find-edn-maps)
         edn (deps/merge-edns [install-edn user-edn project-edn])
         basis (deps/calc-basis edn)]
     (sync-pom

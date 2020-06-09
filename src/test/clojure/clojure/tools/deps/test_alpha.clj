@@ -9,6 +9,31 @@
   (:import
     [java.io File]))
 
+(deftest test-merge-or-replace
+  (are [vals ret]
+    (= ret (apply #'deps/merge-or-replace vals))
+
+    [nil nil] nil
+    [nil {:a 1}] {:a 1}
+    [{:a 1} nil] {:a 1}
+    [{:a 1 :b 1} {:a 2 :c 3} {:c 4 :d 5}] {:a 2 :b 1 :c 4 :d 5}
+    [nil 1] 1
+    [1 nil] 1
+    [1 2] 2))
+
+(deftest test-merge-edns
+  (is (= (deps/merge-edns
+           [{:deps {'a {:v 1}, 'b {:v 1}}
+             :a/x {:a 1}
+             :a/y "abc"}
+            {:deps {'b {:v 2}, 'c {:v 3}}
+             :a/x {:b 1}
+             :a/y "def"}
+            nil])
+        {:deps {'a {:v 1}, 'b {:v 2}, 'c {:v 3}}
+         :a/x {:a 1, :b 1}
+         :a/y "def"})))
+
 (deftest merge-alias-maps
   (are [m1 m2 out]
     (= out (#'deps/merge-alias-maps m1 m2))

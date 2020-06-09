@@ -10,7 +10,7 @@
    clojure.tools.deps.alpha.script.generate-manifest2
   (:require [clojure.java.io :as jio]
             [clojure.tools.cli :as cli]
-            [clojure.tools.deps.alpha.reader :as reader]
+            [clojure.tools.deps.alpha :as deps]
             [clojure.tools.deps.alpha.gen.pom :as pom]
             [clojure.tools.deps.alpha.script.parse :as parse]
             [clojure.tools.deps.alpha.script.make-classpath2 :as makecp]
@@ -47,7 +47,7 @@
     (let [{:keys [gen config-user config-project]} options]
       (try
         (let [mod-map (makecp/run-core (merge options
-                                         {:install-deps (reader/install-deps)
+                                         {:install-deps (deps/root-deps)
                                           :user-deps (makecp/read-deps config-user)
                                           :project-deps (makecp/read-deps config-project)}))
               ;; treat all transitive deps as top-level deps

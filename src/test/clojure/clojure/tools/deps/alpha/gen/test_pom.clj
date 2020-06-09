@@ -4,18 +4,18 @@
     [clojure.java.io :as jio]
     [clojure.string :as str]
     [clojure.tools.deps.alpha.gen.pom :as gen-pom]
-    [clojure.tools.deps.alpha.reader :as reader])
+    [clojure.tools.deps.alpha :as deps])
   (:import
     [java.io File]))
 
 ;; simple check that pom gen is working - gen a pom.xml from tda's deps.edn
 (deftest test-pom-gen
   (let [temp-dir (.getParentFile (File/createTempFile "dummy" nil))
-        pom (jio/file temp-dir "pom.xml")]
+        pom (jio/file temp-dir "pom.xml")
+        {:keys [root-edn user-edn project-edn]} (deps/find-edn-maps)
+        master-edn (deps/merge-edns [root-edn user-edn project-edn])]
     (.delete pom)
-    (gen-pom/sync-pom
-      (reader/read-deps [(jio/file "deps.edn")])
-      temp-dir)
+    (gen-pom/sync-pom master-edn temp-dir)
     (is (.exists pom))
     (is (not (str/blank? (slurp pom))))))
 

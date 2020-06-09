@@ -12,7 +12,7 @@
     [clojure.java.io :as jio]
     [clojure.string :as str]
     [clojure.edn :as edn]
-    [clojure.tools.deps.alpha.reader :as reader])
+    [clojure.tools.deps.alpha :as deps])
   (:import
     [java.io File]))
 
@@ -38,5 +38,5 @@
 (defn parse-config
   "Parses a string of edn into a deps map."
   [s]
-  (#'reader/canonicalize-all-syms  ;; to be removed in the future
+  (#'deps/canonicalize-all-syms  ;; to be removed in the future
     (edn/read-string s)))
