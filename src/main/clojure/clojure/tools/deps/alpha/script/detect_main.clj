@@ -68,12 +68,12 @@
       (when (seq errors)
         (run! printerrln errors)
         (System/exit 1))
-      (prn (run options arguments)))
+      (println (run options arguments)))
     (catch Throwable t
       (printerrln "Warning: can't determine main to compile:" (.getMessage t))
       (when-not (instance? IExceptionInfo t)
         (.printStackTrace t))
-      (prn "")
+      (println "")
       (System/exit 1))))
 
 (comment
