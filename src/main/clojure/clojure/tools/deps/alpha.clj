@@ -22,7 +22,7 @@
     [clojure.lang PersistentQueue]
     [java.io File InputStreamReader BufferedReader]))
 
-(set! *warn-on-reflection* true)
+;(set! *warn-on-reflection* true)
 
 ;;;; deps.edn reading
 
