@@ -176,25 +176,6 @@
     (map #(get-in edn-map [:aliases %]))
     (apply merge-alias-maps)))
 
-;; remove?
-(defn- resolve-path-ref
-  "Recursively resolve path refs to a coll of paths. Path refs may be:
-    string - a path
-    keyword - a path alias or the special alias, :paths
-    coll of the above"
-  [path-ref {:keys [paths aliases] :as edn-map}]
-  (let [alias-map (merge aliases {:paths paths})]
-    (loop [acc []
-           [fpath & rpaths] [path-ref]]
-      (cond
-        (nil? fpath) acc
-        (string? fpath) (recur (conj acc fpath) rpaths)
-        (keyword? fpath) (let [res (get alias-map fpath)]
-                           (if (coll? res)
-                             (recur acc (concat res rpaths))
-                             (recur acc (conj res rpaths))))
-        (coll? fpath) (recur acc (concat rpaths fpath))))))
-
 (defn lib-location
   "Find the file path location of where a lib/coord would be located if procured
   without actually doing the procuring!"
