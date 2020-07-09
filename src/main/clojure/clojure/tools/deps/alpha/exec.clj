@@ -61,7 +61,11 @@
   [alias overrides]
   (when (odd? (count overrides))
     (throw (ex-info (str "Key is missing value: " (last overrides)) {})))
-  (let [{f :fn, args :args} (get-in (read-basis) [:aliases alias])]
+  (let [basis (read-basis)
+        {f :fn, maybe-args :args} (get-in basis [:aliases alias])
+        args (if (keyword? maybe-args) (get-in basis [:aliases maybe-args]) maybe-args)]
+    ;(println "args" args)
+    ;(println "overrides" overrides)
     (exec f (apply-overrides args overrides))))
 
 (defn -main
