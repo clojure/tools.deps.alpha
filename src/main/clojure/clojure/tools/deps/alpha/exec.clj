@@ -16,8 +16,7 @@
 
 (defn- read-basis
   []
-  {:aliases {:foo {:fn 'clojure.core/count :args {:x 1}}}}
-  #_(when-let [f (jio/file (System/getProperty "clojure.basis"))]
+  (when-let [f (jio/file (System/getProperty "clojure.basis"))]
     (if (and f (.exists f))
       (deps/slurp-deps f)
       (throw (IllegalArgumentException. "No basis declared in clojure.basis system property")))))
@@ -42,19 +41,13 @@
   [[arg & args]]
   (let [fread (check-first arg)
         arg-count (count args)]
-    (cond
-      (zero? arg-count) fread
-      (even? arg-count) (assoc fread :overrides (mapv edn/read-string args))
-      :else (throw (ex-info (str "Key is missing value: " (last args)) {})))))
+    (cond-> fread
+      (seq args) (assoc :overrides (mapv edn/read-string args)))))
 
-(defn- fill-alias
-  [{:keys [alias] :as m}]
-  (if alias
-    (do
-      (println (-> (read-basis) (get-in [:aliases alias])))
-      (println (-> (read-basis) (get-in [:aliases alias]) (select-keys [:fn :args])))
-      (merge m (-> (read-basis) (get-in [:aliases alias]) (select-keys [:fn :args]))))
-    m))
+(defn exec
+  "Resolve and execute the function f (a symbol) with args"
+  [f & args]
+  (apply (requiring-resolve f) args))
 
 (defn- apply-overrides
   [args overrides]
@@ -62,23 +55,25 @@
             (if (sequential? k)
               (assoc-in m k v)
               (assoc m k v)))
-    args (partition 2 overrides)))
+    args (partition-all 2 overrides)))
 
-(defn exec
-  "Resolve and execute the function f (a symbol) with a map of args"
-  [f args]
-  ;(println "Executing" f "with" args)
-  ((requiring-resolve f) args))
+(defn- exec-alias
+  [alias overrides]
+  (when (odd? (count overrides))
+    (throw (ex-info (str "Key is missing value: " (last overrides)) {})))
+  (let [{f :fn, args :args} (get-in (read-basis) [:aliases alias])]
+    (exec f (apply-overrides args overrides))))
 
 (defn -main
   [& args]
-  (let [{f :fn :keys [alias args overrides]} (-> args parse-args fill-alias)
-        ;_ (println "fn" f "alias" alias "overrides" overrides)
-        fargs (apply-overrides args overrides)]
-    (exec f fargs)))
+  (let [{:keys [alias overrides] :as parsed} (parse-args args)]
+    (if alias
+      (exec-alias alias overrides)
+      (apply exec (:fn parsed) overrides))))
 
 (comment
   (-main "-X:foo" "[:y :z]" "1")
-  (-main "-Fclojure.core/prn" "[:y :z]" "1" ":x" "2" )
-  (apply-overrides {:x 1} [:x 2])
+  (-main "-X:foo" ":bar")
+  (-main "-Fclojure.core/prn" "{:y 1}" ":foo")
+  (apply-overrides {:x 1} [:x 2 [:y :z] 3])
   )
