@@ -3,6 +3,8 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.1/CHANGELOG.md)*
 
+* 0.8.702 on July 15, 2020
+  * During version selection, prefer same version with fewer exclusions
 * 0.8.695 on June 11, 2020
   * TDEPS-152 - Fix bad addition of <sourceDirectory> in pom gen
   * Add error checking for missing :mvn/version
