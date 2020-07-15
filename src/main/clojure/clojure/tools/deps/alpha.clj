@@ -129,7 +129,7 @@
   (pos? (ext/compare-versions lib new-coord old-coord config)))
 
 (defn- add-coord
-  [vmap lib coord-id coord path action config]
+  [vmap lib coord-id coord path action exclusions config]
   (let [vmap' (-> (or vmap {})
                 (assoc-in [lib :versions coord-id] coord)
                 (update-in [lib :paths]
@@ -147,9 +147,20 @@
           (let [select-coord (get-in vmap' [lib :versions select-id])]
             (cond
               (= select-id coord-id)
-              {:include false
-               :reason :same-version
-               :vmap vmap}
+              (let [coord-exclusion-count (-> coord :exclusions count)
+                    other-exclusion-set-counts (->> (get-in vmap [lib :paths select-id])
+                                                 (map #(conj % lib)) ;; add this lib to end of parent paths
+                                                 (map #(get exclusions %)) ;; look up that path's exclusions
+                                                 distinct
+                                                 (map count))]
+                ;; prefer fewer exclusions (usually they're all 0 so no change)
+                (if (< coord-exclusion-count (apply min other-exclusion-set-counts))
+                  {:include true
+                   :reason :same-version-fewer-exclusions
+                   :vmap (assoc-in vmap' [lib :select] coord-id)}
+                  {:include false
+                   :reason :same-version
+                   :vmap vmap}))
 
               (dominates? lib coord select-coord config)
               {:include true
@@ -213,7 +224,7 @@
                                #(try
                                   (canonicalize-deps (ext/coord-deps lib use-coord manifest config) config)
                                   (catch Throwable t t))))
-                  {:keys [include reason vmap]} (add-coord version-map lib coord-id use-coord parents reason config)]
+                  {:keys [include reason vmap]} (add-coord version-map lib coord-id use-coord parents reason exclusions config)]
               (if include
                 (let [excl' (if-let [excl (:exclusions use-coord)]
                               (add-exclusion exclusions use-path excl)

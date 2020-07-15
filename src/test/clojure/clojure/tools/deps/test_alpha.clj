@@ -86,12 +86,17 @@
                :fkn/version)
            "2.0.0"))))
 
+(defn libs->lib-ver
+  [libmap]
+  (reduce-kv
+    (fn [lib-ver lib coord] (assoc lib-ver (-> lib name keyword) (:fkn/version coord)))
+    {} libmap))
+
 ;; +a1 -> +b1 -> -c1
 ;;     -> +c2
 (deftest test-dep-choice
   (fkn/with-libs repo
-    (= (->> (deps/resolve-deps {:deps {'e1/a {:fkn/version "1"}}} nil)
-         (reduce-kv #(assoc %1 (-> %2 name keyword) (:fkn/version %3)) {}))
+    (= (->> (deps/resolve-deps {:deps {'e1/a {:fkn/version "1"}}} nil) libs->lib-ver)
       {:a 1, :b 1, :c 2})))
 
 ;; -> +a1 -> +d1
@@ -109,7 +114,7 @@
     (let [r (->> (deps/resolve-deps {:deps {'ex/a {:fkn/version "1"}
                                             'ex/b {:fkn/version "1"}
                                             'ex/c {:fkn/version "1"}}} nil)
-              (reduce-kv #(assoc %1 (-> %2 name keyword) (:fkn/version %3)) {}))]
+              libs->lib-ver)]
       (is (= r {:a "1", :b "1", :c "1", :d "1", :e "2"})))))
 
 ;; +a1 -> +b1 -> +x2 -> +y1
@@ -125,7 +130,19 @@
      'ex/z {{:fkn/version "1"} nil}}
     (is (= {:a "1", :b "1", :c "1", :x "2", :y "1"}
           (let [res (deps/resolve-deps {:deps {'ex/a {:fkn/version "1"}, 'ex/c {:fkn/version "1"}}} nil)]
-            (reduce-kv #(assoc %1 (-> %2 name keyword) (:fkn/version %3)) {} res))))))
+            (libs->lib-ver res))))))
+
+;; c1 included via both a and b, with exclusions in one branch and without in the other
+;; should always prefer the non-exclusions one and include d1
+(deftest test-dep-same-version-different-exclusions
+  (fkn/with-libs
+    {'ex/a {{:fkn/version "1"} [['ex/c {:fkn/version "1" :exclusions ['ex/d]}]]}
+     'ex/b {{:fkn/version "1"} [['ex/c {:fkn/version "1"}]]}
+     'ex/c {{:fkn/version "1"} [['ex/d {:fkn/version "1"}]]}
+     'ex/d {{:fkn/version "1"} nil}}
+    (is (= {:a "1", :b "1", :c "1", :d "1"}
+          (libs->lib-ver (deps/resolve-deps {:deps {'ex/a {:fkn/version "1"}, 'ex/b {:fkn/version "1"}}} nil))
+          (libs->lib-ver (deps/resolve-deps {:deps {'ex/b {:fkn/version "1"}, 'ex/a {:fkn/version "1"}}} nil))))))
 
 ;; +a1 -> +b1 -> +c1 -> a1
 ;;     -> -c2 -> a1
@@ -137,7 +154,7 @@
                          {:fkn/version "2"} [['ex/a {:fkn/version "1"}]]}}
     (is (= {:a "1", :b "1", :c "2"}
            (let [res (deps/resolve-deps {:deps {'ex/a {:fkn/version "1"}}} nil)]
-             (reduce-kv #(assoc %1 (-> %2 name keyword) (:fkn/version %3)) {} res))))))
+             (libs->lib-ver res))))))
 
 (deftest test-local-root
   (let [base (.getCanonicalFile (File. "."))]
