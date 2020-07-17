@@ -175,3 +175,60 @@
                      {:deps {'c/tda {:local/root "." :deps/manifest :pom}}
                       :mvn/repos mvn/standard-repos}
                      nil)))))
+
+
+;[lib use-coord coord-id use-path include reason exclusions cut]
+(deftest test-update-excl
+  ;; new lib/version, no exclusions
+  (let [ret (#'deps/update-excl 'a {:mvn/version "1"} {:mvn/version "1"} '[b a] true :new-version nil nil)]
+    (is (= {:exclusions' nil, :cut' nil}
+          (select-keys ret [:exclusions' :cut'])))
+    (is (not (nil? (:child-pred ret)))))
+
+  ;; new lib/version, with exclusions
+  (let [ret (#'deps/update-excl 'a {:mvn/version "1" :exclusions ['c]} {:mvn/version "1"} '[b a] true :new-version nil nil)]
+    (is (= {:exclusions' '{[b a] #{c}}, :cut' '{[a {:mvn/version "1"}] #{c}}}
+          (select-keys ret [:exclusions' :cut'])))
+    (is (not (nil? (:child-pred ret)))))
+
+  ;; same lib/version, fewer excludes
+  ;; a (excl c)
+  ;; b -> a -> c1
+  (let [excl '{[a] #{c}}
+        ret (#'deps/update-excl 'a {:mvn/version "1"} {:mvn/version "1"} '[b a] false :same-version
+              excl '{[a {:mvn/version "1"}] #{c}})]
+    (is (= {:exclusions' excl, :cut' nil})) ;; remove cut
+    (let [pred (:child-pred ret)]
+      (is (true? (boolean (pred 'c))))))
+
+  ;; same lib/version, subset excludes
+  ;; a (excl c d)
+  ;; b -> a (excl c)
+  (let [excl '{[a] #{c d}}
+        cut '{[a {:mvn/version "1"}] #{c d}}
+        ret (#'deps/update-excl 'a '{:mvn/version "1" :exclusions [c]} {:mvn/version "1"} '[b a] false :same-version excl cut)]
+    (is (= {:exclusions' '{[a] #{c d}, [b a] #{c d}}, :cut' '{[a {:mvn/version "1"}] #{c}}}))
+    (let [pred (:child-pred ret)]
+      (is (false? (boolean (pred 'c)))) ;; already enqueued
+      (is (true? (boolean (pred 'd)))))) ;; newly enqueueable due to smaller exclusion set
+
+  ;; same lib/version, same excludes
+  ;; a (excl c)
+  ;; b -> a (excl c)
+  (let [excl '{[a] #{c}}
+        cut '{[a {:mvn/version "1"}] #{c}}
+        ret (#'deps/update-excl 'a {:mvn/version "1" :exclusions ['c]} {:mvn/version "1"} '[b a] false :same-version excl cut)]
+    (is (= {:exclusions' excl, :cut' cut})) ;; no change
+    (let [pred (:child-pred ret)]
+      (is (false? (boolean (pred 'c))))))
+
+  ;; same lib/version, more excludes
+  ;; a (excl c)
+  ;; b -> a (excl c, d)
+  (let [excl '{[a] #{c}}
+        cut '{[a {:mvn/version "1"}] #{c}}
+        ret (#'deps/update-excl 'a '{:mvn/version "1" :exclusions [c d]} {:mvn/version "1"} '[b a] false :same-version excl cut)]
+    (is (= {:exclusions' '{[a] #{c}, [b a] #{c d}}, :cut' cut})) ;; no change in cut
+    (let [pred (:child-pred ret)] ;; everything already enqueued
+      (is (false? (boolean (pred 'c))))
+      (is (false? (boolean (pred 'd)))))))

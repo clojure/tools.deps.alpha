@@ -85,28 +85,33 @@
           (recur (pop search)))))))
 
 (defn- update-excl
-  [lib use-coord use-path include reason exclusions cut]
-  (let [coord-excl (set (:exclusions use-coord))]
+  "Update exclusions and cut based on whether this is a new lib/version,
+  a new instance of an existing lib/version, or not including."
+  [lib use-coord coord-id use-path include reason exclusions cut]
+  (let [coord-excl (when-let [e (:exclusions use-coord)] (set e))]
     (cond
-      ;; if adding new lib, include all non-excluded children
+      ;; if adding new lib/version, include all non-excluded children
       include
-      {:exclusions' (if coord-excl (assoc exclusions use-path coord-excl) exclusions)
-       :cut' (assoc cut lib coord-excl)
-       :child-pred (fn [lib] (not (contains? coord-excl lib)))}
+      (if (nil? coord-excl)
+        {:exclusions' exclusions, :cut' cut, :child-pred (constantly true)}
+        {:exclusions' (assoc exclusions use-path coord-excl)
+         :cut' (assoc cut [lib coord-id] coord-excl)
+         :child-pred (fn [lib] (not (contains? coord-excl lib)))})
 
-      ;; if seeing same lib again, narrow exclusions to interesection of prior and new
+      ;; if seeing same lib/ver again, narrow exclusions to intersection of prior and new.
       ;; only include new unexcluded children (old excl set minus new excl set)
+      ;; as others were already enqueued when first added
       (= reason :same-version)
-      (let [cut-coord (get cut lib) ;; previously cut from this lib, so were not enqueued
+      (let [exclusions' (if (seq coord-excl) (assoc exclusions use-path coord-excl) exclusions)
+            cut-coord (get cut [lib coord-id]) ;; previously cut from this lib, so were not enqueued
             new-cut (set/intersection coord-excl cut-coord)
             enq-only (set/difference cut-coord new-cut)]
-        {:exclusions' exclusions
-         :cut' (assoc cut lib new-cut)
-         :child-pred enq-only})
+        {:exclusions' exclusions'
+         :cut' (assoc cut [lib coord-id] new-cut)
+         :child-pred (set enq-only)})
 
-      :else ;; no change
-      {:exclusions' exclusions
-       :cut' cut})))
+      :else ;; otherwise, no change
+      {:exclusions' exclusions, :cut' cut})))
 
 ;; version map
 
@@ -264,7 +269,7 @@
                 use-coord (merge choose-coord (ext/manifest-type lib choose-coord config))
                 coord-id (ext/dep-id lib use-coord config)
                 {:keys [include reason vmap]} (include-coord? version-map lib use-coord coord-id parents exclusions config)
-                {:keys [exclusions' cut' child-pred]} (update-excl lib use-coord use-path include reason exclusions cut)
+                {:keys [exclusions' cut' child-pred]} (update-excl lib use-coord coord-id use-path include reason exclusions cut)
                 new-q (if child-pred (conj q' (children-task lib use-coord use-path child-pred)) q')]
             (recur pendq new-q vmap exclusions' cut'
               (trace+ trace? trace parents lib coord use-coord coord-id override-coord include reason)))
