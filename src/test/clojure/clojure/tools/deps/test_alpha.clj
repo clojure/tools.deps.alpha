@@ -133,7 +133,9 @@
             (libs->lib-ver res))))))
 
 ;; c1 included via both a and b, with exclusions in one branch and without in the other
-;; should always prefer the non-exclusions one and include d1
+;; should always include d1
+;; +a1 -> +c1 (excl d) -> d1
+;; +b1 -> +c1 -> +d1
 (deftest test-dep-same-version-different-exclusions
   (fkn/with-libs
     {'ex/a {{:fkn/version "1"} [['ex/c {:fkn/version "1" :exclusions ['ex/d]}]]}
