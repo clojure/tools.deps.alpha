@@ -74,10 +74,6 @@
 
 ;; exclusions tree
 
-(defn- add-exclusion
-  [exclusions path libs]
-  (assoc exclusions path (set libs)))
-
 (defn- excluded?
   [exclusions path lib]
   (let [lib-name (first (str/split (name lib) #"\$"))
@@ -88,13 +84,29 @@
           true
           (recur (pop search)))))))
 
-(defn- update-cut
-  [lib coord-excl cut]
-  (let [cut-coord (get cut lib) ;; previously cut from this lib, so were not enqueued
-        new-cut (set/intersection coord-excl cut-coord)
-        enq-only (set/difference cut-coord new-cut)]
-    {:cut' (assoc cut lib new-cut)
-     :child-pred enq-only}))
+(defn- update-excl
+  [lib use-coord use-path include reason exclusions cut]
+  (let [coord-excl (set (:exclusions use-coord))]
+    (cond
+      ;; if adding new lib, include all non-excluded children
+      include
+      {:exclusions' (if coord-excl (assoc exclusions use-path coord-excl) exclusions)
+       :cut' (assoc cut lib coord-excl)
+       :child-pred (fn [lib] (not (contains? coord-excl lib)))}
+
+      ;; if seeing same lib again, narrow exclusions to interesection of prior and new
+      ;; only include new unexcluded children (old excl set minus new excl set)
+      (= reason :same-version)
+      (let [cut-coord (get cut lib) ;; previously cut from this lib, so were not enqueued
+            new-cut (set/intersection coord-excl cut-coord)
+            enq-only (set/difference cut-coord new-cut)]
+        {:exclusions' exclusions
+         :cut' (assoc cut lib new-cut)
+         :child-pred enq-only})
+
+      :else ;; no change
+      {:exclusions' exclusions
+       :cut' cut})))
 
 ;; version map
 
@@ -103,7 +115,34 @@
 ;;       :select   coord-id             ;; current selection
 ;;       :top      true}                ;; if selection is top dep
 
+(defn- add-version
+  "Add a new version of a lib to the version map"
+  [vmap lib coord path coord-id]
+  (-> (or vmap {})
+    (assoc-in [lib :versions coord-id] coord)
+    (update-in [lib :paths]
+      (fn [coord-paths]
+        (merge-with into {coord-id #{path}} coord-paths)))))
+
+(defn- select-version
+  "Mark a particular coord as selected in version map"
+  [vmap lib coord-id top?]
+  (update-in vmap [lib] merge (cond-> {:select coord-id}
+                                top? (assoc :top true))))
+
+(defn- selected-version
+  "Get currently selected version of lib"
+  [vmap lib]
+  (get-in vmap [lib :select]))
+
+(defn- selected-coord
+  "Get currently selected coord of lib"
+  [vmap lib]
+  (get-in vmap [lib :versions (selected-version vmap lib)]))
+
 (defn- parent-missing?
+  "Is parent path now missing from the selected lib/versions?
+  This can happen if a newer version is found, orphaning enqueued children."
   [vmap path]
   (when (seq path)
     (let [parent-lib (last path)
@@ -111,71 +150,69 @@
           {:keys [paths select]} (get vmap parent-lib)]
       (not (contains? (get paths select) parent-path)))))
 
-(defn- include-coord?
-  [vmap lib path exclusions]
-  (cond
-    ;; lib is a top dep and this is it => select
-    (empty? path) {:include true, :reason :top}
-
-    ;; lib is excluded in this path => omit
-    (excluded? exclusions path lib)
-    {:include false, :reason :excluded}
-
-    ;; lib is a top dep and this isn't it => omit
-    (get-in vmap [lib :top])
-    {:include false, :reason :use-top}
-
-    ;; lib's parent path is not included => omit
-    (parent-missing? vmap path)
-    {:include false, :reason :parent-omitted}
-
-    ;; otherwise => choose newest version
-    :else
-    {:include true, :reason :choose-version}))
-
 (defn- dominates?
+  "Is new-coord newer than old-coord?"
   [lib new-coord old-coord config]
   (pos? (ext/compare-versions lib new-coord old-coord config)))
 
-(defn- add-coord
-  [vmap lib coord-id coord path action config]
-  (let [vmap' (-> (or vmap {})
-                (assoc-in [lib :versions coord-id] coord)
-                (update-in [lib :paths]
-                  (fn [coord-paths]
-                    (merge-with into {coord-id #{path}} coord-paths))))]
-    (if (= action :top)
-      {:include true
-       :reason :new-top-dep
-       :vmap (update-in vmap' [lib] merge {:select coord-id :top true})}
-      (let [select-id (get-in vmap' [lib :select])]
-        (if (not select-id)
-          {:include true
-           :reason :new-dep
-           :vmap (assoc-in vmap' [lib :select] coord-id)}
-          (let [select-coord (get-in vmap' [lib :versions select-id])]
-            (cond
-              (= select-id coord-id)
-              {:include false
-               :reason :same-version
-               :vmap vmap'}
+(defn- include-coord?
+  "This is the key decision-making function when considering a lib/coord node in
+  the traversal graph. It returns :include (whether to include this lib/coord), a
+  :reason why it was included or not, and an updated :vmap (may have new version added
+  and/or new selected version for a lib)"
+  [vmap lib coord coord-id path exclusions config]
+  (cond
+    ;; lib is a top dep and this is it => select
+    (empty? path)
+    {:include true, :reason :new-top-dep,
+     :vmap (-> vmap
+             (add-version lib coord path coord-id)
+             (select-version lib coord-id true))}
 
-              (dominates? lib coord select-coord config)
-              {:include true
-               :reason :newer-version
-               :vmap (assoc-in vmap' [lib :select] coord-id)}
+    ;; lib is excluded in this path => omit
+    (excluded? exclusions path lib)
+    {:include false, :reason :excluded, :vmap vmap}
 
-              :else
-              {:include false
-               :reason :older-version
-               :vmap vmap})))))))
+    ;; lib is a top dep and this isn't it => omit
+    (get-in vmap [lib :top])
+    {:include false, :reason :use-top, :vmap vmap}
+
+    ;; lib's parent path is not included => omit
+    (parent-missing? vmap path)
+    {:include false, :reason :parent-omitted, :vmap vmap}
+
+    ;; new lib => select
+    (not (contains? vmap lib))
+    {:include true, :reason :new-dep,
+     :vmap (-> vmap
+             (add-version lib coord path coord-id)
+             (select-version lib coord-id false))}
+
+    ;; existing lib, same version => omit (but update vmap, may need to enqueue newly unexcluded children)
+    (= coord-id (selected-version vmap lib))
+    {:include false, :reason :same-version, :vmap (add-version vmap lib coord path coord-id)}
+
+    ;; existing lib, newer version => select
+    (dominates? lib coord (selected-coord vmap lib) config)
+    {:include true, :reason :newer-version,
+     :vmap (-> vmap
+             (add-version lib coord path coord-id)
+             (select-version lib coord-id false))}
+
+    ;; existing lib, older version => omit
+    :else
+    {:include false, :reason :older-version, :vmap vmap}))
 
 ;; expand-deps
 
 (defn- trace+
-  [trace? trace entry include reason]
+  "Add an entry to the trace if needed"
+  [trace? trace parents lib coord use-coord coord-id override-coord include reason]
   (when trace?
-    (conj trace (merge entry {:include include :reason reason}))))
+    (let [entry (cond-> {:path parents, :lib lib, :coord coord, :use-coord use-coord, :coord-id coord-id
+                         :include include, :reason reason}
+                  override-coord (assoc :override-coord override-coord))]
+      (conj trace entry))))
 
 (defn- next-path
   [pendq q on-error]
@@ -193,59 +230,44 @@
           {:path next-q, :q' q'})))))
 
 (defn- expand-deps
+  "Dep tree expansion, returns version map"
   [deps default-deps override-deps config executor trace?]
   (letfn [(err-handler [throwable]
             (do
               (concurrent/shutdown-on-error executor)
               (throw ^Throwable throwable)))
-          (expand-fut [lib use-coord]
-            (let [{:deps/keys [manifest root]} use-coord]
-              (dir/with-dir (if root (jio/file root) dir/*the-dir*)
-                (concurrent/submit-task executor
-                  #(try
-                     (canonicalize-deps (ext/coord-deps lib use-coord manifest config) config)
-                     (catch Throwable t t))))))]
-    (loop [pendq nil
-           q (into (PersistentQueue/EMPTY) (map vector deps))
-           version-map nil
-           exclusions nil
-           cut nil
-           trace []]
+          (children-task [lib use-coord use-path child-pred]
+            {:pend-children
+             (let [{:deps/keys [manifest root]} use-coord]
+               (dir/with-dir (if root (jio/file root) dir/*the-dir*)
+                 (concurrent/submit-task executor
+                   #(try
+                      (canonicalize-deps (ext/coord-deps lib use-coord manifest config) config)
+                      (catch Throwable t t)))))
+             :ppath use-path
+             :child-pred child-pred})]
+    (loop [pendq nil ;; a resolved child-lookup thunk to look at first
+           q (into (PersistentQueue/EMPTY) (map vector deps)) ;; queue of nodes or child-lookups
+           version-map nil ;; track all seen versions of libs and which version is selected
+           exclusions nil ;; tracks exclusions marked in the tree
+           cut nil ;; tracks cuts made of child nodes based on exclusions
+           trace []] ;; trace expansion
       (let [{:keys [path pendq q']} (next-path pendq q err-handler)]
         (if path
           (let [[lib coord] (peek path)
                 parents (pop path)
+                use-path (conj parents lib)
                 override-coord (get override-deps lib)
-                use-coord (cond override-coord override-coord
-                                coord coord
-                                :else (get default-deps lib))
+                choose-coord (cond override-coord override-coord
+                                   coord coord
+                                   :else (get default-deps lib))
+                use-coord (merge choose-coord (ext/manifest-type lib choose-coord config))
                 coord-id (ext/dep-id lib use-coord config)
-                entry (cond-> {:path parents, :lib lib, :coord coord, :use-coord use-coord, :coord-id coord-id}
-                        override-coord (assoc :override-coord override-coord))
-                {:keys [include reason]} (include-coord? version-map lib parents exclusions)]
-            (if include
-              (let [use-path (conj parents lib)
-                    use-coord (merge use-coord (ext/manifest-type lib use-coord config))
-                    {:keys [include reason vmap]} (add-coord version-map lib coord-id use-coord parents reason config)
-                    coord-excl (set (:exclusions use-coord))
-                    exclusions' (if coord-excl (add-exclusion exclusions use-path coord-excl) exclusions)]
-                (cond
-                  include
-                  (let [children-fut (expand-fut lib use-coord)
-                        child-pred (fn [lib] (not (contains? coord-excl lib))) ;; all children, except exclusions
-                        q-with-children (conj q' {:pend-children children-fut, :ppath use-path, :child-pred child-pred})]
-                    (recur pendq q-with-children vmap exclusions' (assoc cut lib coord-excl) (trace+ trace? trace entry include reason)))
-
-                  ;; only enqueue children that are not in the intersected exclusion set and not already enqueued
-                  (= reason :same-version)
-                  (let [children-fut (expand-fut lib use-coord)
-                        {:keys [cut' child-pred]} (update-cut lib coord-excl cut)
-                        q-with-children (conj q' {:pend-children children-fut, :ppath use-path, :child-pred child-pred})]
-                    (recur pendq q-with-children vmap exclusions' cut' (trace+ trace? trace entry include reason)))
-
-                  :else
-                  (recur pendq q' vmap exclusions cut (trace+ trace? trace entry include reason))))
-              (recur pendq q' version-map exclusions cut (trace+ trace? trace entry include reason))))
+                {:keys [include reason vmap]} (include-coord? version-map lib use-coord coord-id parents exclusions config)
+                {:keys [exclusions' cut' child-pred]} (update-excl lib use-coord use-path include reason exclusions cut)
+                new-q (if child-pred (conj q' (children-task lib use-coord use-path child-pred)) q')]
+            (recur pendq new-q vmap exclusions' cut'
+              (trace+ trace? trace parents lib coord use-coord coord-id override-coord include reason)))
           (cond-> version-map trace? (with-meta {:trace {:log trace, :vmap version-map, :exclusions exclusions}})))))))
 
 (defn- lib-paths
@@ -442,21 +464,13 @@
               'org.clojure/clojure {:mvn/version "1.9.0-alpha17"}}
        :mvn/repos mvn/standard-repos} nil) nil nil)
 
-  ;; replace paths
-  (make-classpath
-    (resolve-deps
-      {:deps {'org.clojure/clojure {:mvn/version "1.10.0"}}
-       :mvn/repos mvn/standard-repos} nil)
-    ["src"]
-    {:paths ["replaced"]})
-
   ;; extra paths
   (make-classpath
     (resolve-deps
       {:deps {'org.clojure/clojure {:mvn/version "1.10.0"}}
        :mvn/repos mvn/standard-repos} nil)
     ["src"]
-    {:extra-paths ["replaced"]})
+    {:extra-paths ["extra"]})
 
   ;; classpath overrides
   (make-classpath
@@ -465,14 +479,6 @@
               'org.clojure/clojure {:mvn/version "1.9.0-alpha17"}}
        :mvn/repos mvn/standard-repos} nil) nil
     '{:classpath-overrides {org.clojure/clojure "foo"}})
-
-  (make-classpath
-    (resolve-deps
-      {:deps {'org.clojure/clojure {:mvn/version "1.8.0"}}
-       :mvn/repos mvn/standard-repos}
-      nil)
-    nil
-    {'org.clojure/clojure "/Users/alex/code/clojure/target/classes"})
 
   (resolve-deps
     {:deps '{org.clojure/clojure {:mvn/version "1.9.0"}
