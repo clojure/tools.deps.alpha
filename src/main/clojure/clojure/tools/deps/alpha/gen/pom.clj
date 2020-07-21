@@ -54,8 +54,7 @@
 
 (defn- gen-source-dir
   [path]
-  [::pom/build
-   [::pom/sourceDirectory path]])
+  [::pom/sourceDirectory path])
 
 (defn- to-repo
   [[name repo]]
@@ -105,8 +104,18 @@
             (if (seq more-tags)
               (recur more-tags child (zip/down child))
               (zip/edit child (constantly replace-node)))
-            (recur tags parent (zip/right child)))
-          (zip/append-child parent replace-node))))))
+            (if-let [next-sibling (zip/right child)]
+              (recur tags parent next-sibling)
+              (if (seq more-tags)
+                (let [new-parent (zip/append-child parent (xml/sexp-as-element tag))
+                      new-child (zip/rightmost (zip/down new-parent))]
+                  (recur more-tags new-child (zip/down new-child)))
+                (zip/append-child parent replace-node))))
+          (if (seq more-tags)
+            (let [new-parent (zip/append-child parent (xml/sexp-as-element tag))
+                  new-child (zip/rightmost (zip/down new-parent))]
+              (recur more-tags new-child (zip/down new-child)))
+            (zip/append-child parent replace-node)))))))
 
 (defn- replace-deps
   [pom deps]
@@ -114,9 +123,11 @@
 
 (defn- replace-paths
   [pom [path & paths]]
-  (when path
-    (when (seq paths) (apply printerrln "Skipping paths:" paths))
-    (xml-update pom [::pom/build ::pom/sourceDirectory] (xml/sexp-as-element (gen-source-dir path)))))
+  (if path
+    (do
+      (when (seq paths) (apply printerrln "Skipping paths:" paths))
+      (xml-update pom [::pom/build ::pom/sourceDirectory] (xml/sexp-as-element (gen-source-dir path))))
+    pom))
 
 (defn- replace-repos
   [pom repos]
