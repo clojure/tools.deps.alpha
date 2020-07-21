@@ -26,14 +26,9 @@
   (cond
     (nil? arg) (throw (ex-info "No args passed to exec" {}))
     (= "-X" arg) (throw (ex-info "No alias specified with -X" {}))
-    (= "-F" arg) (throw (ex-info "No function specified with -F" {}))
     (str/starts-with? arg "-X") (let [fread (edn/read-string (subs arg 2))]
                                   (if (keyword? fread)
                                     {:alias fread}
-                                    (throw (ex-info (str "Invalid first arg to exec: " arg) {}))))
-    (str/starts-with? arg "-F") (let [fread (edn/read-string (subs arg 2))]
-                                  (if (qualified-symbol? fread)
-                                    {:fn fread}
                                     (throw (ex-info (str "Invalid first arg to exec: " arg) {}))))
     :else (throw (ex-info (str "Invalid first arg to exec: " arg) {}))))
 
@@ -71,13 +66,10 @@
 (defn -main
   [& args]
   (let [{:keys [alias overrides] :as parsed} (parse-args args)]
-    (if alias
-      (exec-alias alias overrides)
-      (apply exec (:fn parsed) overrides))))
+    (exec-alias alias overrides)))
 
 (comment
   (-main "-X:foo" "[:y :z]" "1")
   (-main "-X:foo" ":bar")
-  (-main "-Fclojure.core/prn" "{:y 1}" ":foo")
   (apply-overrides {:x 1} [:x 2 [:y :z] 3])
   )
