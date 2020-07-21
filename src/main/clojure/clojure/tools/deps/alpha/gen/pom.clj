@@ -145,6 +145,24 @@
                                     :skip-whitespace true}))]
     (first (filter #(instance? Element %) (first roots)))))
 
+(defn- resolve-path-ref
+  "Recursively resolve path refs to a coll of paths. Path refs may be:
+    string - a path
+    keyword - a path alias or the special alias, :paths
+    coll of the above"
+  [path-ref {:keys [paths aliases] :as edn-map}]
+  (let [alias-map (merge aliases {:paths paths})]
+    (loop [acc []
+           [fpath & rpaths] [path-ref]]
+      (cond
+        (nil? fpath) acc
+        (string? fpath) (recur (conj acc fpath) rpaths)
+        (keyword? fpath) (let [res (get alias-map fpath)]
+                           (if (coll? res)
+                             (recur acc (concat res rpaths))
+                             (recur acc (conj res rpaths))))
+        (coll? fpath) (recur acc (concat rpaths fpath))))))
+
 (defn sync-pom
   "Creates or synchronizes a pom given a map of :basis and :params.
 
@@ -161,7 +179,7 @@
   ([{:keys [basis params]}]
    (let [{:keys [deps paths :mvn/repos]} basis
          {:keys [target-dir src-pom lib version] :or {src-pom "pom.xml"}} params
-         resolved-paths (#'deps/resolve-path-ref paths basis)
+         resolved-paths (resolve-path-ref paths basis)
          repos (remove #(= "https://repo1.maven.org/maven2/" (-> % val :url)) repos)
          pom-file (jio/file src-pom)
          pom (if (.exists pom-file)
@@ -187,7 +205,7 @@
   ;; deprecated arity
   ([{:keys [deps paths :mvn/repos] :as deps-edn} ^File dir]
    (let [artifact-name (.. dir getCanonicalFile getName)
-         resolved-paths (#'deps/resolve-path-ref paths deps-edn)]
+         resolved-paths (resolve-path-ref paths deps-edn)]
      (sync-pom {:basis {:deps deps
                         :paths resolved-paths
                         :mvn/repos repos}
