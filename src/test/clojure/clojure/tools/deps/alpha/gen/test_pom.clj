@@ -31,3 +31,13 @@
     (let [generated (slurp pom)]
       (is (str/includes? generated "core.async"))
       (is (str/includes? generated "<optional>true</optional>")))))
+
+(deftest test-add-src-dir
+  (let [temp-dir (.getParentFile (File/createTempFile "dummy" nil))
+        pom (jio/file temp-dir "pom.xml")]
+    (.delete pom)
+    (spit pom "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<project xmlns=\"http://maven.apache.org/POM/4.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd\">\n  <modelVersion>4.0.0</modelVersion>\n  <groupId>foo</groupId>\n  <artifactId>foo</artifactId>\n  <version>0.1.0</version>\n  <name>foo</name>\n</project>")
+    (gen-pom/sync-pom (deps/root-deps) temp-dir)
+    (let [new-pom (slurp pom)]
+      (is (str/includes? new-pom "<build>"))
+      (is (str/includes? new-pom "<sourceDirectory>src</sourceDirectory>")))))

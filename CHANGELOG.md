@@ -3,6 +3,14 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.1/CHANGELOG.md)*
 
+* 0.8.709 on July 17, 2020
+  * Rework exclusion handling when exclusion sets differ for same lib/version
+* 0.8.702 on July 15, 2020
+  * During version selection, prefer same version with fewer exclusions
+* 0.8.695 on June 11, 2020
+  * TDEPS-152 - Fix bad addition of <sourceDirectory> in pom gen
+  * Add error checking for missing :mvn/version
+  * Bump versions of tools.gitlibs and tools.cli
 * 0.8.677 on Feb 14, 2020
   * TDEPS-150 - Fix regression in supporting -Scp flag (avoid resolving deps)
   * TDEPS-148 - Fix incorrect path resolution for git/local dep without deps.edn

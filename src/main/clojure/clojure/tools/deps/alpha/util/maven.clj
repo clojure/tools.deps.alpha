@@ -245,4 +245,4 @@
 
 (defn version-range?
   [version]
-  (boolean (re-find #"\[|\(" version)))
+  (boolean (when version (re-find #"\[|\(" version))))

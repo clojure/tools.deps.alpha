@@ -31,20 +31,20 @@ Also see:
 
 # Release Information
 
-Latest release: 0.8.677
+Latest release: 0.8.709
 
 * [All released versions](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22org.clojure%22%20AND%20a%3A%22tools.deps.alpha%22)
 
 [deps.edn](https://clojure.org/guides/deps_and_cli) dependency information:
 
 ```
-org.clojure/tools.deps.alpha {:mvn/version "0.8.677"}
+org.clojure/tools.deps.alpha {:mvn/version "0.8.709"}
 ```
 
 [Leiningen](https://github.com/technomancy/leiningen/) dependency information:
 
 ```
-[org.clojure/tools.deps.alpha "0.8.677"]
+[org.clojure/tools.deps.alpha "0.8.709"]
 ```
 
 [Maven](https://maven.apache.org) dependency information:
@@ -53,7 +53,7 @@ org.clojure/tools.deps.alpha {:mvn/version "0.8.677"}
 <dependency>
   <groupId>org.clojure</groupId>
   <artifactId>tools.deps.alpha</artifactId>
-  <version>0.8.677</version>
+  <version>0.8.709</version>
 </dependency>
 ```
 
@@ -79,7 +79,7 @@ Copyright © 2017-2020 Rich Hickey, Alex Miller, and contributors
 All rights reserved. The use and
 distribution terms for this software are covered by the
 [Eclipse Public License 1.0] which can be found in the file
-epl-v10.html at the root of this distribution. By using this software
+LICENSE at the root of this distribution. By using this software
 in any fashion, you are agreeing to be bound by the terms of this
 license. You must not remove this notice, or any other, from this
 software.

@@ -54,7 +54,8 @@
 
 (defn- gen-source-dir
   [path]
-  [::pom/sourceDirectory path])
+  [::pom/build
+   [::pom/sourceDirectory path]])
 
 (defn- to-repo
   [[name repo]]

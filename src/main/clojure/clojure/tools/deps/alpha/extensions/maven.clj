@@ -79,17 +79,25 @@
 (defmethod ext/coord-summary :mvn [lib {:keys [mvn/version]}]
   (str lib " " version))
 
+(defn- check-version
+  [lib {:keys [mvn/version]}]
+  (when (nil? version)
+    (throw (ex-info (str "No :mvn/version specified for " lib) {}))))
+
 (defonce ^:private version-scheme (GenericVersionScheme.))
 
 (defn- parse-version [{version :mvn/version :as _coord}]
   (.parseVersion ^GenericVersionScheme version-scheme ^String version))
 
 (defmethod ext/compare-versions [:mvn :mvn]
-  [_lib coord-x coord-y _config]
+  [lib coord-x coord-y _config]
+  (check-version lib coord-x)
+  (check-version lib coord-y)
   (apply compare (map parse-version [coord-x coord-y])))
 
 (defmethod ext/coord-deps :mvn
   [lib coord _manifest {:keys [mvn/repos mvn/local-repo]}]
+  (check-version lib coord)
   (let [local-repo (or local-repo maven/default-local-repo)
         system ^RepositorySystem (session/retrieve :mvn/system #(maven/make-system))
         session ^RepositorySystemSession (session/retrieve :mvn/session #(maven/make-session system local-repo))
@@ -107,6 +115,7 @@
 
 (defn- get-artifact
   [lib coord ^RepositorySystem system ^RepositorySystemSession session mvn-repos]
+  (check-version lib coord)
   (try
     (let [artifact (maven/coord->artifact lib coord)
           req (ArtifactRequest. artifact mvn-repos nil)
@@ -120,6 +129,7 @@
 
 (defmethod ext/coord-paths :mvn
   [lib coord _manifest {:keys [mvn/repos mvn/local-repo]}]
+  (check-version lib coord)
   (let [local-repo (or local-repo maven/default-local-repo)
         mvn-repos (maven/remote-repos repos)
         system ^RepositorySystem (session/retrieve :mvn/system #(maven/make-system))

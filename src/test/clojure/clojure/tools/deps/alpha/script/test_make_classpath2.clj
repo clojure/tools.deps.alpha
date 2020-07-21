@@ -133,7 +133,7 @@
                              :aliases [:j1 :j2]})]
     (is (= ["-server" "-Xms100m" "-Xmx200m"] (:jvm basis)))))
 
-;;; main opts replace
+;; main opts replace
 (deftest main-opts-replace
   (let [basis (mc/run-core {:install-deps install-data
                              :user-deps {:aliases {:m1 {:main-opts ["a" "b"]}}}

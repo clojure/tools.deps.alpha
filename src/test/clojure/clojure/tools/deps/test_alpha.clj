@@ -125,12 +125,17 @@
                :fkn/version)
            "2.0.0"))))
 
+(defn libs->lib-ver
+  [libmap]
+  (reduce-kv
+    (fn [lib-ver lib coord] (assoc lib-ver (-> lib name keyword) (:fkn/version coord)))
+    {} libmap))
+
 ;; +a1 -> +b1 -> -c1
 ;;     -> +c2
 (deftest test-dep-choice
   (fkn/with-libs repo
-    (= (->> (deps/resolve-deps {:deps {'e1/a {:fkn/version "1"}}} nil)
-         (reduce-kv #(assoc %1 (-> %2 name keyword) (:fkn/version %3)) {}))
+    (= (->> (deps/resolve-deps {:deps {'e1/a {:fkn/version "1"}}} nil) libs->lib-ver)
       {:a 1, :b 1, :c 2})))
 
 ;; -> +a1 -> +d1
@@ -148,7 +153,7 @@
     (let [r (->> (deps/resolve-deps {:deps {'ex/a {:fkn/version "1"}
                                             'ex/b {:fkn/version "1"}
                                             'ex/c {:fkn/version "1"}}} nil)
-              (reduce-kv #(assoc %1 (-> %2 name keyword) (:fkn/version %3)) {}))]
+              libs->lib-ver)]
       (is (= r {:a "1", :b "1", :c "1", :d "1", :e "2"})))))
 
 ;; +a1 -> +b1 -> +x2 -> +y1
@@ -164,7 +169,21 @@
      'ex/z {{:fkn/version "1"} nil}}
     (is (= {:a "1", :b "1", :c "1", :x "2", :y "1"}
           (let [res (deps/resolve-deps {:deps {'ex/a {:fkn/version "1"}, 'ex/c {:fkn/version "1"}}} nil)]
-            (reduce-kv #(assoc %1 (-> %2 name keyword) (:fkn/version %3)) {} res))))))
+            (libs->lib-ver res))))))
+
+;; c1 included via both a and b, with exclusions in one branch and without in the other
+;; should always include d1
+;; +a1 -> +c1 (excl d) -> d1
+;; +b1 -> +c1 -> +d1
+(deftest test-dep-same-version-different-exclusions
+  (fkn/with-libs
+    {'ex/a {{:fkn/version "1"} [['ex/c {:fkn/version "1" :exclusions ['ex/d]}]]}
+     'ex/b {{:fkn/version "1"} [['ex/c {:fkn/version "1"}]]}
+     'ex/c {{:fkn/version "1"} [['ex/d {:fkn/version "1"}]]}
+     'ex/d {{:fkn/version "1"} nil}}
+    (is (= {:a "1", :b "1", :c "1", :d "1"}
+          (libs->lib-ver (deps/resolve-deps {:deps {'ex/a {:fkn/version "1"}, 'ex/b {:fkn/version "1"}}} nil))
+          (libs->lib-ver (deps/resolve-deps {:deps {'ex/b {:fkn/version "1"}, 'ex/a {:fkn/version "1"}}} nil))))))
 
 ;; +a1 -> +b1 -> +c1 -> a1
 ;;     -> -c2 -> a1
@@ -176,7 +195,7 @@
                          {:fkn/version "2"} [['ex/a {:fkn/version "1"}]]}}
     (is (= {:a "1", :b "1", :c "2"}
            (let [res (deps/resolve-deps {:deps {'ex/a {:fkn/version "1"}}} nil)]
-             (reduce-kv #(assoc %1 (-> %2 name keyword) (:fkn/version %3)) {} res))))))
+             (libs->lib-ver res))))))
 
 (deftest test-local-root
   (let [base (.getCanonicalFile (File. "."))]
@@ -269,3 +288,59 @@
 
     ;; libs contains optional dep
     (is (= (get-in libs ['org.clojure/core.async :mvn/version]) "1.1.587"))))
+
+;[lib use-coord coord-id use-path include reason exclusions cut]
+(deftest test-update-excl
+  ;; new lib/version, no exclusions
+  (let [ret (#'deps/update-excl 'a {:mvn/version "1"} {:mvn/version "1"} '[b a] true :new-version nil nil)]
+    (is (= {:exclusions' nil, :cut' nil}
+          (select-keys ret [:exclusions' :cut'])))
+    (is (not (nil? (:child-pred ret)))))
+
+  ;; new lib/version, with exclusions
+  (let [ret (#'deps/update-excl 'a {:mvn/version "1" :exclusions ['c]} {:mvn/version "1"} '[b a] true :new-version nil nil)]
+    (is (= {:exclusions' '{[b a] #{c}}, :cut' '{[a {:mvn/version "1"}] #{c}}}
+          (select-keys ret [:exclusions' :cut'])))
+    (is (not (nil? (:child-pred ret)))))
+
+  ;; same lib/version, fewer excludes
+  ;; a (excl c)
+  ;; b -> a -> c1
+  (let [excl '{[a] #{c}}
+        ret (#'deps/update-excl 'a {:mvn/version "1"} {:mvn/version "1"} '[b a] false :same-version
+              excl '{[a {:mvn/version "1"}] #{c}})]
+    (is (= {:exclusions' excl, :cut' nil})) ;; remove cut
+    (let [pred (:child-pred ret)]
+      (is (true? (boolean (pred 'c))))))
+
+  ;; same lib/version, subset excludes
+  ;; a (excl c d)
+  ;; b -> a (excl c)
+  (let [excl '{[a] #{c d}}
+        cut '{[a {:mvn/version "1"}] #{c d}}
+        ret (#'deps/update-excl 'a '{:mvn/version "1" :exclusions [c]} {:mvn/version "1"} '[b a] false :same-version excl cut)]
+    (is (= {:exclusions' '{[a] #{c d}, [b a] #{c d}}, :cut' '{[a {:mvn/version "1"}] #{c}}}))
+    (let [pred (:child-pred ret)]
+      (is (false? (boolean (pred 'c)))) ;; already enqueued
+      (is (true? (boolean (pred 'd)))))) ;; newly enqueueable due to smaller exclusion set
+
+  ;; same lib/version, same excludes
+  ;; a (excl c)
+  ;; b -> a (excl c)
+  (let [excl '{[a] #{c}}
+        cut '{[a {:mvn/version "1"}] #{c}}
+        ret (#'deps/update-excl 'a {:mvn/version "1" :exclusions ['c]} {:mvn/version "1"} '[b a] false :same-version excl cut)]
+    (is (= {:exclusions' excl, :cut' cut})) ;; no change
+    (let [pred (:child-pred ret)]
+      (is (false? (boolean (pred 'c))))))
+
+  ;; same lib/version, more excludes
+  ;; a (excl c)
+  ;; b -> a (excl c, d)
+  (let [excl '{[a] #{c}}
+        cut '{[a {:mvn/version "1"}] #{c}}
+        ret (#'deps/update-excl 'a '{:mvn/version "1" :exclusions [c d]} {:mvn/version "1"} '[b a] false :same-version excl cut)]
+    (is (= {:exclusions' '{[a] #{c}, [b a] #{c d}}, :cut' cut})) ;; no change in cut
+    (let [pred (:child-pred ret)] ;; everything already enqueued
+      (is (false? (boolean (pred 'c))))
+      (is (false? (boolean (pred 'd)))))))
