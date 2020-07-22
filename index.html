@@ -1,7 +1,7 @@
 <html>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>alpha - tools.deps.alpha 0.8.600-SNAPSHOT API documentation</title>
+    <title>alpha - tools.deps.alpha 0.9.746-SNAPSHOT API documentation</title>
     <link rel="icon" href="static/favicon.png" />
     <link rel="shortcut icon" href="static/favicon.png" />
     <link rel="stylesheet" href="static/clojure.css" type="text/css" media="all" />
@@ -25,7 +25,7 @@ namespace.
       <div id="leftcolumn"><div style="text-align: center;"></div>
 <div class="menu">
   <div class="WikiCustomNav WikiElement wiki">
-    <span class="toc-header"><span id="project-name">tools.deps.alpha</span> <span id="version">0.8.600-SNAPSHOT</span> API</span><br />
+    <span class="toc-header"><span id="project-name">tools.deps.alpha</span> <span id="version">0.9.746-SNAPSHOT</span> API</span><br />
     <ul>
       <li><a href="index.html" class="wiki_link">Overview</a></li>
       <li><a href="api-index.html" class="wiki_link">API Index</a></li>
@@ -54,7 +54,16 @@ namespace.
   </div><div class="toc-section" style="margin-left: 1em;">
     <a style="margin-top: 3px;" href="#var-section">Vars and Functions</a>
     <div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.tools.deps.alpha/calc-basis" class="toc-entry-anchor">calc-basis</a>
+      
+    </div><div class="toc-entry" style="margin-left: 1em;">
       <a href="#clojure.tools.deps.alpha/combine-aliases" class="toc-entry-anchor">combine-aliases</a>
+      
+    </div><div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.tools.deps.alpha/find-edn-maps" class="toc-entry-anchor">find-edn-maps</a>
+      
+    </div><div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.tools.deps.alpha/join-classpath" class="toc-entry-anchor">join-classpath</a>
       
     </div><div class="toc-entry" style="margin-left: 1em;">
       <a href="#clojure.tools.deps.alpha/lib-location" class="toc-entry-anchor">lib-location</a>
@@ -63,15 +72,39 @@ namespace.
       <a href="#clojure.tools.deps.alpha/make-classpath" class="toc-entry-anchor">make-classpath</a>
       
     </div><div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.tools.deps.alpha/make-classpath-map" class="toc-entry-anchor">make-classpath-map</a>
+      
+    </div><div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.tools.deps.alpha/merge-edns" class="toc-entry-anchor">merge-edns</a>
+      
+    </div><div class="toc-entry" style="margin-left: 1em;">
       <a href="#clojure.tools.deps.alpha/print-tree" class="toc-entry-anchor">print-tree</a>
       
     </div><div class="toc-entry" style="margin-left: 1em;">
       <a href="#clojure.tools.deps.alpha/resolve-deps" class="toc-entry-anchor">resolve-deps</a>
       
+    </div><div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.tools.deps.alpha/root-deps" class="toc-entry-anchor">root-deps</a>
+      
+    </div><div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.tools.deps.alpha/slurp-deps" class="toc-entry-anchor">slurp-deps</a>
+      
+    </div><div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.tools.deps.alpha/tool" class="toc-entry-anchor">tool</a>
+      
+    </div><div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.tools.deps.alpha/user-deps-path" class="toc-entry-anchor">user-deps-path</a>
+      
     </div>
   </div><div class="toc-section" style="margin-left: 1em;">
     <a style="margin-top: 3px;" href="#"></a>
     
+  </div><div class="toc-section" style="margin-left: 1em;">
+    <a style="margin-top: 3px;" href="#alpha.exec">alpha.exec</a>
+    <div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.tools.deps.alpha.exec/exec" class="toc-entry-anchor">exec</a>
+      
+    </div>
   </div><div class="toc-section" style="margin-left: 1em;">
     <a style="margin-top: 3px;" href="#alpha.extensions">alpha.extensions</a>
     <div class="toc-entry" style="margin-left: 1em;">
@@ -106,120 +139,15 @@ namespace.
       
     </div>
   </div><div class="toc-section" style="margin-left: 1em;">
-    <a style="margin-top: 3px;" href="#alpha.extensions.local">alpha.extensions.local</a>
+    <a style="margin-top: 3px;" href="#alpha.gen.pom">alpha.gen.pom</a>
     <div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.extensions.local/find-pom" class="toc-entry-anchor">find-pom</a>
+      <a href="#clojure.tools.deps.alpha.gen.pom/sync-pom" class="toc-entry-anchor">sync-pom</a>
       
     </div>
   </div><div class="toc-section" style="margin-left: 1em;">
-    <a style="margin-top: 3px;" href="#alpha.reader">alpha.reader</a>
+    <a style="margin-top: 3px;" href="#alpha.tools.install">alpha.tools.install</a>
     <div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.reader/clojure-env" class="toc-entry-anchor">clojure-env</a>
-      
-    </div><div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.reader/default-deps" class="toc-entry-anchor">default-deps</a>
-      
-    </div><div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.reader/install-deps" class="toc-entry-anchor">install-deps</a>
-      
-    </div><div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.reader/install-deps-path" class="toc-entry-anchor">install-deps-path</a>
-      
-    </div><div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.reader/merge-deps" class="toc-entry-anchor">merge-deps</a>
-      
-    </div><div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.reader/read-deps" class="toc-entry-anchor">read-deps</a>
-      
-    </div><div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.reader/slurp-deps" class="toc-entry-anchor">slurp-deps</a>
-      
-    </div><div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.reader/user-deps-location" class="toc-entry-anchor">user-deps-location</a>
-      
-    </div>
-  </div><div class="toc-section" style="margin-left: 1em;">
-    <a style="margin-top: 3px;" href="#alpha.script.generate-manifest">alpha.script.generate-manifest</a>
-    <div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.script.generate-manifest/-main" class="toc-entry-anchor">-main</a>
-      
-    </div>
-  </div><div class="toc-section" style="margin-left: 1em;">
-    <a style="margin-top: 3px;" href="#alpha.script.generate-manifest2">alpha.script.generate-manifest2</a>
-    <div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.script.generate-manifest2/-main" class="toc-entry-anchor">-main</a>
-      
-    </div>
-  </div><div class="toc-section" style="margin-left: 1em;">
-    <a style="margin-top: 3px;" href="#alpha.script.make-classpath">alpha.script.make-classpath</a>
-    <div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.script.make-classpath/-main" class="toc-entry-anchor">-main</a>
-      
-    </div><div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.script.make-classpath/combine-deps-files" class="toc-entry-anchor">combine-deps-files</a>
-      
-    </div><div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.script.make-classpath/create-classpath" class="toc-entry-anchor">create-classpath</a>
-      
-    </div><div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.script.make-classpath/parse-opts" class="toc-entry-anchor">parse-opts</a>
-      
-    </div><div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.script.make-classpath/run" class="toc-entry-anchor">run</a>
-      
-    </div>
-  </div><div class="toc-section" style="margin-left: 1em;">
-    <a style="margin-top: 3px;" href="#alpha.script.make-classpath2">alpha.script.make-classpath2</a>
-    <div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.script.make-classpath2/-main" class="toc-entry-anchor">-main</a>
-      
-    </div><div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.script.make-classpath2/check-aliases" class="toc-entry-anchor">check-aliases</a>
-      
-    </div><div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.script.make-classpath2/create-classpath" class="toc-entry-anchor">create-classpath</a>
-      
-    </div><div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.script.make-classpath2/parse-opts" class="toc-entry-anchor">parse-opts</a>
-      
-    </div><div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.script.make-classpath2/run" class="toc-entry-anchor">run</a>
-      
-    </div><div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.script.make-classpath2/run-core" class="toc-entry-anchor">run-core</a>
-      
-    </div>
-  </div><div class="toc-section" style="margin-left: 1em;">
-    <a style="margin-top: 3px;" href="#alpha.script.parse">alpha.script.parse</a>
-    <div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.script.parse/parse-config" class="toc-entry-anchor">parse-config</a>
-      
-    </div><div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.script.parse/parse-files" class="toc-entry-anchor">parse-files</a>
-      
-    </div><div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.script.parse/parse-kws" class="toc-entry-anchor">parse-kws</a>
-      
-    </div>
-  </div><div class="toc-section" style="margin-left: 1em;">
-    <a style="margin-top: 3px;" href="#alpha.script.print-tree">alpha.script.print-tree</a>
-    <div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.script.print-tree/-main" class="toc-entry-anchor">-main</a>
-      
-    </div><div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.script.print-tree/run" class="toc-entry-anchor">run</a>
-      
-    </div>
-  </div><div class="toc-section" style="margin-left: 1em;">
-    <a style="margin-top: 3px;" href="#alpha.script.resolve-tags">alpha.script.resolve-tags</a>
-    <div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.script.resolve-tags/-main" class="toc-entry-anchor">-main</a>
-      
-    </div>
-  </div><div class="toc-section" style="margin-left: 1em;">
-    <a style="margin-top: 3px;" href="#alpha.util.coll">alpha.util.coll</a>
-    <div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.util.coll/map-keys" class="toc-entry-anchor">map-keys</a>
+      <a href="#clojure.tools.deps.alpha.tools.install/install" class="toc-entry-anchor">install</a>
       
     </div>
   </div><div class="toc-section" style="margin-left: 1em;">
@@ -255,13 +183,13 @@ namespace.
   </div><div class="toc-section" style="margin-left: 1em;">
     <a style="margin-top: 3px;" href="#alpha.util.maven">alpha.util.maven</a>
     <div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.util.maven/CustomProvider" class="toc-entry-anchor">CustomProvider</a>
-      
-    </div><div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.util.maven/-&gt;CustomProvider" class="toc-entry-anchor">-&gt;CustomProvider</a>
-      
-    </div><div class="toc-entry" style="margin-left: 1em;">
       <a href="#clojure.tools.deps.alpha.util.maven/lib-&gt;names" class="toc-entry-anchor">lib-&gt;names</a>
+      
+    </div>
+  </div><div class="toc-section" style="margin-left: 1em;">
+    <a style="margin-top: 3px;" href="#alpha.util.s3-transporter">alpha.util.s3-transporter</a>
+    <div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.tools.deps.alpha.util.s3-transporter/s3-peek" class="toc-entry-anchor">s3-peek</a>
       
     </div>
   </div><div class="toc-section" style="margin-left: 1em;">
@@ -277,7 +205,7 @@ namespace.
 </div>
 </div>
                 <div id="content-tag"><h1 id="overview">API for <span id="alpha">alpha</span>
-  - <span id="header-project">tools.deps.alpha</span> <span id="header-version">0.8.600-SNAPSHOT</span><span id="header-status-block"> (<span id="header-status">in development</span>)</span>
+  - <span id="header-project">tools.deps.alpha</span> <span id="header-version">0.9.746-SNAPSHOT</span><span id="header-status-block"> (<span id="header-status">in development</span>)</span>
   </h1>
 
 <br />Full namespace name: <span id="long-name">clojure.tools.deps.alpha</span>
@@ -297,16 +225,75 @@ namespace.
   <div id="var-entry">
     <br />
     <hr />
-    <h2 id="clojure.tools.deps.alpha/combine-aliases">combine-aliases</h2>
+    <h2 id="clojure.tools.deps.alpha/calc-basis">calc-basis</h2>
     <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (combine-aliases deps alias-kws)
+    <pre id="var-usage">Usage: (calc-basis master-edn)
+       (calc-basis master-edn {:keys [resolve-args classpath-args]})
 </pre>
-    <pre id="var-docstr">Find, read, and combine alias maps identified by alias keywords from
-a deps configuration into a single args map.</pre>
+    <pre id="var-docstr">Calculates and returns the runtime basis from a master deps edn map, modifying
+ resolve-deps and make-classpath args as needed.
+
+  master-edn - a master deps edn map
+  args - an optional map of arguments to constituent steps, keys:
+    :resolve-args - map of args to resolve-deps, with possible keys:
+      :extra-deps
+      :override-deps
+      :default-deps
+      :threads - number of threads to use during deps resolution
+      :trace - flag to record a trace log
+    :classpath-args - map of args to make-classpath-map, with possible keys:
+      :extra-paths
+      :classpath-overrides
+
+Returns the runtime basis, which is the initial deps edn map plus these keys:
+  :resolve-args - the resolve args passed in, if any
+  :classpath-args - the classpath args passed in, if any
+  :libs - lib map, per resolve-deps
+  :classpath - classpath map per make-classpath-map</pre>
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/e27806f41fd0231f59b6afc7d6467262b7f8c759/src/main/clojure/clojure/tools/deps/alpha.clj#L51">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/ccc19832c56feaa2d328ef6ccc2b959d9457423b/src/main/clojure/clojure/tools/deps/alpha.clj#L524">Source</a>
+  </div><div id="var-entry">
+    <br />
+    <hr />
+    <h2 id="clojure.tools.deps.alpha/combine-aliases">combine-aliases</h2>
+    <span id="var-type">function</span><br />
+    <pre id="var-usage">Usage: (combine-aliases edn-map alias-kws)
+</pre>
+    <pre id="var-docstr">Find, read, and combine alias maps identified by alias keywords from
+a deps edn map into a single args map.</pre>
+    <pre id="var-specs"></pre>
+    
+    
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/ccc19832c56feaa2d328ef6ccc2b959d9457423b/src/main/clojure/clojure/tools/deps/alpha.clj#L172">Source</a>
+  </div><div id="var-entry">
+    <br />
+    <hr />
+    <h2 id="clojure.tools.deps.alpha/find-edn-maps">find-edn-maps</h2>
+    <span id="var-type">function</span><br />
+    <pre id="var-usage">Usage: (find-edn-maps)
+       (find-edn-maps project-edn-file)
+</pre>
+    <pre id="var-docstr">Finds and returns standard deps edn maps in a map with keys
+  :root-edn, :user-edn, :project-edn
+If no project-edn is supplied, use the deps.edn in current directory</pre>
+    <pre id="var-specs"></pre>
+    
+    
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/ccc19832c56feaa2d328ef6ccc2b959d9457423b/src/main/clojure/clojure/tools/deps/alpha.clj#L116">Source</a>
+  </div><div id="var-entry">
+    <br />
+    <hr />
+    <h2 id="clojure.tools.deps.alpha/join-classpath">join-classpath</h2>
+    <span id="var-type">function</span><br />
+    <pre id="var-usage">Usage: (join-classpath roots)
+</pre>
+    <pre id="var-docstr">Takes a coll of string classpath roots and creates a platform sensitive classpath</pre>
+    <pre id="var-specs"></pre>
+    
+    
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/ccc19832c56feaa2d328ef6ccc2b959d9457423b/src/main/clojure/clojure/tools/deps/alpha.clj#L500">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
@@ -319,13 +306,13 @@ without actually doing the procuring!</pre>
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/e27806f41fd0231f59b6afc7d6467262b7f8c759/src/main/clojure/clojure/tools/deps/alpha.clj#L59">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/ccc19832c56feaa2d328ef6ccc2b959d9457423b/src/main/clojure/clojure/tools/deps/alpha.clj#L180">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
     <h2 id="clojure.tools.deps.alpha/make-classpath">make-classpath</h2>
     <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (make-classpath lib-map paths {:keys [classpath-overrides extra-paths], :as classpath-args})
+    <pre id="var-usage">Usage: (make-classpath lib-map paths classpath-args)
 </pre>
     <pre id="var-docstr">Takes a lib map, and a set of explicit paths. Extracts the paths for each chosen
 lib coordinate, and assembles a classpath string using the system path separator.
@@ -334,7 +321,6 @@ building operation:
 
   :extra-paths - extra classpath paths to add to the classpath
   :classpath-overrides - a map of lib to path, where path is used instead of the coord's paths
-
 
 Returns the classpath as a string.</pre>
     <pre id="var-specs">Specs:
@@ -345,7 +331,38 @@ Returns the classpath as a string.</pre>
   Ret:  string?</pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/e27806f41fd0231f59b6afc7d6467262b7f8c759/src/main/clojure/clojure/tools/deps/alpha.clj#L264">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/ccc19832c56feaa2d328ef6ccc2b959d9457423b/src/main/clojure/clojure/tools/deps/alpha.clj#L505">Source</a>
+  </div><div id="var-entry">
+    <br />
+    <hr />
+    <h2 id="clojure.tools.deps.alpha/make-classpath-map">make-classpath-map</h2>
+    <span id="var-type">function</span><br />
+    <pre id="var-usage">Usage: (make-classpath-map {:keys [paths aliases], :as deps-edn-map} lib-map {:keys [classpath-overrides extra-paths], :as classpath-args})
+</pre>
+    <pre id="var-docstr">Takes a merged deps edn map and a lib map. Extracts the paths for each chosen
+lib coordinate, and assembles a classpath map. The classpath-args is a map with
+keys that can be used to modify the classpath building operation:
+
+  :extra-paths - extra classpath paths to add to the classpath
+  :classpath-overrides - a map of lib to path, where path is used instead of the coord's paths
+
+Returns the classpath as a vector of string paths.</pre>
+    <pre id="var-specs"></pre>
+    
+    
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/ccc19832c56feaa2d328ef6ccc2b959d9457423b/src/main/clojure/clojure/tools/deps/alpha.clj#L482">Source</a>
+  </div><div id="var-entry">
+    <br />
+    <hr />
+    <h2 id="clojure.tools.deps.alpha/merge-edns">merge-edns</h2>
+    <span id="var-type">function</span><br />
+    <pre id="var-usage">Usage: (merge-edns deps-edn-maps)
+</pre>
+    <pre id="var-docstr">Merge multiple deps edn maps from left to right into a single deps edn map.</pre>
+    <pre id="var-specs"></pre>
+    
+    
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/ccc19832c56feaa2d328ef6ccc2b959d9457423b/src/main/clojure/clojure/tools/deps/alpha.clj#L139">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
@@ -357,14 +374,13 @@ Returns the classpath as a string.</pre>
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/e27806f41fd0231f59b6afc7d6467262b7f8c759/src/main/clojure/clojure/tools/deps/alpha.clj#L252">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/ccc19832c56feaa2d328ef6ccc2b959d9457423b/src/main/clojure/clojure/tools/deps/alpha.clj#L465">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
     <h2 id="clojure.tools.deps.alpha/resolve-deps">resolve-deps</h2>
     <span id="var-type">function</span><br />
     <pre id="var-usage">Usage: (resolve-deps deps-map args-map)
-       (resolve-deps deps-map args-map settings)
 </pre>
     <pre id="var-docstr">Takes a deps configuration map and resolves the transitive dependency graph
 from the initial set of deps. args-map is a map with several keys (all
@@ -373,9 +389,8 @@ optional) that can modify the results of the transitive expansion:
   :extra-deps - a map from lib to coord of deps to add to the main deps
   :override-deps - a map from lib to coord of coord to use instead of those in the graph
   :default-deps - a map from lib to coord of deps to use if no coord specified
-
-settings is an optional map of settings:
   :trace - boolean. If true, the returned lib map will have metadata with :trace log
+  :threads - long. If provided, sets the number of concurrent download threads
 
 Returns a lib map (map of lib to coordinate chosen).</pre>
     <pre id="var-specs">Specs:
@@ -387,7 +402,85 @@ Returns a lib map (map of lib to coordinate chosen).</pre>
           :clojure.tools.deps.alpha.specs/resolved-coord)</pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/e27806f41fd0231f59b6afc7d6467262b7f8c759/src/main/clojure/clojure/tools/deps/alpha.clj#L216">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/ccc19832c56feaa2d328ef6ccc2b959d9457423b/src/main/clojure/clojure/tools/deps/alpha.clj#L424">Source</a>
+  </div><div id="var-entry">
+    <br />
+    <hr />
+    <h2 id="clojure.tools.deps.alpha/root-deps">root-deps</h2>
+    <span id="var-type">function</span><br />
+    <pre id="var-usage">Usage: (root-deps)
+</pre>
+    <pre id="var-docstr">Read the root deps.edn resource from the classpath at the path
+clojure/tools/deps/deps.edn</pre>
+    <pre id="var-specs"></pre>
+    
+    
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/ccc19832c56feaa2d328ef6ccc2b959d9457423b/src/main/clojure/clojure/tools/deps/alpha.clj#L97">Source</a>
+  </div><div id="var-entry">
+    <br />
+    <hr />
+    <h2 id="clojure.tools.deps.alpha/slurp-deps">slurp-deps</h2>
+    <span id="var-type">function</span><br />
+    <pre id="var-usage">Usage: (slurp-deps dep-file)
+</pre>
+    <pre id="var-docstr">Read a single deps.edn file from disk and canonicalize symbols,
+return a deps map.</pre>
+    <pre id="var-specs"></pre>
+    
+    
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/ccc19832c56feaa2d328ef6ccc2b959d9457423b/src/main/clojure/clojure/tools/deps/alpha.clj#L91">Source</a>
+  </div><div id="var-entry">
+    <br />
+    <hr />
+    <h2 id="clojure.tools.deps.alpha/tool">tool</h2>
+    <span id="var-type">function</span><br />
+    <pre id="var-usage">Usage: (tool project-edn tool-args)
+</pre>
+    <pre id="var-docstr">Transform project edn for tool by applying tool args (keys = :paths, :deps) and
+returning an updated project edn.</pre>
+    <pre id="var-specs"></pre>
+    
+    
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/ccc19832c56feaa2d328ef6ccc2b959d9457423b/src/main/clojure/clojure/tools/deps/alpha.clj#L518">Source</a>
+  </div><div id="var-entry">
+    <br />
+    <hr />
+    <h2 id="clojure.tools.deps.alpha/user-deps-path">user-deps-path</h2>
+    <span id="var-type">function</span><br />
+    <pre id="var-usage">Usage: (user-deps-path)
+</pre>
+    <pre id="var-docstr">Use the same logic as clj to calculate the location of the user deps.edn.
+Note that it's possible no file may exist at this location.</pre>
+    <pre id="var-specs"></pre>
+    
+    
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/ccc19832c56feaa2d328ef6ccc2b959d9457423b/src/main/clojure/clojure/tools/deps/alpha.clj#L104">Source</a>
+  </div>
+</div>
+
+<br />
+<h2 id="alpha.exec">alpha.exec</h2>
+<pre id="namespace-docstr"></pre>
+
+
+<br />
+
+
+<div id="var-section">
+  <p></p>
+  <h2>Public Variables and Functions</h2>
+  <div id="var-entry">
+    <br />
+    <hr />
+    <h2 id="clojure.tools.deps.alpha.exec/exec">exec</h2>
+    <span id="var-type">function</span><br />
+    <pre id="var-usage">Usage: (exec f &amp; args)
+</pre>
+    <pre id="var-docstr">Resolve and execute the function f (a symbol) with args</pre>
+    <pre id="var-specs"></pre>
+    
+    
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/0c0e9973a869c2c0ecc21daa7dc1e0dfb8167af5/src/main/clojure/clojure/tools/deps/alpha/exec.clj#L42">Source</a>
   </div>
 </div>
 
@@ -532,7 +625,7 @@ for this coordinate.</pre>
 </div>
 
 <br />
-<h2 id="alpha.extensions.local">alpha.extensions.local</h2>
+<h2 id="alpha.gen.pom">alpha.gen.pom</h2>
 <pre id="namespace-docstr"></pre>
 
 
@@ -545,20 +638,32 @@ for this coordinate.</pre>
   <div id="var-entry">
     <br />
     <hr />
-    <h2 id="clojure.tools.deps.alpha.extensions.local/find-pom">find-pom</h2>
+    <h2 id="clojure.tools.deps.alpha.gen.pom/sync-pom">sync-pom</h2>
     <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (find-pom jar-file)
+    <pre id="var-usage">Usage: (sync-pom {:keys [basis params]})
+       (sync-pom {:keys [deps paths :mvn/repos], :as deps-edn} dir)
 </pre>
-    <pre id="var-docstr">Find path of pom file in jar file, or nil if it doesn't exist</pre>
+    <pre id="var-docstr">Creates or synchronizes a pom given a map of :basis and :params.
+
+From basis, uses:
+  :deps to build &lt;dependencies&gt;
+  :paths to build &lt;srcDirectory&gt;
+  :mvn/repos to build &lt;repositories&gt; (omits maven central, included by default)
+
+Params:
+  :target-dir Path to target output directory (required)
+  :src-pom Path to source pom file (optional, default = "pom.xml")
+  :lib Symbol of groupId/artifactId (required for new, optional for existing)
+  :version String of project version (optional)</pre>
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/b77bab1b86596c3d65f3bff1d34afac256d13824/src/main/clojure/clojure/tools/deps/alpha/extensions/local.clj#L48">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/eefd1589e0b71cc98efba5d4590ab0da10754c65/src/main/clojure/clojure/tools/deps/alpha/gen/pom.clj#L178">Source</a>
   </div>
 </div>
 
 <br />
-<h2 id="alpha.reader">alpha.reader</h2>
+<h2 id="alpha.tools.install">alpha.tools.install</h2>
 <pre id="namespace-docstr"></pre>
 
 
@@ -571,528 +676,27 @@ for this coordinate.</pre>
   <div id="var-entry">
     <br />
     <hr />
-    <h2 id="clojure.tools.deps.alpha.reader/clojure-env">clojure-env</h2>
-    <span id="var-type">var</span><br />
-    <pre id="var-usage"></pre>
-    <pre id="var-docstr">Returns a map describing the environment known to clj/clojure:
-{:config-files [ ... ]}.
-
-DEPRECATED - use (reader/default-deps) instead!</pre>
-    <pre id="var-specs"></pre>
-    
-    <span class="var-deprecated"><span id="content">Deprecated since tools.deps.alpha version 0.7.516</span><br /></span>
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/c02a679114d2e99b1688aa4062074d09a99250d2/src/main/clojure/clojure/tools/deps/alpha/reader.clj#L30">Source</a>
-  </div><div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.reader/default-deps">default-deps</h2>
+    <h2 id="clojure.tools.deps.alpha.tools.install/install">install</h2>
     <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (default-deps)
+    <pre id="var-usage">Usage: (install {:keys [lib jar pom classifier local-repo], :as opts})
 </pre>
-    <pre id="var-docstr">Use the same logic as clj to build the set of deps.edn files to load.
-These can be passed to read-deps to replicate what clj does.</pre>
+    <pre id="var-docstr">Install a jar and optional pom to the Maven local cache.
+The group/artifact/version coordinate will be pulled from the
+pom
+if supplied, or the pom in the jar file, or must be provided.
+Any provided attributes override those in the pom/jar.
+
+  Options:
+    :jar (required) - path to jar file
+    :pom (optional) - path to pom file
+    :lib (optional) - qualified symbol like my.org/lib
+    :version (optional) - string
+    :classifier (optional) - string
+    :local-repo (optional) - path to local repo (default = ~/.m2/repository)</pre>
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/c02a679114d2e99b1688aa4062074d09a99250d2/src/main/clojure/clojure/tools/deps/alpha/reader.clj#L119">Source</a>
-  </div><div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.reader/install-deps">install-deps</h2>
-    <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (install-deps)
-</pre>
-    <pre id="var-docstr">Read the install deps.edn resource from the classpath</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/c02a679114d2e99b1688aa4062074d09a99250d2/src/main/clojure/clojure/tools/deps/alpha/reader.clj#L93">Source</a>
-  </div><div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.reader/install-deps-path">install-deps-path</h2>
-    <span id="var-type">var</span><br />
-    <pre id="var-usage"></pre>
-    <pre id="var-docstr">Resource path to the install deps.edn resource</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/c02a679114d2e99b1688aa4062074d09a99250d2/src/main/clojure/clojure/tools/deps/alpha/reader.clj#L89">Source</a>
-  </div><div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.reader/merge-deps">merge-deps</h2>
-    <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (merge-deps deps-maps)
-</pre>
-    <pre id="var-docstr">Merge multiple deps maps from left to right into a single deps map.</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/c02a679114d2e99b1688aa4062074d09a99250d2/src/main/clojure/clojure/tools/deps/alpha/reader.clj#L84">Source</a>
-  </div><div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.reader/read-deps">read-deps</h2>
-    <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (read-deps deps-files)
-</pre>
-    <pre id="var-docstr">Read the built-in clojure/tools/deps/deps.edn resource, and a set of deps-files,
-and merge them left to right into a single deps map.</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/c02a679114d2e99b1688aa4062074d09a99250d2/src/main/clojure/clojure/tools/deps/alpha/reader.clj#L111">Source</a>
-  </div><div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.reader/slurp-deps">slurp-deps</h2>
-    <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (slurp-deps dep-file)
-</pre>
-    <pre id="var-docstr">Read a single deps.edn file from disk and canonicalize symbols,
-return a deps map.</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/c02a679114d2e99b1688aa4062074d09a99250d2/src/main/clojure/clojure/tools/deps/alpha/reader.clj#L68">Source</a>
-  </div><div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.reader/user-deps-location">user-deps-location</h2>
-    <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (user-deps-location)
-</pre>
-    <pre id="var-docstr">Use the same logic as clj to return the expected location of the user
-config path. Note that it's possible no file may exist at this location.</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/c02a679114d2e99b1688aa4062074d09a99250d2/src/main/clojure/clojure/tools/deps/alpha/reader.clj#L99">Source</a>
-  </div>
-</div>
-
-<br />
-<h2 id="alpha.script.generate-manifest">alpha.script.generate-manifest</h2>
-<pre id="namespace-docstr"></pre>
-
-<span class="ns-deprecated"><span id="content">Deprecated since tools.deps.alpha version Use clojure.tools.deps.alpha.script.generate-manifest2</span><br /></span>
-<br />
-
-
-<div id="var-section">
-  <p></p>
-  <h2>Public Variables and Functions</h2>
-  <div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.script.generate-manifest/-main">-main</h2>
-    <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (-main &amp; args)
-</pre>
-    <pre id="var-docstr">Main entry point for generating a manifest file.
-
-Required:
-  --config-files DEP_FILES - comma-delimited list of deps.edn files to merge
-  --config-data={...} - deps.edn as data
-  --gen TYPE - manifest type to generate (currently only pom)
-
-Options:
-  -Raliases - concated resolve-deps alias names, applied to the :deps
-  -Aaliases - concatenated generic alias names</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/d3ec7a25effe1886de75a2b912d830af733e8e41/src/main/clojure/clojure/tools/deps/alpha/script/generate_manifest.clj#L30">Source</a>
-  </div>
-</div>
-
-<br />
-<h2 id="alpha.script.generate-manifest2">alpha.script.generate-manifest2</h2>
-<pre id="namespace-docstr"></pre>
-
-
-<br />
-
-
-<div id="var-section">
-  <p></p>
-  <h2>Public Variables and Functions</h2>
-  <div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.script.generate-manifest2/-main">-main</h2>
-    <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (-main &amp; args)
-</pre>
-    <pre id="var-docstr">Main entry point for generating a manifest file.
-
-Required:
-  --config-user PATH - User deps.edn location
-  --config-project PATH - Project deps.edn location
-  --config-data={...} - deps.edn as data
-  --gen TYPE - manifest type to generate (currently only pom)
-
-Options:
-  -Raliases - concated resolve-deps alias names, applied to the :deps
-  -Aaliases - concatenated generic alias names</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/d3ec7a25effe1886de75a2b912d830af733e8e41/src/main/clojure/clojure/tools/deps/alpha/script/generate_manifest2.clj#L29">Source</a>
-  </div>
-</div>
-
-<br />
-<h2 id="alpha.script.make-classpath">alpha.script.make-classpath</h2>
-<pre id="namespace-docstr"></pre>
-
-<span class="ns-deprecated"><span id="content">Deprecated since tools.deps.alpha version Use clojure.tools.deps.alpha.script.make-classpath2</span><br /></span>
-<br />
-
-
-<div id="var-section">
-  <p></p>
-  <h2>Public Variables and Functions</h2>
-  <div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.script.make-classpath/-main">-main</h2>
-    <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (-main &amp; args)
-</pre>
-    <pre id="var-docstr">Main entry point for make-classpath script.
-
-Options:
-  --config-files=/install/deps.edn,... - comma-delimited list of deps.edn files to merge
-  --config-data={...} - deps.edn as data
-  --libs-file=path - libs cache file to write
-  --cp-file=path - cp cache file to write
-  --jvm-file=path - jvm opts file to write
-  --main-file=path - main opts file to write
-  -Rresolve-aliases - concatenated resolve-deps alias names
-  -Cmakecp-aliases - concatenated make-classpath alias names
-  -Jjvmopt-aliases - concatenated jvm-opt alias names
-  -Mmain-aliases - concatenated main-opt alias names
-  -Aaliases - concatenated generic alias names
-
-Resolves the dependencies and updates the lib, classpath, etc files.
-The libs file is at &lt;cachedir&gt;/&lt;resolve-aliases&gt;.libs
-The cp file is at &lt;cachedir&gt;/&lt;resolve-aliases&gt;/&lt;cpaliases&gt;.cp</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/d3ec7a25effe1886de75a2b912d830af733e8e41/src/main/clojure/clojure/tools/deps/alpha/script/make_classpath.clj#L95">Source</a>
-  </div><div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.script.make-classpath/combine-deps-files">combine-deps-files</h2>
-    <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (combine-deps-files {:keys [config-files config-data], :as opts})
-</pre>
-    <pre id="var-docstr">Given a configuration for config-files and optional config-data, read
-and merge into a combined deps map.</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/d3ec7a25effe1886de75a2b912d830af733e8e41/src/main/clojure/clojure/tools/deps/alpha/script/make_classpath.clj#L46">Source</a>
-  </div><div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.script.make-classpath/create-classpath">create-classpath</h2>
-    <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (create-classpath deps-map {:keys [resolve-aliases makecp-aliases aliases], :as opts})
-</pre>
-    <pre id="var-docstr">Given parsed-opts describing the input config files, and aliases to use,
-return the output lib map and classpath.</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/d3ec7a25effe1886de75a2b912d830af733e8e41/src/main/clojure/clojure/tools/deps/alpha/script/make_classpath.clj#L55">Source</a>
-  </div><div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.script.make-classpath/parse-opts">parse-opts</h2>
-    <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (parse-opts args)
-</pre>
-    <pre id="var-docstr">Parse the command line opts to make-classpath</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/d3ec7a25effe1886de75a2b912d830af733e8e41/src/main/clojure/clojure/tools/deps/alpha/script/make_classpath.clj#L41">Source</a>
-  </div><div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.script.make-classpath/run">run</h2>
-    <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (run {:keys [libs-file cp-file jvm-file main-file skip-cp resolve-aliases makecp-aliases jvmopt-aliases main-aliases aliases], :as opts})
-</pre>
-    <pre id="var-docstr">Run make-classpath script. See -main for details.</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/d3ec7a25effe1886de75a2b912d830af733e8e41/src/main/clojure/clojure/tools/deps/alpha/script/make_classpath.clj#L74">Source</a>
-  </div>
-</div>
-
-<br />
-<h2 id="alpha.script.make-classpath2">alpha.script.make-classpath2</h2>
-<pre id="namespace-docstr"></pre>
-
-
-<br />
-
-
-<div id="var-section">
-  <p></p>
-  <h2>Public Variables and Functions</h2>
-  <div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.script.make-classpath2/-main">-main</h2>
-    <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (-main &amp; args)
-</pre>
-    <pre id="var-docstr">Main entry point for make-classpath script.
-
-Options:
-  --config-user=path - user deps.edn file (usually ~/.clojure/deps.edn)
-  --config-project=path - project deps.edn file (usually ./deps.edn)
-  --config-data={...} - deps.edn as data (from -Sdeps)
-  --libs-file=path - libs cache file to write
-  --cp-file=path - cp cache file to write
-  --jvm-file=path - jvm opts file to write
-  --main-file=path - main opts file to write
-  -Rresolve-aliases - concatenated resolve-deps alias names
-  -Cmakecp-aliases - concatenated make-classpath alias names
-  -Jjvmopt-aliases - concatenated jvm-opt alias names
-  -Mmain-aliases - concatenated main-opt alias names
-  -Aaliases - concatenated generic alias names
-
-Resolves the dependencies and updates the lib, classpath, etc files.
-The libs file is at &lt;cachedir&gt;/&lt;hash&gt;.libs
-The cp file is at &lt;cachedir&gt;/&lt;hash&gt;.cp
-The main opts file is at &lt;cachedir&gt;/&lt;hash&gt;.main (if needed)
-The jvm opts file is at &lt;cachedir&gt;/&lt;hash&gt;.jvm (if needed)</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/4392e2eb36cb58307f212d1581170189811e2b3b/src/main/clojure/clojure/tools/deps/alpha/script/make_classpath2.clj#L118">Source</a>
-  </div><div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.script.make-classpath2/check-aliases">check-aliases</h2>
-    <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (check-aliases deps aliases)
-</pre>
-    <pre id="var-docstr">Check that all aliases are known and warn if aliases are undeclared</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/4392e2eb36cb58307f212d1581170189811e2b3b/src/main/clojure/clojure/tools/deps/alpha/script/make_classpath2.clj#L66">Source</a>
-  </div><div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.script.make-classpath2/create-classpath">create-classpath</h2>
-    <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (create-classpath deps-map {:keys [resolve-aliases makecp-aliases aliases trace], :as _opts})
-</pre>
-    <pre id="var-docstr">Given parsed-opts describing the input config files, and aliases to use,
-return the output lib map and classpath.</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/4392e2eb36cb58307f212d1581170189811e2b3b/src/main/clojure/clojure/tools/deps/alpha/script/make_classpath2.clj#L47">Source</a>
-  </div><div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.script.make-classpath2/parse-opts">parse-opts</h2>
-    <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (parse-opts args)
-</pre>
-    <pre id="var-docstr">Parse the command line opts to make-classpath</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/4392e2eb36cb58307f212d1581170189811e2b3b/src/main/clojure/clojure/tools/deps/alpha/script/make_classpath2.clj#L42">Source</a>
-  </div><div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.script.make-classpath2/run">run</h2>
-    <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (run {:keys [config-user config-project libs-file cp-file jvm-file main-file skip-cp], :as opts})
-</pre>
-    <pre id="var-docstr">Run make-classpath script. See -main for details.</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/4392e2eb36cb58307f212d1581170189811e2b3b/src/main/clojure/clojure/tools/deps/alpha/script/make_classpath2.clj#L95">Source</a>
-  </div><div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.script.make-classpath2/run-core">run-core</h2>
-    <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (run-core {:keys [install-deps user-deps project-deps config-data resolve-aliases makecp-aliases jvmopt-aliases main-aliases aliases], :as opts})
-</pre>
-    <pre id="var-docstr">Run make-classpath script from/to data (no file stuff)</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/4392e2eb36cb58307f212d1581170189811e2b3b/src/main/clojure/clojure/tools/deps/alpha/script/make_classpath2.clj#L72">Source</a>
-  </div>
-</div>
-
-<br />
-<h2 id="alpha.script.parse">alpha.script.parse</h2>
-<pre id="namespace-docstr"></pre>
-
-
-<br />
-
-
-<div id="var-section">
-  <p></p>
-  <h2>Public Variables and Functions</h2>
-  <div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.script.parse/parse-config">parse-config</h2>
-    <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (parse-config s)
-</pre>
-    <pre id="var-docstr">Parses a string of edn into a deps map.</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/8d9a4ee9640f5768bebb9cc477420c83fa2c40ea/src/main/clojure/clojure/tools/deps/alpha/script/parse.clj#L37">Source</a>
-  </div><div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.script.parse/parse-files">parse-files</h2>
-    <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (parse-files s)
-</pre>
-    <pre id="var-docstr">Parses a string of comma-delimited files into a collection of
-Files, filtering only those that exist.</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/8d9a4ee9640f5768bebb9cc477420c83fa2c40ea/src/main/clojure/clojure/tools/deps/alpha/script/parse.clj#L18">Source</a>
-  </div><div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.script.parse/parse-kws">parse-kws</h2>
-    <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (parse-kws s)
-</pre>
-    <pre id="var-docstr">Parses a concatenated string of keywords into a collection of keywords
-Ex: (parse-kws ":a:b:c") ;; returns: (:a :b :c)</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/8d9a4ee9640f5768bebb9cc477420c83fa2c40ea/src/main/clojure/clojure/tools/deps/alpha/script/parse.clj#L26">Source</a>
-  </div>
-</div>
-
-<br />
-<h2 id="alpha.script.print-tree">alpha.script.print-tree</h2>
-<pre id="namespace-docstr"></pre>
-
-
-<br />
-
-
-<div id="var-section">
-  <p></p>
-  <h2>Public Variables and Functions</h2>
-  <div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.script.print-tree/-main">-main</h2>
-    <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (-main &amp; args)
-</pre>
-    <pre id="var-docstr">Main entry point for print-tree script.
-
-Required:
-  --libs-file=path - libs file
-
-Prints the tree from libs file</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/d3ec7a25effe1886de75a2b912d830af733e8e41/src/main/clojure/clojure/tools/deps/alpha/script/print_tree.clj#L26">Source</a>
-  </div><div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.script.print-tree/run">run</h2>
-    <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (run {:keys [libs-file], :as _options})
-</pre>
-    <pre id="var-docstr">Run print-tree script. See -main for details.</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/d3ec7a25effe1886de75a2b912d830af733e8e41/src/main/clojure/clojure/tools/deps/alpha/script/print_tree.clj#L20">Source</a>
-  </div>
-</div>
-
-<br />
-<h2 id="alpha.script.resolve-tags">alpha.script.resolve-tags</h2>
-<pre id="namespace-docstr"></pre>
-
-
-<br />
-
-
-<div id="var-section">
-  <p></p>
-  <h2>Public Variables and Functions</h2>
-  <div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.script.resolve-tags/-main">-main</h2>
-    <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (-main &amp; args)
-</pre>
-    <pre id="var-docstr">Main entry point for resolve-tags script.
-
-Required:
-  --deps-file deps.edn - deps.edn files in which to resolve git tags
-
-Read deps.edn, find git coordinates with :tag but without :sha, resolve those
-tags to shas, and over-write the deps.edn.</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/d3ec7a25effe1886de75a2b912d830af733e8e41/src/main/clojure/clojure/tools/deps/alpha/script/resolve_tags.clj#L49">Source</a>
-  </div>
-</div>
-
-<br />
-<h2 id="alpha.util.coll">alpha.util.coll</h2>
-<pre id="namespace-docstr"></pre>
-
-
-<br />
-
-
-<div id="var-section">
-  <p></p>
-  <h2>Public Variables and Functions</h2>
-  <div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.util.coll/map-keys">map-keys</h2>
-    <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (map-keys m f)
-</pre>
-    <pre id="var-docstr">Apply f to each key in m</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/31ea8122095a6affc8521153640254e995478b4b/src/main/clojure/clojure/tools/deps/alpha/util/coll.clj#L11">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/8e54c3e654ebfed8b355487b78cd514d7096912a/src/main/clojure/clojure/tools/deps/alpha/tools/install.clj#L67">Source</a>
   </div>
 </div>
 
@@ -1182,7 +786,7 @@ f may be either absolute or relative.</pre>
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/1618ece5b113a5050c28bb5833c3dbad0fb2df39/src/main/clojure/clojure/tools/deps/alpha/util/io.clj#L16">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/09e77640d08783ebb4ccfcf2e9a296cc7f949490/src/main/clojure/clojure/tools/deps/alpha/util/io.clj#L19">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
@@ -1196,7 +800,7 @@ The reader will be read to EOF and closed.</pre>
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/1618ece5b113a5050c28bb5833c3dbad0fb2df39/src/main/clojure/clojure/tools/deps/alpha/util/io.clj#L22">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/09e77640d08783ebb4ccfcf2e9a296cc7f949490/src/main/clojure/clojure/tools/deps/alpha/util/io.clj#L27">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
@@ -1209,7 +813,7 @@ An empty file will return nil.</pre>
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/1618ece5b113a5050c28bb5833c3dbad0fb2df39/src/main/clojure/clojure/tools/deps/alpha/util/io.clj#L36">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/09e77640d08783ebb4ccfcf2e9a296cc7f949490/src/main/clojure/clojure/tools/deps/alpha/util/io.clj#L41">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
@@ -1221,7 +825,7 @@ An empty file will return nil.</pre>
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/1618ece5b113a5050c28bb5833c3dbad0fb2df39/src/main/clojure/clojure/tools/deps/alpha/util/io.clj#L42">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/09e77640d08783ebb4ccfcf2e9a296cc7f949490/src/main/clojure/clojure/tools/deps/alpha/util/io.clj#L47">Source</a>
   </div>
 </div>
 
@@ -1232,36 +836,11 @@ An empty file will return nil.</pre>
 
 <br />
 
-<div id="type-section">
-  <p></p>
-  <h2>Types</h2>
-  <div id="type-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.util.maven/CustomProvider">CustomProvider</h2>
-    <span id="type-type">type</span><br />
-    <pre id="type-docstr"></pre>
-    Fields: <span id="type-fields">[]</span><br />
-    Protocols: <span id="type-protocols"></span><br />
-    Interfaces: <span id="type-interfaces">org.eclipse.aether.transport.wagon.WagonProvider</span><br />
-  </div>
-</div>
+
 <div id="var-section">
   <p></p>
   <h2>Public Variables and Functions</h2>
   <div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.util.maven/-&gt;CustomProvider">-&gt;CustomProvider</h2>
-    <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (-&gt;CustomProvider)
-</pre>
-    <pre id="var-docstr">Positional factory function for class clojure.tools.deps.alpha.util.maven.CustomProvider.</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/5d3a56e6139de9c69e8d44dfb8931fed152c3499/src/main/clojure/clojure/tools/deps/alpha/util/maven.clj#L142">Source</a>
-  </div><div id="var-entry">
     <br />
     <hr />
     <h2 id="clojure.tools.deps.alpha.util.maven/lib-&gt;names">lib-&gt;names</h2>
@@ -1272,7 +851,33 @@ An empty file will return nil.</pre>
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/5d3a56e6139de9c69e8d44dfb8931fed152c3499/src/main/clojure/clojure/tools/deps/alpha/util/maven.clj#L229">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/ccc19832c56feaa2d328ef6ccc2b959d9457423b/src/main/clojure/clojure/tools/deps/alpha/util/maven.clj#L227">Source</a>
+  </div>
+</div>
+
+<br />
+<h2 id="alpha.util.s3-transporter">alpha.util.s3-transporter</h2>
+<pre id="namespace-docstr"></pre>
+
+
+<br />
+
+
+<div id="var-section">
+  <p></p>
+  <h2>Public Variables and Functions</h2>
+  <div id="var-entry">
+    <br />
+    <hr />
+    <h2 id="clojure.tools.deps.alpha.util.s3-transporter/s3-peek">s3-peek</h2>
+    <span id="var-type">function</span><br />
+    <pre id="var-usage">Usage: (s3-peek s3-client bucket path)
+</pre>
+    <pre id="var-docstr">Returns nil if path exists, anomaly category otherwise</pre>
+    <pre id="var-specs"></pre>
+    
+    
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/95b6c912b6da2dabd2b3db127e02f66ce699ee1f/src/main/clojure/clojure/tools/deps/alpha/util/s3_transporter.clj#L25">Source</a>
   </div>
 </div>
 
