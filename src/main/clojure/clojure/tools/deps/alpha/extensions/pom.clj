@@ -62,7 +62,7 @@
         result (.build builder req)]
     (.getEffectiveModel result)))
 
-(defn- read-model-file
+(defn read-model-file
   ^Model [^File file config]
   (read-model (FileModelSource. file) config))
 
