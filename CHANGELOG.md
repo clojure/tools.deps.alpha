@@ -3,6 +3,15 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.1/CHANGELOG.md)*
 
+* 0.9.745 on July 22, 2020
+  * Added new execution mode to execute a function that takes an argmap via -X
+  * Added new calc-basis api
+  * Added support for using data stored in aliases as :paths
+  * Added explicit "tool" step to cover :deps and :paths replacement, which can be passed via alias -T (functionality existed previously but was only exposed via -A alias)
+  * Added new program clojure.tools.deps.alpha.tools.install/install for local jar install
+  * Improved -Spom fix to TDEPS-152 to properly include the srcDirectory on either gen or sync in -Spom
+  * Removed tools.deps.alpha.reader - most functions have migrated to tools.deps.alpha (some API changes as well)
+  * Deprecated use of unqualified lib names in deps.edn - will continue to work but will generate warnings
 * 0.8.709 on July 17, 2020
   * Rework exclusion handling when exclusion sets differ for same lib/version
 * 0.8.702 on July 15, 2020
