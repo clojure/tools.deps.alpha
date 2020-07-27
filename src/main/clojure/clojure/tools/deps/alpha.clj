@@ -487,7 +487,8 @@
     :extra-paths - extra classpath paths to add to the classpath
     :classpath-overrides - a map of lib to path, where path is used instead of the coord's paths
 
-  Returns the classpath as a vector of string paths."
+  Returns the classpath as a map from a path entry (string) to a map describing where its from,
+  with either a :lib-name or :path-key entry."
   [{:keys [paths aliases] :as deps-edn-map} lib-map {:keys [classpath-overrides extra-paths] :as classpath-args}]
   (let [override-libs (merge-with (fn [coord path] (assoc coord :paths [path])) lib-map classpath-overrides)
         lib-paths (reduce-kv (fn [lp lib {:keys [paths]}]
