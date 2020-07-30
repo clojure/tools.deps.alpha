@@ -217,13 +217,16 @@
   ;; deprecated arity
   ([{:keys [deps paths :mvn/repos] :as deps-edn} ^File dir]
    (let [artifact-name (.. dir getCanonicalFile getName)
-         resolved-paths (resolve-path-ref paths deps-edn)]
+         resolved-paths (resolve-path-ref paths deps-edn)
+         src-pom (jio/file dir "pom.xml")]
      (sync-pom {:basis {:deps deps
                         :paths resolved-paths
                         :mvn/repos repos}
-                :params {:target-dir (.getCanonicalPath dir)
-                         :src-pom (.getCanonicalPath (jio/file dir "pom.xml"))
-                         :lib (symbol artifact-name artifact-name)}}))))
+                :params (merge
+                          {:target-dir (.getCanonicalPath dir)}
+                          (if (.exists src-pom)
+                            {:src-pom (.getCanonicalPath src-pom)}
+                            {:lib (symbol artifact-name artifact-name)}))}))))
 
 (comment
   (require '[clojure.tools.deps.alpha :as deps])
