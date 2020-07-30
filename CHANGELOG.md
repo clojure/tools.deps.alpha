@@ -3,7 +3,9 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.1/CHANGELOG.md)*
 
-* 0.9.751 on July 29, 2020
+* 0.9.755 on July 30, 2020
+  * TDEPS-157 Fix regression with groupId getting overwritten when syncing existing pom
+* 0.9.751 on July 30, 2020
   * Fixed docstring for make-classpath-map
 * 0.9.745 on July 22, 2020
   * Added new execution mode to execute a function that takes an argmap via -X
