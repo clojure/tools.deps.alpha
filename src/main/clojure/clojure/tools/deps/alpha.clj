@@ -259,14 +259,19 @@
   (get-in vmap [lib :versions (selected-version vmap lib)]))
 
 (defn- parent-missing?
-  "Is parent path now missing from the selected lib/versions?
-  This can happen if a newer version is found, orphaning enqueued children."
-  [vmap path]
-  (when (seq path)
-    (let [parent-lib (last path)
-          parent-path (vec (butlast path))
-          {:keys [paths select]} (get vmap parent-lib)]
-      (not (contains? (get paths select) parent-path)))))
+  "Is any part of the parent path missing from the selected lib/versions?
+  This can happen if a newer version was found, orphaning previously selected children."
+  [vmap parent-path]
+  (when (seq parent-path)
+    (loop [path parent-path]
+      (if (seq path)
+        (let [lib (last path)
+              check-path (vec (butlast path))
+              {:keys [paths select]} (get vmap lib)]
+          (if (contains? (get paths select) check-path)
+            (recur check-path)
+            true))
+        false))))
 
 (defn- dominates?
   "Is new-coord newer than old-coord?"
@@ -392,13 +397,27 @@
               (trace+ trace? trace parents lib coord use-coord coord-id override-coord include reason)))
           (cond-> version-map trace? (with-meta {:trace {:log trace, :vmap version-map, :exclusions exclusions}})))))))
 
-(defn- lib-paths
+(defn- cut-orphans
+  "Remove any selected lib that does not have a selected parent path"
   [version-map]
-  (reduce
-    (fn [ret [lib {:keys [select versions paths]}]]
+  (reduce-kv
+    (fn [vmap lib {:keys [select versions paths]}]
+      (let [parent-paths (get paths select)]
+        ;(println "check parent-missing" lib parent-paths)
+        (if (every? #(parent-missing? version-map %) parent-paths)
+          (dissoc vmap lib)
+          vmap)))
+    version-map version-map))
+
+(defn- lib-paths
+  "Convert version map to lib map"
+  [version-map]
+  (reduce-kv
+    (fn [ret lib {:keys [select versions paths]}]
       (let [coord (get versions select)
-            paths (->> (get paths select) (map last) (remove nil?) vec)]
-        (assoc ret lib (cond-> coord (seq paths) (assoc :dependents paths)))))
+            parent-paths (get paths select)
+            parents (->> parent-paths (map last) (remove nil?) vec)]
+        (assoc ret lib (cond-> coord (seq paths) (assoc :dependents parents)))))
     {} version-map))
 
 (defn- download-libs
@@ -441,7 +460,8 @@
          deps (merge (:deps deps-map) extra-deps)
          version-map (-> deps
                        (canonicalize-deps deps-map)
-                       (expand-deps default-deps override-deps deps-map executor trace))
+                       (expand-deps default-deps override-deps deps-map executor trace)
+                       cut-orphans)
          lib-map (lib-paths version-map)
          lib-map' (download-libs executor lib-map deps-map)]
      (with-meta lib-map' (meta version-map))))
@@ -686,8 +706,8 @@
     '[clojure.tools.deps.alpha.extensions.deps])
 
   (resolve-deps
-    {:deps {'foo//bar {:git/url "https://github.com/clojure/core.async.git"
-                       :sha "ecea2539a724a415b15e50f12815b4ab115cfd35"}}}
+    {:deps {'foo/bar {:git/url "https://github.com/clojure/core.async.git"
+                      :sha "ecea2539a724a415b15e50f12815b4ab115cfd35"}}}
     nil)
 
   (require '[clojure.tools.deps.alpha.util.session :as session])

@@ -185,8 +185,8 @@
           (libs->lib-ver (deps/resolve-deps {:deps {'ex/a {:fkn/version "1"}, 'ex/b {:fkn/version "1"}}} nil))
           (libs->lib-ver (deps/resolve-deps {:deps {'ex/b {:fkn/version "1"}, 'ex/a {:fkn/version "1"}}} nil))))))
 
-;; +a1 -> +b1 -> +c1 -> a1
-;;     -> -c2 -> a1
+;; +a1 -> +b1 -> -c1 -> a1
+;;     -> +c2 -> a1
 (deftest test-circular-deps
   (fkn/with-libs {'ex/a {{:fkn/version "1"} [['ex/b {:fkn/version "1"}]
                                              ['ex/c {:fkn/version "2"}]]}
@@ -196,6 +196,39 @@
     (is (= {:a "1", :b "1", :c "2"}
            (let [res (deps/resolve-deps {:deps {'ex/a {:fkn/version "1"}}} nil)]
              (libs->lib-ver res))))))
+
+;; +a1 -> -d1 -> -e1
+;; +b1 -> +c1 -> +d2
+;; e1 is found and selected due to d1, then cut when d2 is found
+(deftest test-cut-previously-selected-child
+  (fkn/with-libs {'ex/a {{:fkn/version "1"} [['ex/d {:fkn/version "1"}]]}
+                  'ex/b {{:fkn/version "1"} [['ex/c {:fkn/version "1"}]]}
+                  'ex/c {{:fkn/version "1"} [['ex/d {:fkn/version "2"}]]}
+                  'ex/d {{:fkn/version "1"} [['ex/e {:fkn/version "1"}]]
+                         {:fkn/version "2"} nil}
+                  'ex/e {{:fkn.version "1"} nil}}
+    (is (= {:a "1", :b "1", :c "1", :d "2"}
+          (let [res (deps/resolve-deps {:deps {'ex/a {:fkn/version "1"}
+                                               'ex/b {:fkn/version "1"}}} nil)]
+            (libs->lib-ver res))))))
+
+;; +a1 -> -d1 -> -e1 -> -f1
+;; +b1 -> +c1 -> +g1 -> +d2 -> +e2
+;; e1 is found and selected due to d1, then cut when d2 is found
+(deftest test-cut-previously-selected-child-2
+  (fkn/with-libs {'ex/a {{:fkn/version "1"} [['ex/d {:fkn/version "1"}]]}
+                  'ex/b {{:fkn/version "1"} [['ex/c {:fkn/version "1"}]]}
+                  'ex/c {{:fkn/version "1"} [['ex/g {:fkn/version "1"}]]}
+                  'ex/d {{:fkn/version "1"} [['ex/e {:fkn/version "1"}]]
+                         {:fkn/version "2"} [['ex/e {:fkn/version "2"}]]}
+                  'ex/e {{:fkn/version "1"} [['ex/f {:fkn/version "1"}]]
+                         {:fkn/version "2"} nil}
+                  'ex/f {{:fkn/version "1"} nil}
+                  'ex/g {{:fkn/version "1"} [['ex/d {:fkn/version "2"}]]}}
+    (is (= {:a "1", :b "1", :c "1", :d "2", :e "2", :g "1"}
+          (let [res (deps/resolve-deps {:deps {'ex/a {:fkn/version "1"}
+                                               'ex/b {:fkn/version "1"}}} nil)]
+            (libs->lib-ver res))))))
 
 (deftest test-local-root
   (let [base (.getCanonicalFile (File. "."))]
