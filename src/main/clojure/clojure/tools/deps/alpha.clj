@@ -158,7 +158,7 @@
   (or (merge-alias-rules alias-key)
     (if (map? val)
       merge
-      (fn [v1 v2] v2))))
+      (fn [_v1 v2] v2))))
 
 (defn- merge-alias-maps
   "Like merge-with, but using custom per-alias-key merge function"
@@ -401,7 +401,7 @@
   "Remove any selected lib that does not have a selected parent path"
   [version-map]
   (reduce-kv
-    (fn [vmap lib {:keys [select versions paths]}]
+    (fn [vmap lib {:keys [select paths]}]
       (let [parent-paths (get paths select)]
         ;(println "check parent-missing" lib parent-paths)
         (if (every? #(parent-missing? version-map %) parent-paths)
