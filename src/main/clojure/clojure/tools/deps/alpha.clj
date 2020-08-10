@@ -417,7 +417,7 @@
       (let [coord (get versions select)
             parent-paths (get paths select)
             parents (->> parent-paths (map last) (remove nil?) vec)]
-        (assoc ret lib (cond-> coord (seq paths) (assoc :dependents parents)))))
+        (assoc ret lib (cond-> coord (seq parents) (assoc :dependents parents)))))
     {} version-map))
 
 (defn- download-libs
