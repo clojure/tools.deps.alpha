@@ -3,6 +3,8 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.1/CHANGELOG.md)*
 
+* 0.9.763 on Aug 9, 2020
+  * TDEPS-161 Fix regression with tree printing
 * 0.9.759 on Aug 7, 2020
   * Bump to tools.gitlibs 1.0.96 (see TDEPS-160)
 * 0.9.755 on July 30, 2020
