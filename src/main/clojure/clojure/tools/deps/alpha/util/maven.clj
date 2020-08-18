@@ -123,8 +123,9 @@
       (.build))))
 
 (defn remote-repos
-  [repos]
-  (->> repos
+  [{:strs [central clojars] :as repos}]
+  ;; always return central, then clojars, then other repos
+  (->> (concat [["central" central] ["clojars" clojars]] (dissoc repos "central" "clojars"))
     (remove (fn [[_name config]] (nil? config)))
     (mapv remote-repo)))
 
