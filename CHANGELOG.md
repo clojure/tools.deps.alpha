@@ -5,6 +5,7 @@ Changelog
 
 * next
   * Always order repositories central, then clojars, then others
+  * Bump to tools.gitlibs 1.0.100
 * 0.9.763 on Aug 9, 2020
   * TDEPS-161 Fix regression with tree printing
 * 0.9.759 on Aug 7, 2020
