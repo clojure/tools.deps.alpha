@@ -32,12 +32,9 @@
    [nil "--basis-file PATH" "Basis file"]
    [nil "--skip-cp" "Skip writing .cp and .libs files"]
    ;; aliases
-   ["-R" "--resolve-aliases ALIASES" "Concatenated resolve-deps alias names" :parse-fn parse/parse-kws]
-   ["-C" "--makecp-aliases ALIASES" "Concatenated make-classpath alias names" :parse-fn parse/parse-kws]
-   ["-J" "--jvmopt-aliases ALIASES" "Concatenated jvm option alias names" :parse-fn parse/parse-kws]
    ["-M" "--main-aliases ALIASES" "Concatenated main option alias names" :parse-fn parse/parse-kws]
-   ["-T" "--tool-aliases ALIASES" "Concatenated tool alias names" :parse-fn parse/parse-kws]
-   ["-A" "--aliases ALIASES" "Concatenated generic alias names" :parse-fn parse/parse-kws]
+   ["-A" "--repl-aliases ALIASES" "Concatenated repl alias names" :parse-fn parse/parse-kws]
+   ["-X" "--exec-aliases ALIASES" "Concatenated exec alias names" :parse-fn parse/parse-kws]
    ;; options
    [nil "--trace" "Emit trace log to trace.edn"]
    [nil "--threads THREADS" "Threads for concurrent downloads"]])
@@ -68,27 +65,28 @@
      ;; and any other qualified keys from top level merged deps
     }"
   [{:keys [install-deps user-deps project-deps config-data ;; all deps.edn maps
-           resolve-aliases makecp-aliases jvmopt-aliases main-aliases tool-aliases aliases
+           main-aliases exec-aliases repl-aliases
            skip-cp threads trace] :as opts}]
-  (let [;; tool use - replace :deps / :paths if needed
+  (let [combined-aliases (concat main-aliases exec-aliases repl-aliases)
+        ;; tool use - replace :deps / :paths if needed
         tool-args (deps/combine-aliases
                     (deps/merge-edns [install-deps user-deps project-deps config-data]) ;; merge just to get all aliases
-                    (concat tool-aliases aliases))
+                    combined-aliases)
         project-deps (deps/tool project-deps tool-args)
 
         ;; calc basis
         merge-edn (deps/merge-edns [install-deps user-deps project-deps config-data])
-        _ (check-aliases merge-edn (concat resolve-aliases makecp-aliases jvmopt-aliases main-aliases tool-aliases aliases))
-        resolve-args (cond-> (deps/combine-aliases merge-edn (concat resolve-aliases aliases))
+        _ (check-aliases merge-edn combined-aliases)
+        merged-argmap (deps/combine-aliases merge-edn combined-aliases)
+        resolve-args (cond-> merged-argmap
                        threads (assoc :threads (Long/parseLong threads))
                        trace (assoc :trace trace))
-        cp-args (deps/combine-aliases merge-edn (concat makecp-aliases aliases))
-        basis (when-not skip-cp (deps/calc-basis merge-edn {:resolve-args resolve-args :classpath-args cp-args}))
+        basis (when-not skip-cp (deps/calc-basis merge-edn {:resolve-args resolve-args :classpath-args merged-argmap}))
         trace-log (-> basis :libs meta :trace)
 
         ;; handle jvm and main opts
-        jvm (seq (get (deps/combine-aliases merge-edn (concat jvmopt-aliases aliases)) :jvm-opts))
-        main (seq (get (deps/combine-aliases merge-edn (concat main-aliases aliases)) :main-opts))]
+        jvm (seq (get merged-argmap :jvm-opts))
+        main (seq (get merged-argmap :main-opts))]
     (cond-> basis
       jvm (assoc :jvm jvm)
       main (assoc :main main))))
@@ -137,12 +135,9 @@
     --jvm-file=path - jvm opts file to write
     --main-file=path - main opts file to write
     --basis-file=path - basis file to write
-    -Rresolve-aliases - concatenated resolve-deps alias names
-    -Cmakecp-aliases - concatenated make-classpath alias names
-    -Jjvmopt-aliases - concatenated jvm-opt alias names
     -Mmain-aliases - concatenated main-opt alias names
-    -Ttool-aliases - concatenated tool alias names
-    -Aaliases - concatenated generic alias names
+    -Aaliases - concatenated repl alias names
+    -Xaliases - concatenated exec alias names
 
   Resolves the dependencies and updates the lib, classpath, etc files.
   The libs file is at <cachedir>/<hash>.libs

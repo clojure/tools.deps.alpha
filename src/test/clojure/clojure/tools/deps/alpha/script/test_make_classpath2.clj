@@ -41,7 +41,7 @@
   (let [basis (mc/run-core {:install-deps install-data
                              :project-deps {:deps {'org.clojure/clojure {:mvn/version "1.9.0"}}
                                             :aliases {:e {:extra-deps {'org.clojure/test.check {:mvn/version "0.9.0"}}}}}
-                             :aliases [:e]})]
+                             :repl-aliases [:e]})]
     (is (submap?
           {:resolve-args {:extra-deps {'org.clojure/test.check {:mvn/version "0.9.0"}}}
            :libs {'org.clojure/clojure {:mvn/version "1.9.0"}
@@ -55,7 +55,7 @@
   (let [basis (mc/run-core {:install-deps install-data
                              :project-deps {:deps {'org.clojure/clojure {:mvn/version "1.9.0"}}
                                             :aliases {:t {:deps {'org.clojure/test.check {:mvn/version "0.9.0"}}}}}
-                             :aliases [:t]})]
+                             :repl-aliases [:t]})]
     (is (submap?
           {:paths ["src"]
            :deps {'org.clojure/test.check {:mvn/version "0.9.0"}}
@@ -69,7 +69,7 @@
 (deftest override-deps
   (let [basis (mc/run-core {:install-deps install-data
                              :project-deps {:aliases {:o {:override-deps {'org.clojure/clojure {:mvn/version "1.6.0"}}}}}
-                             :aliases [:o]})]
+                             :repl-aliases [:o]})]
     (is (submap?
           {:resolve-args {:override-deps {'org.clojure/clojure {:mvn/version "1.6.0"}}}
            :libs {'org.clojure/clojure {:mvn/version "1.6.0"}}}
@@ -85,7 +85,7 @@
                              :project-deps {:paths ["a" "b"]
                                             :aliases {:q {:paths ["a" "c"]
                                                           :deps {'org.clojure/clojure {:mvn/version "1.6.0"}}}}}
-                             :aliases [:q]})]
+                             :repl-aliases [:q]})]
     (is (submap?
           {:paths ["a" "c"]
            :deps {'org.clojure/clojure {:mvn/version "1.6.0"}}}
@@ -106,7 +106,7 @@
   (let [basis (mc/run-core {:install-deps install-data
                              :user-deps {:aliases {:p {:paths ["x" "y"]}}}
                              :project-deps {:aliases {:q {:paths ["z"]}}}
-                             :aliases [:p :q]})]
+                             :repl-aliases [:p :q]})]
     (is (submap? {:paths ["x" "y" "z"]} basis))
     (is (= #{"x" "y" "z"} (-> basis :classpath (select-cp :path-key) keys set)))))
 
@@ -115,7 +115,7 @@
   (let [basis (mc/run-core {:install-deps install-data
                              :user-deps {:aliases {:p {:extra-paths ["x" "y"]}}}
                              :project-deps {:aliases {:q {:extra-paths ["z"]}}}
-                             :aliases [:p :q]})]
+                             :repl-aliases [:p :q]})]
     (is (submap?
           {:paths ["src"]
            :classpath-args {:extra-paths ["x" "y" "z"]}}
@@ -127,7 +127,7 @@
   (let [basis (mc/run-core {:install-deps install-data
                              :user-deps {:aliases {:j1 {:jvm-opts ["-server" "-Xms100m"]}}}
                              :project-deps {:aliases {:j2 {:jvm-opts ["-Xmx200m"]}}}
-                             :aliases [:j1 :j2]})]
+                             :repl-aliases [:j1 :j2]})]
     (is (= ["-server" "-Xms100m" "-Xmx200m"] (:jvm basis)))))
 
 ;; main opts replace
@@ -135,7 +135,7 @@
   (let [basis (mc/run-core {:install-deps install-data
                              :user-deps {:aliases {:m1 {:main-opts ["a" "b"]}}}
                              :project-deps {:aliases {:m2 {:main-opts ["c"]}}}
-                             :aliases [:m1 :m2]})]
+                             :repl-aliases [:m1 :m2]})]
     (is (= ["c"] (:main basis)))))
 
 ;; repositories should be retained for generate-manifest2's use
