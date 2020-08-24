@@ -1,10 +1,7 @@
 (ns clojure.tools.deps.alpha.script.test-make-classpath2
   (:require
     [clojure.test :refer [deftest is]]
-    [clojure.string :as str]
-    [clojure.tools.deps.alpha.script.make-classpath2 :as mc])
-  (:import
-    [java.io File]))
+    [clojure.tools.deps.alpha.script.make-classpath2 :as mc]))
 
 (def install-data
   {:paths ["src"]
