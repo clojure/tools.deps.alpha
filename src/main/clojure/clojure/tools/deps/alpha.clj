@@ -143,16 +143,26 @@
 
 ;;;; Aliases
 
+;; per-key binary merge-with rules
+
+(def ^:private last-wins (comp last #(remove nil? %) vector))
+(def ^:private append (comp vec concat))
+(def ^:private append-unique (comp vec distinct concat))
+
 (def ^:private merge-alias-rules
   {:deps merge
    :extra-deps merge
    :override-deps merge
    :default-deps merge
    :classpath-overrides merge
-   :paths (comp vec distinct concat)
-   :extra-paths (comp vec distinct concat)
-   :jvm-opts (comp vec concat)
-   :main-opts (comp last #(remove nil? %) vector)})
+   :paths append-unique
+   :extra-paths append-unique
+   :jvm-opts append
+   :main-opts last-wins
+   :exec-fn last-wins
+   :exec-args merge
+   :ns-aliases merge
+   :ns-default last-wins})
 
 (defn- choose-rule [alias-key val]
   (or (merge-alias-rules alias-key)
