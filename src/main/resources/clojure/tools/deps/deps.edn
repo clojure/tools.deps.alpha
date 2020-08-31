@@ -6,7 +6,10 @@
   }
 
   :aliases {
-    :deps {:extra-deps {org.clojure/tools.deps.alpha {:mvn/version "${project.version}"}}}
+    :deps {:extra-deps {org.clojure/tools.deps.alpha {:mvn/version "${project.version}"}}
+           :ns-default clojure.tools.fns
+           :ns-aliases {mvn clojure.tools.fns.mvn
+                        git clojure.tools.fns.git}}
     :test {:extra-paths ["test"]}
   }
 

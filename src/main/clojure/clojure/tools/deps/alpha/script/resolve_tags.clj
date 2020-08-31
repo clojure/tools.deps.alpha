@@ -47,19 +47,10 @@
     (when-let [pnm (resolve 'clojure.core/*print-namespace-maps*)]
       {pnm false})))
 
-(defn -main
-  "Main entry point for resolve-tags script.
-
-  Required:
-    --deps-file deps.edn - deps.edn files in which to resolve git tags
-
-  Read deps.edn, find git coordinates with :tag but without :sha, resolve those
-  tags to shas, and over-write the deps.edn."
-  [& args]
+(defn exec
+  [{:keys [deps-file]}]
   (try
-    (let [{:keys [options]} (cli/parse-opts args opts)
-          {:keys [deps-file]} options
-          deps-map (deps/slurp-deps (jio/file deps-file))
+    (let [deps-map (deps/slurp-deps (jio/file deps-file))
           counter (atom 0)]
       (printerrln "Resolving git tags in" deps-file "...")
       (let [resolved-map (resolve-git-deps counter deps-map)]
@@ -74,6 +65,18 @@
       (when-not (instance? IExceptionInfo t)
         (.printStackTrace t))
       (System/exit 1))))
+
+(defn -main
+  "Main entry point for resolve-tags script.
+
+  Required:
+    --deps-file deps.edn - deps.edn files in which to resolve git tags
+
+  Read deps.edn, find git coordinates with :tag but without :sha, resolve those
+  tags to shas, and over-write the deps.edn."
+  [& args]
+  (let [{:keys [options]} (cli/parse-opts args opts)]
+    (exec options)))
 
 (comment
   (-main "--deps-file" "deps.edn")

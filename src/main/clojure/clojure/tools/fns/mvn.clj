@@ -6,15 +6,16 @@
 ;   the terms of this license.
 ;   You must not remove this notice, or any other, from this software.
 
-(ns clojure.tools.deps.alpha.tools.install
-  (:require
-    [clojure.edn :as edn]
-    [clojure.java.io :as jio]
-    [clojure.tools.deps.alpha :as deps]
-    [clojure.tools.deps.alpha.util.maven :as mvn]
-    [clojure.tools.deps.alpha.extensions.pom :as pom]
-    [clojure.tools.deps.alpha.extensions.local :as local]
-    [clojure.string :as str])
+(ns clojure.tools.fns.mvn
+  (:require [clojure.java.io :as jio]
+            [clojure.edn :as edn]
+            [clojure.string :as str]
+            [clojure.tools.deps.alpha :as deps]
+            [clojure.tools.deps.alpha.extensions.pom :as pom]
+            [clojure.tools.deps.alpha.extensions.local :as local]
+            [clojure.tools.deps.alpha.gen.pom :as gen-pom]
+            [clojure.tools.deps.alpha.util.maven :as mvn]
+            [clojure.tools.deps.alpha.util.io :refer [printerrln]])
   (:import
     [java.io File FileNotFoundException]
     [java.net URL]
@@ -22,9 +23,35 @@
     [org.apache.maven.model Model]
     [org.apache.maven.model.building UrlModelSource]
     [org.eclipse.aether.artifact DefaultArtifact]
-    [org.eclipse.aether.installation InstallRequest]))
+    [org.eclipse.aether.installation InstallRequest]
+    [clojure.lang IExceptionInfo]))
 
 (set! *warn-on-reflection* true)
+
+(defn- read-basis
+  "Read runtime and return the runtime basis"
+  []
+  (-> (System/getProperty "clojure.basis") jio/file slurp edn/read-string))
+
+;;;; Generate pom
+
+(defn pom
+  "Sync local pom.xml"
+  [_]
+  (try
+    (let [basis (read-basis)
+          ;; treat all transitive deps as top-level deps
+          updated-deps (reduce-kv (fn [m lib {:keys [dependents] :as coord}]
+                                    (if (seq dependents) m (assoc m lib coord)))
+                         {} (:libs basis))]
+      (gen-pom/sync-pom (merge basis {:deps updated-deps}) (jio/file ".")))
+    (catch Throwable t
+      (printerrln "Error generating pom manifest:" (.getMessage t))
+      (when-not (instance? IExceptionInfo t)
+        (.printStackTrace t))
+      (System/exit 1))))
+
+;;;; Install jar into local repository
 
 (defn- pom-attributes
   [^Model model]
@@ -57,27 +84,22 @@
                      [artifact-id version])]
     (.getAbsolutePath ^File (apply jio/file path-parts))))
 
-;; Install as a tool in deps.edn:
-;;   {:aliases
-;;    {:install {:fn clojure.tools.deps.alpha.tools.install
-;;               :args {:lib my.org.lib
-;;                      :version "1.2.3"
-;;                      :jar "lib-1.2.3.jar"}}}}
-
 (defn install
   "Install a jar and optional pom to the Maven local cache.
   The group/artifact/version coordinate will be pulled from the
-  pom
-  if supplied, or the pom in the jar file, or must be provided.
-  Any provided attributes override those in the pom/jar.
+  pom if supplied, or the pom in the jar file, or must be provided.
+  Any provided attributes override those in the pom or jar.
 
-    Options:
-      :jar (required) - path to jar file
-      :pom (optional) - path to pom file
-      :lib (optional) - qualified symbol like my.org/lib
-      :version (optional) - string
-      :classifier (optional) - string
-      :local-repo (optional) - path to local repo (default = ~/.m2/repository)"
+  Options:
+    :jar (required) - path to jar file
+    :pom (optional) - path to pom file
+    :lib (optional) - qualified symbol like my.org/lib
+    :version (optional) - string
+    :classifier (optional) - string
+    :local-repo (optional) - path to local repo (default = ~/.m2/repository)
+
+  Execute ad-hoc:
+    clj -X:deps mvn/install :jar '\"foo.jar\"'"
   [{:keys [lib jar pom classifier local-repo] :as opts}]
   (println "Installing" jar (if pom (str "and " pom) ""))
   (let [{:keys [group-id artifact-id version]} (merge (if pom
@@ -98,25 +120,3 @@
         install-request (.setArtifacts (InstallRequest.) artifacts)]
     (.install system session install-request)
     (println "Installed to" (output-path local-repo group-id artifact-id version))))
-
-(defn print-usage
-  []
-  (println "Usage: clojure -m clojure.tools.deps.install <params>")
-  (println)
-  (println "Params:")
-  (println "  :jar (required) - path to jar file")
-  (println "  :pom (optional) - path to pom file")
-  (println "  :lib (optional) - qualified symbol like my.org/lib")
-  (println "  :version (optional) - optional, string")
-  (println "  :classifier optional) - string")
-  (println "  :local-repo (optional) - path to local repo (default = ~/.m2/repository)"))
-
-(defn -main
-  [& args]
-  (if (or (= [] (seq args)) (= ["-h"] args))
-    (do
-      (print-usage)
-      (System/exit 1))
-    (let [kvs (mapv edn/read-string args)
-          m (apply hash-map kvs)]
-      (install m))))
