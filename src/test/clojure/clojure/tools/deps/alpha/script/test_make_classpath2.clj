@@ -50,11 +50,11 @@
                   'org.clojure/test.check {:mvn/version "0.9.0"}}}
           basis))))
 
-;; alias :e with :deps replaces the project deps
+;; alias :t with :replace-deps replaces the project deps
 (deftest tool-deps
   (let [basis (mc/run-core {:install-deps install-data
                              :project-deps {:deps {'org.clojure/clojure {:mvn/version "1.9.0"}}
-                                            :aliases {:t {:deps {'org.clojure/test.check {:mvn/version "0.9.0"}}}}}
+                                            :aliases {:t {:replace-deps {'org.clojure/test.check {:mvn/version "0.9.0"}}}}}
                              :repl-aliases [:t]})]
     (is (submap?
           {:paths ["src"]
@@ -83,8 +83,8 @@
 (deftest alias-paths-and-deps
   (let [basis (mc/run-core {:install-deps install-data
                              :project-deps {:paths ["a" "b"]
-                                            :aliases {:q {:paths ["a" "c"]
-                                                          :deps {'org.clojure/clojure {:mvn/version "1.6.0"}}}}}
+                                            :aliases {:q {:replace-paths ["a" "c"]
+                                                          :replace-deps {'org.clojure/clojure {:mvn/version "1.6.0"}}}}}
                              :repl-aliases [:q]})]
     (is (submap?
           {:paths ["a" "c"]
@@ -104,8 +104,8 @@
 ;; :paths in alias replaces, multiple alias :paths will be combined
 (deftest alias-paths-replace
   (let [basis (mc/run-core {:install-deps install-data
-                             :user-deps {:aliases {:p {:paths ["x" "y"]}}}
-                             :project-deps {:aliases {:q {:paths ["z"]}}}
+                             :user-deps {:aliases {:p {:replace-paths ["x" "y"]}}}
+                             :project-deps {:aliases {:q {:replace-paths ["z"]}}}
                              :repl-aliases [:p :q]})]
     (is (submap? {:paths ["x" "y" "z"]} basis))
     (is (= #{"x" "y" "z"} (-> basis :classpath (select-cp :path-key) keys set)))))

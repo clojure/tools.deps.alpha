@@ -150,12 +150,12 @@
 (def ^:private append-unique (comp vec distinct concat))
 
 (def ^:private merge-alias-rules
-  {:deps merge
+  {:replace-deps merge ;; formerly :deps
    :extra-deps merge
    :override-deps merge
    :default-deps merge
    :classpath-overrides merge
-   :paths append-unique
+   :replace-paths append-unique ;; formerly :paths
    :extra-paths append-unique
    :jvm-opts append
    :main-opts last-wins
@@ -550,7 +550,14 @@
   "Transform project edn for tool by applying tool args (keys = :paths, :deps) and
   returning an updated project edn."
   [project-edn tool-args]
-  (merge project-edn tool-args))
+  (let [{:keys [replace-deps replace-paths deps paths]} tool-args]
+    (when deps
+      (throw (ex-info "Use of :deps in aliases is no longer supported - use :replace-deps instead" {})))
+    (when paths
+      (throw (ex-info "Use of :paths in aliases is no longer supported - use :replace-paths instead" {})))
+    (cond-> project-edn
+      replace-deps (merge {:deps replace-deps})
+      replace-paths (merge {:paths replace-paths}))))
 
 (defn calc-basis
   "Calculates and returns the runtime basis from a master deps edn map, modifying
