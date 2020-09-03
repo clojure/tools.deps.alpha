@@ -32,8 +32,8 @@
    [nil "--basis-file PATH" "Basis file"]
    [nil "--skip-cp" "Skip writing .cp and .libs files"]
    ;; aliases
-   ["-M" "--main-aliases ALIASES" "Concatenated main option alias names" :parse-fn parse/parse-kws]
    ["-A" "--repl-aliases ALIASES" "Concatenated repl alias names" :parse-fn parse/parse-kws]
+   ["-M" "--main-aliases ALIASES" "Concatenated main option alias names" :parse-fn parse/parse-kws]
    ["-X" "--exec-aliases ALIASES" "Concatenated exec alias names" :parse-fn parse/parse-kws]
    ;; options
    [nil "--trace" "Emit trace log to trace.edn"]
@@ -67,28 +67,32 @@
   [{:keys [install-deps user-deps project-deps config-data ;; all deps.edn maps
            main-aliases exec-aliases repl-aliases
            skip-cp threads trace] :as opts}]
-  (let [combined-aliases (concat main-aliases exec-aliases repl-aliases)
-        ;; tool use - replace :deps / :paths if needed
+  (when (and main-aliases exec-aliases)
+    (throw (ex-info "-M and -X cannot be used at the same time" {})))
+  (let [aliases (concat main-aliases exec-aliases repl-aliases)
+        ;; tool use - :deps/:paths/:replace-deps/:replace-paths in project if needed
         tool-args (deps/combine-aliases
                     (deps/merge-edns [install-deps user-deps project-deps config-data]) ;; merge just to get all aliases
-                    combined-aliases)
+                    aliases)
         project-deps (deps/tool project-deps tool-args)
 
         ;; calc basis
         merge-edn (deps/merge-edns [install-deps user-deps project-deps config-data])
-        _ (check-aliases merge-edn combined-aliases)
-        merged-argmap (deps/combine-aliases merge-edn combined-aliases)
+        _ (check-aliases merge-edn aliases)
+        merged-argmap (deps/combine-aliases merge-edn aliases)
         resolve-args (cond-> merged-argmap
                        threads (assoc :threads (Long/parseLong threads))
                        trace (assoc :trace trace))
         basis (when-not skip-cp (deps/calc-basis merge-edn {:resolve-args resolve-args :classpath-args merged-argmap}))
-        trace-log (-> basis :libs meta :trace)
 
         ;; handle jvm and main opts
         jvm (seq (get merged-argmap :jvm-opts))
         main (seq (get merged-argmap :main-opts))]
+    (when (and main repl-aliases)
+      (io/printerrln "WARNING: Use of :main-opts with -A is deprecated. Use -M instead."))
     (cond-> basis
       jvm (assoc :jvm jvm)
+      ;; FUTURE: narrow this to (and main main-aliases)
       main (assoc :main main))))
 
 (defn read-deps

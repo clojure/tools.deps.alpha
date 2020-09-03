@@ -150,11 +150,13 @@
 (def ^:private append-unique (comp vec distinct concat))
 
 (def ^:private merge-alias-rules
-  {:replace-deps merge ;; formerly :deps
+  {:deps merge ;; FUTURE: remove
+   :replace-deps merge ;; formerly :deps
    :extra-deps merge
    :override-deps merge
    :default-deps merge
    :classpath-overrides merge
+   :paths append-unique ;; FUTURE: remove
    :replace-paths append-unique ;; formerly :paths
    :extra-paths append-unique
    :jvm-opts append
@@ -551,13 +553,14 @@
   returning an updated project edn."
   [project-edn tool-args]
   (let [{:keys [replace-deps replace-paths deps paths]} tool-args]
+    ;; FUTURE: stop supporting :deps + :paths in aliases
     (when deps
-      (throw (ex-info "Use of :deps in aliases is no longer supported - use :replace-deps instead" {})))
+      (io/printerrln "WARNING: Use of :deps in aliases is deprecated - use :replace-deps instead"))
     (when paths
-      (throw (ex-info "Use of :paths in aliases is no longer supported - use :replace-paths instead" {})))
+      (io/printerrln "WARNING: Use of :paths in aliases is deprecated - use :replace-paths instead"))
     (cond-> project-edn
-      replace-deps (merge {:deps replace-deps})
-      replace-paths (merge {:paths replace-paths}))))
+      (or deps replace-deps) (merge {:deps (merge deps replace-deps)})
+      (or paths replace-paths) (merge {:paths (vec (concat paths replace-paths))}))))
 
 (defn calc-basis
   "Calculates and returns the runtime basis from a master deps edn map, modifying

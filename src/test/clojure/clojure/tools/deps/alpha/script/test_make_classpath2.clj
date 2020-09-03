@@ -52,18 +52,19 @@
 
 ;; alias :t with :replace-deps replaces the project deps
 (deftest tool-deps
-  (let [basis (mc/run-core {:install-deps install-data
-                             :project-deps {:deps {'org.clojure/clojure {:mvn/version "1.9.0"}}
-                                            :aliases {:t {:replace-deps {'org.clojure/test.check {:mvn/version "0.9.0"}}}}}
-                             :repl-aliases [:t]})]
-    (is (submap?
-          {:paths ["src"]
-           :deps {'org.clojure/test.check {:mvn/version "0.9.0"}}
-           :libs {'org.clojure/clojure {:mvn/version "1.10.1"}
-                  'org.clojure/spec.alpha {:mvn/version "0.2.176"}
-                  'org.clojure/core.specs.alpha {:mvn/version "0.2.44"}
-                  'org.clojure/test.check {:mvn/version "0.9.0"}}}
-          basis))))
+  (doseq [k [:deps :replace-deps]] ;; FUTURE - remove :deps here (will warn for now)
+    (let [basis (mc/run-core {:install-deps install-data
+                              :project-deps {:deps {'org.clojure/clojure {:mvn/version "1.9.0"}}
+                                             :aliases {:t {k {'org.clojure/test.check {:mvn/version "0.9.0"}}}}}
+                              :repl-aliases [:t]})]
+      (is (submap?
+            {:paths ["src"]
+             :deps {'org.clojure/test.check {:mvn/version "0.9.0"}}
+             :libs {'org.clojure/clojure {:mvn/version "1.10.1"}
+                    'org.clojure/spec.alpha {:mvn/version "0.2.176"}
+                    'org.clojure/core.specs.alpha {:mvn/version "0.2.44"}
+                    'org.clojure/test.check {:mvn/version "0.9.0"}}}
+            basis)))))
 
 ;; alias :o with :override-deps overrides the version to use
 (deftest override-deps
@@ -81,16 +82,18 @@
 
 ;; paths and deps in alias replace
 (deftest alias-paths-and-deps
-  (let [basis (mc/run-core {:install-deps install-data
-                             :project-deps {:paths ["a" "b"]
-                                            :aliases {:q {:replace-paths ["a" "c"]
-                                                          :replace-deps {'org.clojure/clojure {:mvn/version "1.6.0"}}}}}
-                             :repl-aliases [:q]})]
-    (is (submap?
-          {:paths ["a" "c"]
-           :deps {'org.clojure/clojure {:mvn/version "1.6.0"}}}
-          basis))
-    (is (= #{"a" "c"} (-> basis :classpath (select-cp :path-key) keys set)))))
+  (doseq [p [:paths :replace-paths] ;; FUTURE - remove :paths, :deps here (will warn for now)
+          d [:deps :replace-deps]]
+    (let [basis (mc/run-core {:install-deps install-data
+                              :project-deps {:paths ["a" "b"]
+                                             :aliases {:q {p ["a" "c"]
+                                                           d {'org.clojure/clojure {:mvn/version "1.6.0"}}}}}
+                              :repl-aliases [:q]})]
+      (is (submap?
+            {:paths ["a" "c"]
+             :deps {'org.clojure/clojure {:mvn/version "1.6.0"}}}
+            basis))
+      (is (= #{"a" "c"} (-> basis :classpath (select-cp :path-key) keys set))))))
 
 ;; paths replace in chain
 (deftest paths-replace
@@ -103,12 +106,13 @@
 
 ;; :paths in alias replaces, multiple alias :paths will be combined
 (deftest alias-paths-replace
-  (let [basis (mc/run-core {:install-deps install-data
-                             :user-deps {:aliases {:p {:replace-paths ["x" "y"]}}}
-                             :project-deps {:aliases {:q {:replace-paths ["z"]}}}
-                             :repl-aliases [:p :q]})]
-    (is (submap? {:paths ["x" "y" "z"]} basis))
-    (is (= #{"x" "y" "z"} (-> basis :classpath (select-cp :path-key) keys set)))))
+  (doseq [p [:paths :replace-paths]] ;; FUTURE - remove :paths here (will warn for now)
+    (let [basis (mc/run-core {:install-deps install-data
+                              :user-deps {:aliases {:p {p ["x" "y"]}}}
+                              :project-deps {:aliases {:q {p ["z"]}}}
+                              :repl-aliases [:p :q]})]
+      (is (submap? {:paths ["x" "y" "z"]} basis))
+      (is (= #{"x" "y" "z"} (-> basis :classpath (select-cp :path-key) keys set))))))
 
 ;; :extra-paths add
 (deftest extra-paths-add
