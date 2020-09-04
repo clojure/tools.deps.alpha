@@ -4,6 +4,9 @@ Changelog
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.1/CHANGELOG.md)*
 
 * next
+  * Add new argmap keys: :ns-default, :ns-aliases
+  * Deprecate :deps/:paths in tool argmap to :replace-deps/:replace-paths
+  * Move deps programs to new clojure.tools.cli.api namespace
   * Always order repositories central, then clojars, then others
   * Bump to tools.gitlibs 1.0.100
 * 0.9.763 on Aug 9, 2020
