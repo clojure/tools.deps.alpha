@@ -62,8 +62,13 @@
 
 (defn- throw-bad-coord
   [lib coord]
-  (throw (ex-info (str "Coordinate type " (coord-type coord) " not loaded for library " lib " in coordinate " (pr-str coord))
-           {:lib lib :coord coord})))
+  (if (map? coord)
+    (let [type (coord-type coord)]
+      (if (nil? type)
+        (throw (ex-info (str "No coordinate type found for library " lib " in coordinate " (pr-str coord)) {:lib lib :coord coord}))
+        (throw (ex-info (str "Coordinate type " type " not loaded for library " lib " in coordinate " (pr-str coord))
+                 {:lib lib :coord coord}))))
+    (throw (ex-info (str "Bad coordinate for library " lib ", expected map: " (pr-str coord)) {:lib lib :coord coord}))))
 
 (defmethod dep-id :default [lib coord config]
   (throw-bad-coord lib coord))
