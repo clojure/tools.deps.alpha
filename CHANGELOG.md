@@ -32,7 +32,7 @@ Changelog
   * During version selection, prefer same version with fewer exclusions
 * 0.8.695 on June 11, 2020
   * TDEPS-152 - Fix bad addition of <sourceDirectory> in pom gen
-  * Add error checking for missing :mvn/version
+  * TDEPS-155 - Add error checking for missing :mvn/version
   * Bump versions of tools.gitlibs and tools.cli
 * 0.8.677 on Feb 14, 2020
   * TDEPS-150 - Fix regression in supporting -Scp flag (avoid resolving deps)
