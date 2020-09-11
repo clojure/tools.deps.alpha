@@ -50,10 +50,15 @@
 ;;;; Generate pom
 
 (defn mvn-pom
-  "Sync local pom.xml"
-  [_]
+  "Sync local pom.xml.
+  Options:
+    :argmaps - vector of aliases to combine into argmaps to resolve-deps and make-classpath"
+  [{:keys [argmaps]}]
   (try
-    (let [basis (read-basis)
+    (let [{:keys [root-edn user-edn project-edn]} (deps/find-edn-maps)
+          merged (deps/merge-edns [root-edn user-edn project-edn])
+          args (deps/combine-aliases merged argmaps)
+          basis (deps/calc-basis merged {:resolve-args args, :classpath-args args})
           ;; treat all transitive deps as top-level deps
           updated-deps (reduce-kv (fn [m lib {:keys [dependents] :as coord}]
                                     (if (seq dependents) m (assoc m lib coord)))
