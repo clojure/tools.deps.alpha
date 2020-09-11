@@ -3,9 +3,9 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.1/CHANGELOG.md)*
 
-* next
+* 0.9.790 on Sep 10, 2020
   * TDEPS-155 - Better error handling for a variety of bad coordinate cases
-  * re-add -R, -C, and -Spom support
+  * Re-add -R, -C, and -Spom support
 * 0.9.782 on Sep 4, 2020
   * Add new argmap keys: :ns-default, :ns-aliases
   * Deprecate :deps/:paths in tool argmap to :replace-deps/:replace-paths
