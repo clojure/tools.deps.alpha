@@ -3,6 +3,8 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.1/CHANGELOG.md)*
 
+* 0.9.795 on Sep 11, 2020
+  * More work on -X:deps mvn-pom support
 * 0.9.790 on Sep 10, 2020
   * TDEPS-155 - Better error handling for a variety of bad coordinate cases
   * Re-add -R, -C, and -Spom support
