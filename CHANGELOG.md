@@ -5,6 +5,7 @@ Changelog
 
 * next
   * TDEPS-155 - Better error handling for a variety of bad coordinate cases
+  * re-add -R, -C, and -Spom support
 * 0.9.782 on Sep 4, 2020
   * Add new argmap keys: :ns-default, :ns-aliases
   * Deprecate :deps/:paths in tool argmap to :replace-deps/:replace-paths
