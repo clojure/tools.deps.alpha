@@ -429,7 +429,9 @@
       (let [coord (get versions select)
             parent-paths (get paths select)
             parents (->> parent-paths (map last) (remove nil?) vec)]
-        (assoc ret lib (cond-> coord (seq parents) (assoc :dependents parents)))))
+        (assoc ret lib (cond-> coord
+                         (seq parents) (assoc :dependents parents)
+                         (seq parent-paths) (assoc :parents parent-paths)))))
     {} version-map))
 
 (defn- download-libs
@@ -507,28 +509,64 @@
         (print-node lib "")))))
 
 (defn- chase-key
-  [aliases key]
-  (mapcat #(if (string? %) [% {:path-key key}] (chase-key aliases %))
-    (get aliases key)))
+  "Given an aliases set and a keyword k, return a flattened vector of path
+  entries for that k, resolving recursively if needed, or nil."
+  [aliases k]
+  (let [path-coll (get aliases k)]
+    (when (seq path-coll)
+      (into [] (mapcat #(if (string? %) [[% {:path-key k}]] (chase-key aliases %))) path-coll))))
+
+(defn- flatten-paths
+  [{:keys [paths aliases] :as deps-edn-map} {:keys [extra-paths] :as classpath-args}]
+  (let [aliases' (assoc aliases :paths paths :extra-paths extra-paths)]
+    (into [] (mapcat #(chase-key aliases' %)) (remove nil? [:extra-paths :paths]))))
+
+(defn- tree-paths
+  "Given a lib map, return a vector of all vector paths to included libs in the tree.
+  Libs are often included at multiple paths."
+  [lib-map]
+  (loop [paths []
+         [lib & libs] (keys lib-map)]
+    (if lib
+      (let [parent-paths (:parents (get lib-map lib))]
+        (recur
+          (reduce (fn [paths parent-path] (conj paths (conj parent-path lib))) paths parent-paths)
+          libs))
+      paths)))
+
+(defn- sort-paths
+  [lib-paths]
+  "Given a vector of lib paths, sort in canonical order -
+  top of tree to bottom, alpha sort at same level"
+  (->> lib-paths sort (sort-by count) vec))
+
+(defn- flatten-libs
+  [lib-map {:keys [classpath-overrides] :as classpath-args}]
+  (let [override-libs (merge-with (fn [coord path] (assoc coord :paths [path])) lib-map classpath-overrides)
+        lib-order (->> override-libs tree-paths sort-paths (map peek) distinct)
+        lib-paths (mapcat
+                    #(map vector (get-in override-libs [% :paths]) (repeat {:lib-name %}))
+                    lib-order)]
+    lib-paths))
 
 (defn make-classpath-map
   "Takes a merged deps edn map and a lib map. Extracts the paths for each chosen
   lib coordinate, and assembles a classpath map. The classpath-args is a map with
   keys that can be used to modify the classpath building operation:
-
     :extra-paths - extra classpath paths to add to the classpath
     :classpath-overrides - a map of lib to path, where path is used instead of the coord's paths
 
-  Returns the classpath as a map from a path entry (string) to a map describing where its from,
-  with either a :lib-name or :path-key entry."
-  [{:keys [paths aliases] :as deps-edn-map} lib-map {:keys [classpath-overrides extra-paths] :as classpath-args}]
-  (let [override-libs (merge-with (fn [coord path] (assoc coord :paths [path])) lib-map classpath-overrides)
-        lib-paths (reduce-kv (fn [lp lib {:keys [paths]}]
-                               (merge lp (zipmap paths (repeat {:lib-name lib}))))
-                    {} override-libs)
-        aliases' (assoc aliases :paths paths :extra-paths extra-paths)
-        paths (mapcat #(chase-key aliases' %) [:paths :extra-paths])]
-    (merge lib-paths (apply hash-map paths))))
+  Returns a map:
+    :classpath map of path entry (string) to a map describing where its from,  either a :lib-name or :path-key entry.
+    :classpath-roots coll of the classpath keys in classpath order"
+  [{:keys [paths aliases] :as deps-edn-map} lib-map classpath-args]
+  (let [flat-paths (flatten-paths deps-edn-map classpath-args)
+        flat-libs (flatten-libs lib-map classpath-args)
+        all-paths (concat flat-paths flat-libs)
+        cp (mapv first all-paths)
+        cp-map (reduce (fn [m [path-str src]] (assoc m path-str src)) {} all-paths)]
+    {:classpath-roots cp
+     :classpath cp-map}))
 
 (defn join-classpath
   "Takes a coll of string classpath roots and creates a platform sensitive classpath"
@@ -546,7 +584,7 @@
 
   Returns the classpath as a string."
   [lib-map paths classpath-args]
-  (-> (make-classpath-map {:paths paths} lib-map classpath-args) keys join-classpath))
+  (-> (make-classpath-map {:paths paths} lib-map classpath-args) :classpath-roots join-classpath))
 
 (defn tool
   "Transform project edn for tool by applying tool args (keys = :paths, :deps) and
@@ -582,15 +620,16 @@
     :resolve-args - the resolve args passed in, if any
     :classpath-args - the classpath args passed in, if any
     :libs - lib map, per resolve-deps
-    :classpath - classpath map per make-classpath-map"
+    :classpath - classpath map per make-classpath-map
+    :classpath-roots - vector of paths in classpath order"
   ([master-edn]
-    (calc-basis master-edn nil))
+   (calc-basis master-edn nil))
   ([master-edn {:keys [resolve-args classpath-args]}]
    (session/with-session
      (let [libs (resolve-deps master-edn resolve-args)
            cp (make-classpath-map master-edn libs classpath-args)]
        (cond->
-         (merge master-edn {:libs libs, :classpath cp})
+         (merge master-edn {:libs libs} cp)
          resolve-args (assoc :resolve-args resolve-args)
          classpath-args (assoc :classpath-args classpath-args))))))
 
@@ -618,7 +657,7 @@
     nil nil {:mvn/repos mvn/standard-repos} ex-svc true)
 
   (expand-deps {'org.apache.xmlgraphics/batik-transcoder {:mvn/version "1.7"}}
-               nil nil {:mvn/repos mvn/standard-repos} ex-svc true)
+    nil nil {:mvn/repos mvn/standard-repos} ex-svc true)
 
   (expand-deps {'org.clojure/clojure {:mvn/version "1.9.0"}
                 'org.clojure/core.memoize {:mvn/version "0.5.8"}}

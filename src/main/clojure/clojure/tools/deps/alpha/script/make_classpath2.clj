@@ -113,13 +113,13 @@
   (let [opts' (merge opts {:install-deps (deps/root-deps)
                            :user-deps (read-deps config-user)
                            :project-deps (read-deps config-project)})
-        {:keys [libs classpath jvm main] :as basis} (run-core opts')
+        {:keys [libs classpath-roots jvm main] :as basis} (run-core opts')
         trace (-> libs meta :trace)]
     (when trace
       (spit "trace.edn" (binding [*print-namespace-maps* false] (with-out-str (clojure.pprint/pprint trace)))))
     (when-not skip-cp
       (io/write-file libs-file (binding [*print-namespace-maps* false] (pr-str libs)))
-      (io/write-file cp-file (-> classpath keys deps/join-classpath)))
+      (io/write-file cp-file (-> classpath-roots deps/join-classpath)))
     (io/write-file basis-file (binding [*print-namespace-maps* false] (pr-str basis)))
     (if jvm
       (io/write-file jvm-file (str/join " " jvm))
