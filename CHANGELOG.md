@@ -3,7 +3,7 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.1/CHANGELOG.md)*
 
-* next
+* 0.9.799 on Sep 16, 2020
   * Fix classpath ordering for paths and libs
 * 0.9.795 on Sep 11, 2020
   * More work on -X:deps mvn-pom support
