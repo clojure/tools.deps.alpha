@@ -1,7 +1,7 @@
 <html>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>alpha - tools.deps.alpha 0.9.746-SNAPSHOT API documentation</title>
+    <title>alpha - tools.deps.alpha 0.9.800-SNAPSHOT API documentation</title>
     <link rel="icon" href="static/favicon.png" />
     <link rel="shortcut icon" href="static/favicon.png" />
     <link rel="stylesheet" href="static/clojure.css" type="text/css" media="all" />
@@ -25,7 +25,7 @@ namespace.
       <div id="leftcolumn"><div style="text-align: center;"></div>
 <div class="menu">
   <div class="WikiCustomNav WikiElement wiki">
-    <span class="toc-header"><span id="project-name">tools.deps.alpha</span> <span id="version">0.9.746-SNAPSHOT</span> API</span><br />
+    <span class="toc-header"><span id="project-name">tools.deps.alpha</span> <span id="version">0.9.800-SNAPSHOT</span> API</span><br />
     <ul>
       <li><a href="index.html" class="wiki_link">Overview</a></li>
       <li><a href="api-index.html" class="wiki_link">API Index</a></li>
@@ -99,107 +99,11 @@ namespace.
   </div><div class="toc-section" style="margin-left: 1em;">
     <a style="margin-top: 3px;" href="#"></a>
     
-  </div><div class="toc-section" style="margin-left: 1em;">
-    <a style="margin-top: 3px;" href="#alpha.extensions">alpha.extensions</a>
-    <div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.extensions/canonicalize" class="toc-entry-anchor">canonicalize</a>
-      
-    </div><div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.extensions/compare-versions" class="toc-entry-anchor">compare-versions</a>
-      
-    </div><div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.extensions/coord-deps" class="toc-entry-anchor">coord-deps</a>
-      
-    </div><div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.extensions/coord-paths" class="toc-entry-anchor">coord-paths</a>
-      
-    </div><div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.extensions/coord-summary" class="toc-entry-anchor">coord-summary</a>
-      
-    </div><div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.extensions/coord-type" class="toc-entry-anchor">coord-type</a>
-      
-    </div><div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.extensions/dep-id" class="toc-entry-anchor">dep-id</a>
-      
-    </div><div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.extensions/detect-manifest" class="toc-entry-anchor">detect-manifest</a>
-      
-    </div><div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.extensions/lib-location" class="toc-entry-anchor">lib-location</a>
-      
-    </div><div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.extensions/manifest-type" class="toc-entry-anchor">manifest-type</a>
-      
-    </div>
-  </div><div class="toc-section" style="margin-left: 1em;">
-    <a style="margin-top: 3px;" href="#alpha.gen.pom">alpha.gen.pom</a>
-    <div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.gen.pom/sync-pom" class="toc-entry-anchor">sync-pom</a>
-      
-    </div>
-  </div><div class="toc-section" style="margin-left: 1em;">
-    <a style="margin-top: 3px;" href="#alpha.tools.install">alpha.tools.install</a>
-    <div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.tools.install/install" class="toc-entry-anchor">install</a>
-      
-    </div>
-  </div><div class="toc-section" style="margin-left: 1em;">
-    <a style="margin-top: 3px;" href="#alpha.util.dir">alpha.util.dir</a>
-    <div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.util.dir/*the-dir*" class="toc-entry-anchor">*the-dir*</a>
-      
-    </div><div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.util.dir/as-canonical" class="toc-entry-anchor">as-canonical</a>
-      
-    </div><div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.util.dir/canonicalize" class="toc-entry-anchor">canonicalize</a>
-      
-    </div><div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.util.dir/with-dir" class="toc-entry-anchor">with-dir</a>
-      
-    </div>
-  </div><div class="toc-section" style="margin-left: 1em;">
-    <a style="margin-top: 3px;" href="#alpha.util.io">alpha.util.io</a>
-    <div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.util.io/printerrln" class="toc-entry-anchor">printerrln</a>
-      
-    </div><div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.util.io/read-edn" class="toc-entry-anchor">read-edn</a>
-      
-    </div><div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.util.io/slurp-edn" class="toc-entry-anchor">slurp-edn</a>
-      
-    </div><div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.util.io/write-file" class="toc-entry-anchor">write-file</a>
-      
-    </div>
-  </div><div class="toc-section" style="margin-left: 1em;">
-    <a style="margin-top: 3px;" href="#alpha.util.maven">alpha.util.maven</a>
-    <div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.util.maven/lib-&gt;names" class="toc-entry-anchor">lib-&gt;names</a>
-      
-    </div>
-  </div><div class="toc-section" style="margin-left: 1em;">
-    <a style="margin-top: 3px;" href="#alpha.util.s3-transporter">alpha.util.s3-transporter</a>
-    <div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.util.s3-transporter/s3-peek" class="toc-entry-anchor">s3-peek</a>
-      
-    </div>
-  </div><div class="toc-section" style="margin-left: 1em;">
-    <a style="margin-top: 3px;" href="#alpha.util.session">alpha.util.session</a>
-    <div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.util.session/retrieve" class="toc-entry-anchor">retrieve</a>
-      
-    </div><div class="toc-entry" style="margin-left: 1em;">
-      <a href="#clojure.tools.deps.alpha.util.session/with-session" class="toc-entry-anchor">with-session</a>
-      
-    </div>
   </div>
 </div>
 </div>
                 <div id="content-tag"><h1 id="overview">API for <span id="alpha">alpha</span>
-  - <span id="header-project">tools.deps.alpha</span> <span id="header-version">0.9.746-SNAPSHOT</span><span id="header-status-block"> (<span id="header-status">in development</span>)</span>
+  - <span id="header-project">tools.deps.alpha</span> <span id="header-version">0.9.800-SNAPSHOT</span><span id="header-status-block"> (<span id="header-status">in development</span>)</span>
   </h1>
 
 <br />Full namespace name: <span id="long-name">clojure.tools.deps.alpha</span>
@@ -243,11 +147,12 @@ Returns the runtime basis, which is the initial deps edn map plus these keys:
   :resolve-args - the resolve args passed in, if any
   :classpath-args - the classpath args passed in, if any
   :libs - lib map, per resolve-deps
-  :classpath - classpath map per make-classpath-map</pre>
+  :classpath - classpath map per make-classpath-map
+  :classpath-roots - vector of paths in classpath order</pre>
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/a053d4c731bb169a940bf089118d184c9593a477/src/main/clojure/clojure/tools/deps/alpha.clj#L525">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/dc5a70dd348929fc2431b0e939e75bb424aeb224/src/main/clojure/clojure/tools/deps/alpha.clj#L604">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
@@ -260,7 +165,7 @@ a deps edn map into a single args map.</pre>
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/a053d4c731bb169a940bf089118d184c9593a477/src/main/clojure/clojure/tools/deps/alpha.clj#L172">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/dc5a70dd348929fc2431b0e939e75bb424aeb224/src/main/clojure/clojure/tools/deps/alpha.clj#L184">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
@@ -275,7 +180,7 @@ If no project-edn is supplied, use the deps.edn in current directory</pre>
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/a053d4c731bb169a940bf089118d184c9593a477/src/main/clojure/clojure/tools/deps/alpha.clj#L116">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/dc5a70dd348929fc2431b0e939e75bb424aeb224/src/main/clojure/clojure/tools/deps/alpha.clj#L116">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
@@ -287,7 +192,7 @@ If no project-edn is supplied, use the deps.edn in current directory</pre>
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/a053d4c731bb169a940bf089118d184c9593a477/src/main/clojure/clojure/tools/deps/alpha.clj#L501">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/dc5a70dd348929fc2431b0e939e75bb424aeb224/src/main/clojure/clojure/tools/deps/alpha.clj#L571">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
@@ -300,7 +205,7 @@ without actually doing the procuring!</pre>
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/a053d4c731bb169a940bf089118d184c9593a477/src/main/clojure/clojure/tools/deps/alpha.clj#L180">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/dc5a70dd348929fc2431b0e939e75bb424aeb224/src/main/clojure/clojure/tools/deps/alpha.clj#L192">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
@@ -324,28 +229,28 @@ Returns the classpath as a string.</pre>
          :classpath-args :clojure.tools.deps.alpha.specs/classpath-args)
   Ret:  string?</pre>
     
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/a053d4c731bb169a940bf089118d184c9593a477/src/main/clojure/clojure/tools/deps/alpha.clj#L506">Source</a>
+    <span class="var-deprecated"><span id="content">Deprecated since tools.deps.alpha version 0.9.745</span><br /></span>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/dc5a70dd348929fc2431b0e939e75bb424aeb224/src/main/clojure/clojure/tools/deps/alpha.clj#L576">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
     <h2 id="clojure.tools.deps.alpha/make-classpath-map">make-classpath-map</h2>
     <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (make-classpath-map {:keys [paths aliases], :as deps-edn-map} lib-map {:keys [classpath-overrides extra-paths], :as classpath-args})
+    <pre id="var-usage">Usage: (make-classpath-map {:keys [paths aliases], :as deps-edn-map} lib-map classpath-args)
 </pre>
     <pre id="var-docstr">Takes a merged deps edn map and a lib map. Extracts the paths for each chosen
 lib coordinate, and assembles a classpath map. The classpath-args is a map with
 keys that can be used to modify the classpath building operation:
-
   :extra-paths - extra classpath paths to add to the classpath
   :classpath-overrides - a map of lib to path, where path is used instead of the coord's paths
 
-Returns the classpath as a map from a path entry (string) to a map describing where its from,
-with either a :lib-name or :path-key entry.</pre>
+Returns a map:
+  :classpath map of path entry (string) to a map describing where its from,  either a :lib-name or :path-key entry.
+  :classpath-roots coll of the classpath keys in classpath order</pre>
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/a053d4c731bb169a940bf089118d184c9593a477/src/main/clojure/clojure/tools/deps/alpha.clj#L482">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/dc5a70dd348929fc2431b0e939e75bb424aeb224/src/main/clojure/clojure/tools/deps/alpha.clj#L552">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
@@ -357,7 +262,7 @@ with either a :lib-name or :path-key entry.</pre>
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/a053d4c731bb169a940bf089118d184c9593a477/src/main/clojure/clojure/tools/deps/alpha.clj#L139">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/dc5a70dd348929fc2431b0e939e75bb424aeb224/src/main/clojure/clojure/tools/deps/alpha.clj#L139">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
@@ -369,7 +274,7 @@ with either a :lib-name or :path-key entry.</pre>
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/a053d4c731bb169a940bf089118d184c9593a477/src/main/clojure/clojure/tools/deps/alpha.clj#L465">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/dc5a70dd348929fc2431b0e939e75bb424aeb224/src/main/clojure/clojure/tools/deps/alpha.clj#L499">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
@@ -397,7 +302,7 @@ Returns a lib map (map of lib to coordinate chosen).</pre>
           :clojure.tools.deps.alpha.specs/resolved-coord)</pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/a053d4c731bb169a940bf089118d184c9593a477/src/main/clojure/clojure/tools/deps/alpha.clj#L424">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/dc5a70dd348929fc2431b0e939e75bb424aeb224/src/main/clojure/clojure/tools/deps/alpha.clj#L457">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
@@ -410,7 +315,7 @@ clojure/tools/deps/deps.edn</pre>
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/a053d4c731bb169a940bf089118d184c9593a477/src/main/clojure/clojure/tools/deps/alpha.clj#L97">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/dc5a70dd348929fc2431b0e939e75bb424aeb224/src/main/clojure/clojure/tools/deps/alpha.clj#L97">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
@@ -423,7 +328,7 @@ return a deps map.</pre>
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/a053d4c731bb169a940bf089118d184c9593a477/src/main/clojure/clojure/tools/deps/alpha.clj#L91">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/dc5a70dd348929fc2431b0e939e75bb424aeb224/src/main/clojure/clojure/tools/deps/alpha.clj#L91">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
@@ -436,7 +341,7 @@ returning an updated project edn.</pre>
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/a053d4c731bb169a940bf089118d184c9593a477/src/main/clojure/clojure/tools/deps/alpha.clj#L519">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/dc5a70dd348929fc2431b0e939e75bb424aeb224/src/main/clojure/clojure/tools/deps/alpha.clj#L590">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
@@ -449,445 +354,7 @@ Note that it's possible no file may exist at this location.</pre>
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/a053d4c731bb169a940bf089118d184c9593a477/src/main/clojure/clojure/tools/deps/alpha.clj#L104">Source</a>
-  </div>
-</div>
-
-<br />
-<h2 id="alpha.extensions">alpha.extensions</h2>
-<pre id="namespace-docstr"></pre>
-
-
-<br />
-
-
-<div id="var-section">
-  <p></p>
-  <h2>Public Variables and Functions</h2>
-  <div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.extensions/canonicalize">canonicalize</h2>
-    <span id="var-type">multimethod</span><br />
-    <pre id="var-usage">No usage documentation available</pre>
-    <pre id="var-docstr">Takes a lib and coordinate and returns a canonical form.
-For example, a Maven coordinate might resolve LATEST to a version or a Git
-coordinate might resolve a partial sha to a full sha. Returns [lib coord].</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/ebadd1d30e1ad7d8631e827b0615125bb31a4c76/src/main/clojure/clojure/tools/deps/alpha/extensions.clj#L48">Source</a>
-  </div><div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.extensions/compare-versions">compare-versions</h2>
-    <span id="var-type">multimethod</span><br />
-    <pre id="var-usage">No usage documentation available</pre>
-    <pre id="var-docstr">Given two coordinates, use this as a comparator returning a negative number, zero,
-or positive number when coord-x is logically 'less than', 'equal to', or 'greater than'
-coord-y. The dispatch occurs on the type of x and y.</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/ebadd1d30e1ad7d8631e827b0615125bb31a4c76/src/main/clojure/clojure/tools/deps/alpha/extensions.clj#L89">Source</a>
-  </div><div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.extensions/coord-deps">coord-deps</h2>
-    <span id="var-type">multimethod</span><br />
-    <pre id="var-usage">No usage documentation available</pre>
-    <pre id="var-docstr">Return coll of immediate [lib coord] external deps for this library.</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/ebadd1d30e1ad7d8631e827b0615125bb31a4c76/src/main/clojure/clojure/tools/deps/alpha/extensions.clj#L110">Source</a>
-  </div><div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.extensions/coord-paths">coord-paths</h2>
-    <span id="var-type">multimethod</span><br />
-    <pre id="var-usage">No usage documentation available</pre>
-    <pre id="var-docstr">Return coll of classpath roots for this library on disk.</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/ebadd1d30e1ad7d8631e827b0615125bb31a4c76/src/main/clojure/clojure/tools/deps/alpha/extensions.clj#L117">Source</a>
-  </div><div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.extensions/coord-summary">coord-summary</h2>
-    <span id="var-type">multimethod</span><br />
-    <pre id="var-usage">No usage documentation available</pre>
-    <pre id="var-docstr">Takes a coord, and returns a concise description, used when printing tree</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/ebadd1d30e1ad7d8631e827b0615125bb31a4c76/src/main/clojure/clojure/tools/deps/alpha/extensions.clj#L80">Source</a>
-  </div><div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.extensions/coord-type">coord-type</h2>
-    <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (coord-type coord)
-</pre>
-    <pre id="var-docstr">The namespace (as a keyword) of the only qualified key in the coordinate,
-excluding the reserved deps namespace.</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/ebadd1d30e1ad7d8631e827b0615125bb31a4c76/src/main/clojure/clojure/tools/deps/alpha/extensions.clj#L32">Source</a>
-  </div><div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.extensions/dep-id">dep-id</h2>
-    <span id="var-type">multimethod</span><br />
-    <pre id="var-usage">No usage documentation available</pre>
-    <pre id="var-docstr">Returns an identifier value that can be used to detect a lib/coord cycle while
-expanding deps. This will only be called after canonicalization so it can rely
-on the canonical form.</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/ebadd1d30e1ad7d8631e827b0615125bb31a4c76/src/main/clojure/clojure/tools/deps/alpha/extensions.clj#L57">Source</a>
-  </div><div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.extensions/detect-manifest">detect-manifest</h2>
-    <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (detect-manifest dir)
-</pre>
-    <pre id="var-docstr">Given a directory, detect the manifest type and return the manifest info.</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/ebadd1d30e1ad7d8631e827b0615125bb31a4c76/src/main/clojure/clojure/tools/deps/alpha/extensions.clj#L21">Source</a>
-  </div><div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.extensions/lib-location">lib-location</h2>
-    <span id="var-type">multimethod</span><br />
-    <pre id="var-usage">No usage documentation available</pre>
-    <pre id="var-docstr">Takes a coordinate and returns the location where the lib would be
-installed locally. Location keys:
-
-:base     local repo base directory path
-:path     path within base dir
-:type     coordinate type</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/ebadd1d30e1ad7d8631e827b0615125bb31a4c76/src/main/clojure/clojure/tools/deps/alpha/extensions.clj#L39">Source</a>
-  </div><div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.extensions/manifest-type">manifest-type</h2>
-    <span id="var-type">multimethod</span><br />
-    <pre id="var-usage">No usage documentation available</pre>
-    <pre id="var-docstr">Takes a lib, a coord, and the root config. Dispatch based on the
-coordinate type. Detect and return the manifest type and location
-for this coordinate.</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/ebadd1d30e1ad7d8631e827b0615125bb31a4c76/src/main/clojure/clojure/tools/deps/alpha/extensions.clj#L71">Source</a>
-  </div>
-</div>
-
-<br />
-<h2 id="alpha.gen.pom">alpha.gen.pom</h2>
-<pre id="namespace-docstr"></pre>
-
-
-<br />
-
-
-<div id="var-section">
-  <p></p>
-  <h2>Public Variables and Functions</h2>
-  <div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.gen.pom/sync-pom">sync-pom</h2>
-    <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (sync-pom {:keys [basis params]})
-       (sync-pom {:keys [deps paths :mvn/repos], :as deps-edn} dir)
-</pre>
-    <pre id="var-docstr">Creates or synchronizes a pom given a map of :basis and :params.
-
-From basis, uses:
-  :deps to build &lt;dependencies&gt;
-  :paths to build &lt;srcDirectory&gt;
-  :mvn/repos to build &lt;repositories&gt; (omits maven central, included by default)
-
-Params:
-  :target-dir Path to target output directory (required)
-  :src-pom Path to source pom file (optional, default = "pom.xml")
-  :lib Symbol of groupId/artifactId (required for new, optional for existing)
-  :version String of project version (optional)</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/eefd1589e0b71cc98efba5d4590ab0da10754c65/src/main/clojure/clojure/tools/deps/alpha/gen/pom.clj#L178">Source</a>
-  </div>
-</div>
-
-<br />
-<h2 id="alpha.tools.install">alpha.tools.install</h2>
-<pre id="namespace-docstr"></pre>
-
-
-<br />
-
-
-<div id="var-section">
-  <p></p>
-  <h2>Public Variables and Functions</h2>
-  <div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.tools.install/install">install</h2>
-    <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (install {:keys [lib jar pom classifier local-repo], :as opts})
-</pre>
-    <pre id="var-docstr">Install a jar and optional pom to the Maven local cache.
-The group/artifact/version coordinate will be pulled from the
-pom
-if supplied, or the pom in the jar file, or must be provided.
-Any provided attributes override those in the pom/jar.
-
-  Options:
-    :jar (required) - path to jar file
-    :pom (optional) - path to pom file
-    :lib (optional) - qualified symbol like my.org/lib
-    :version (optional) - string
-    :classifier (optional) - string
-    :local-repo (optional) - path to local repo (default = ~/.m2/repository)</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/8e54c3e654ebfed8b355487b78cd514d7096912a/src/main/clojure/clojure/tools/deps/alpha/tools/install.clj#L67">Source</a>
-  </div>
-</div>
-
-<br />
-<h2 id="alpha.util.dir">alpha.util.dir</h2>
-<pre id="namespace-docstr"></pre>
-
-
-<br />
-
-
-<div id="var-section">
-  <p></p>
-  <h2>Public Variables and Functions</h2>
-  <div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.util.dir/*the-dir*">*the-dir*</h2>
-    <span id="var-type">dynamic var</span><br />
-    <pre id="var-usage"></pre>
-    <pre id="var-docstr">Thread-local directory context for resolving relative directories.
-Defaults to current directory. Should always hold an absolute directory
-java.io.File, never null.</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/746be01d6b19fe354420c143a5b1ad92e0a78f3f/src/main/clojure/clojure/tools/deps/alpha/util/dir.clj#L17">Source</a>
-  </div><div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.util.dir/as-canonical">as-canonical</h2>
-    <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (as-canonical dir)
-</pre>
-    <pre id="var-docstr">As canonical File in terms of the current directory context</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/746be01d6b19fe354420c143a5b1ad92e0a78f3f/src/main/clojure/clojure/tools/deps/alpha/util/dir.clj#L23">Source</a>
-  </div><div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.util.dir/canonicalize">canonicalize</h2>
-    <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (canonicalize f)
-</pre>
-    <pre id="var-docstr">Make canonical File in terms of the current directory context.
-f may be either absolute or relative.</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/746be01d6b19fe354420c143a5b1ad92e0a78f3f/src/main/clojure/clojure/tools/deps/alpha/util/dir.clj#L37">Source</a>
-  </div><div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.util.dir/with-dir">with-dir</h2>
-    <span id="var-type">macro</span><br />
-    <pre id="var-usage">Usage: (with-dir dir &amp; body)
-</pre>
-    <pre id="var-docstr">Push directory into current directory context for execution of body.</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/746be01d6b19fe354420c143a5b1ad92e0a78f3f/src/main/clojure/clojure/tools/deps/alpha/util/dir.clj#L31">Source</a>
-  </div>
-</div>
-
-<br />
-<h2 id="alpha.util.io">alpha.util.io</h2>
-<pre id="namespace-docstr"></pre>
-
-
-<br />
-
-
-<div id="var-section">
-  <p></p>
-  <h2>Public Variables and Functions</h2>
-  <div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.util.io/printerrln">printerrln</h2>
-    <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (printerrln &amp; msgs)
-</pre>
-    <pre id="var-docstr">println to *err*</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/09e77640d08783ebb4ccfcf2e9a296cc7f949490/src/main/clojure/clojure/tools/deps/alpha/util/io.clj#L19">Source</a>
-  </div><div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.util.io/read-edn">read-edn</h2>
-    <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (read-edn reader)
-</pre>
-    <pre id="var-docstr">Read the edn file from the specified `reader`.
-This file should contain a single edn value. Empty files return nil.
-The reader will be read to EOF and closed.</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/09e77640d08783ebb4ccfcf2e9a296cc7f949490/src/main/clojure/clojure/tools/deps/alpha/util/io.clj#L27">Source</a>
-  </div><div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.util.io/slurp-edn">slurp-edn</h2>
-    <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (slurp-edn f)
-</pre>
-    <pre id="var-docstr">Read the edn file specified by f, a string or File.
-An empty file will return nil.</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/09e77640d08783ebb4ccfcf2e9a296cc7f949490/src/main/clojure/clojure/tools/deps/alpha/util/io.clj#L41">Source</a>
-  </div><div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.util.io/write-file">write-file</h2>
-    <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (write-file f s)
-</pre>
-    <pre id="var-docstr">Write the string s to file f. Creates parent directories for f if they don't exist.</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/09e77640d08783ebb4ccfcf2e9a296cc7f949490/src/main/clojure/clojure/tools/deps/alpha/util/io.clj#L47">Source</a>
-  </div>
-</div>
-
-<br />
-<h2 id="alpha.util.maven">alpha.util.maven</h2>
-<pre id="namespace-docstr"></pre>
-
-
-<br />
-
-
-<div id="var-section">
-  <p></p>
-  <h2>Public Variables and Functions</h2>
-  <div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.util.maven/lib-&gt;names">lib-&gt;names</h2>
-    <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (lib-&gt;names lib)
-</pre>
-    <pre id="var-docstr">Split lib symbol into [group-id artifact-id classifier]</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/ccc19832c56feaa2d328ef6ccc2b959d9457423b/src/main/clojure/clojure/tools/deps/alpha/util/maven.clj#L227">Source</a>
-  </div>
-</div>
-
-<br />
-<h2 id="alpha.util.s3-transporter">alpha.util.s3-transporter</h2>
-<pre id="namespace-docstr"></pre>
-
-
-<br />
-
-
-<div id="var-section">
-  <p></p>
-  <h2>Public Variables and Functions</h2>
-  <div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.util.s3-transporter/s3-peek">s3-peek</h2>
-    <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (s3-peek s3-client bucket path)
-</pre>
-    <pre id="var-docstr">Returns nil if path exists, anomaly category otherwise</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/95b6c912b6da2dabd2b3db127e02f66ce699ee1f/src/main/clojure/clojure/tools/deps/alpha/util/s3_transporter.clj#L25">Source</a>
-  </div>
-</div>
-
-<br />
-<h2 id="alpha.util.session">alpha.util.session</h2>
-<pre id="namespace-docstr">Maintains session resources during or across runs of the resolver</pre>
-
-
-<br />
-
-
-<div id="var-section">
-  <p></p>
-  <h2>Public Variables and Functions</h2>
-  <div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.util.session/retrieve">retrieve</h2>
-    <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (retrieve key)
-       (retrieve key if-absent-fn)
-</pre>
-    <pre id="var-docstr">Read the current value of key from the session. If absent, and if-absent-fn
-is supplied, invoke the fn, set it in the session (if there is one),
-and return the value.</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/04a1452616f5f3e385f113d33cbc11a02bd499d3/src/main/clojure/clojure/tools/deps/alpha/util/session.clj#L14">Source</a>
-  </div><div id="var-entry">
-    <br />
-    <hr />
-    <h2 id="clojure.tools.deps.alpha.util.session/with-session">with-session</h2>
-    <span id="var-type">macro</span><br />
-    <pre id="var-usage">Usage: (with-session &amp; body)
-</pre>
-    <pre id="var-docstr">Create a new empty session and execute the body</pre>
-    <pre id="var-specs"></pre>
-    
-    
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/04a1452616f5f3e385f113d33cbc11a02bd499d3/src/main/clojure/clojure/tools/deps/alpha/util/session.clj#L27">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/dc5a70dd348929fc2431b0e939e75bb424aeb224/src/main/clojure/clojure/tools/deps/alpha.clj#L104">Source</a>
   </div>
 </div>
 
