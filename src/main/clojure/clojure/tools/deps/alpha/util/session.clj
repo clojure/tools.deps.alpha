@@ -6,7 +6,8 @@
 ;   the terms of this license.
 ;   You must not remove this notice, or any other, from this software.
 
-(ns clojure.tools.deps.alpha.util.session
+(ns ^{:skip-wiki true}
+  clojure.tools.deps.alpha.util.session
   "Maintains session resources during or across runs of the resolver")
 
 (def ^:dynamic *session* nil)

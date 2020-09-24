@@ -6,7 +6,8 @@
 ;   the terms of this license.
 ;   You must not remove this notice, or any other, from this software.
 
-(ns clojure.tools.deps.alpha.util.s3-transporter
+(ns ^{:skip-wiki true}
+  clojure.tools.deps.alpha.util.s3-transporter
   (:refer-clojure :exclude [peek get])
   (:require
     [cognitect.aws.client.api :as aws]
