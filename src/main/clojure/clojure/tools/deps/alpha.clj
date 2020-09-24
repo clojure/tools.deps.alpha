@@ -148,10 +148,6 @@
 (def ^:private last-wins (comp last #(remove nil? %) vector))
 (def ^:private append (comp vec concat))
 (def ^:private append-unique (comp vec distinct concat))
-(def ^:private merge-or-replace (fn [v1 v2] (cond (nil? v1) v2
-                                                  (nil? v2) v1
-                                                  (and (map? v1) (map? v2)) (merge v1 v2)
-                                                  :else v2)))
 
 (def ^:private merge-alias-rules
   {:deps merge ;; FUTURE: remove
