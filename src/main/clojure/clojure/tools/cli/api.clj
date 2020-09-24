@@ -36,7 +36,7 @@
   (-> (System/getProperty "clojure.basis") jio/file slurp edn/read-string))
 
 (defn tree
-  "Print deps tree. Takes an opts map, but no opts yet."
+  "Print deps tree."
   [_]
   (let [{:keys [libs]} (read-basis)]
     (deps/print-tree libs)))
@@ -44,6 +44,7 @@
 ;;;; git resolve-tags
 
 (defn git-resolve-tags
+  "Resolve git tags in deps.edn git deps to full shas."
   [_]
   (resolve-tags/exec {:deps-file "deps.edn"}))
 
