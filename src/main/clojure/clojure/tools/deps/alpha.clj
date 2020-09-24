@@ -583,6 +583,7 @@
     :classpath-overrides - a map of lib to path, where path is used instead of the coord's paths
 
   Returns the classpath as a string."
+  {:deprecated "0.9.745"}
   [lib-map paths classpath-args]
   (-> (make-classpath-map {:paths paths} lib-map classpath-args) :classpath-roots join-classpath))
 
