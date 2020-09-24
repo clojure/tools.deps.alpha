@@ -7,6 +7,7 @@
 ;   You must not remove this notice, or any other, from this software.
 
 (ns clojure.tools.cli.api
+  "This api provides functions that can be executed from the Clojure tools using -X:deps."
   (:require
     [clojure.java.io :as jio]
     [clojure.edn :as edn]
@@ -51,7 +52,8 @@
 ;;;; Generate pom
 
 (defn mvn-pom
-  "Sync local pom.xml.
+  "Sync or create pom.xml from deps.edn.
+
   Options:
     :argmaps - vector of aliases to combine into argmaps to resolve-deps and make-classpath"
   [{:keys [argmaps]}]
