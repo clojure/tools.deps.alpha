@@ -4,7 +4,7 @@
    :wiki-url
    "https://clojure.github.io/tools.deps.alpha/clojure.tools.cli.api-api.html",
    :source-url
-   "https://github.com/clojure/tools.deps.alpha/blob/f1afae14c6d6d1b3a6faf15f2748043ce6d8eee1/src/main/clojure/clojure/tools/cli/api.clj"}
+   "https://github.com/clojure/tools.deps.alpha/blob/175f1fd05f7f111d3b5bf95d387b843b38f6a2ba/src/main/clojure/clojure/tools/cli/api.clj"}
   {:doc nil,
    :name "clojure.tools.deps.alpha",
    :wiki-url
@@ -13,12 +13,25 @@
    "https://github.com/clojure/tools.deps.alpha/blob/dc5a70dd348929fc2431b0e939e75bb424aeb224/src/main/clojure/clojure/tools/deps/alpha.clj"}),
  :vars
  ({:raw-source-url
-   "https://github.com/clojure/tools.deps.alpha/raw/f1afae14c6d6d1b3a6faf15f2748043ce6d8eee1/src/main/clojure/clojure/tools/cli/api.clj",
+   "https://github.com/clojure/tools.deps.alpha/raw/175f1fd05f7f111d3b5bf95d387b843b38f6a2ba/src/main/clojure/clojure/tools/cli/api.clj",
+   :name "git-resolve-tags",
+   :file "src/main/clojure/clojure/tools/cli/api.clj",
+   :source-url
+   "https://github.com/clojure/tools.deps.alpha/blob/175f1fd05f7f111d3b5bf95d387b843b38f6a2ba/src/main/clojure/clojure/tools/cli/api.clj#L46",
+   :line 46,
+   :var-type "function",
+   :arglists ([_]),
+   :doc "Resolve git tags in deps.edn git deps to full shas.",
+   :namespace "clojure.tools.cli.api",
+   :wiki-url
+   "https://clojure.github.io/tools.deps.alpha//clojure.tools.cli.api-api.html#clojure.tools.cli.api/git-resolve-tags"}
+  {:raw-source-url
+   "https://github.com/clojure/tools.deps.alpha/raw/175f1fd05f7f111d3b5bf95d387b843b38f6a2ba/src/main/clojure/clojure/tools/cli/api.clj",
    :name "mvn-install",
    :file "src/main/clojure/clojure/tools/cli/api.clj",
    :source-url
-   "https://github.com/clojure/tools.deps.alpha/blob/f1afae14c6d6d1b3a6faf15f2748043ce6d8eee1/src/main/clojure/clojure/tools/cli/api.clj#L106",
-   :line 106,
+   "https://github.com/clojure/tools.deps.alpha/blob/175f1fd05f7f111d3b5bf95d387b843b38f6a2ba/src/main/clojure/clojure/tools/cli/api.clj#L107",
+   :line 107,
    :var-type "function",
    :arglists ([{:keys [lib jar pom classifier local-repo], :as opts}]),
    :doc
@@ -27,12 +40,12 @@
    :wiki-url
    "https://clojure.github.io/tools.deps.alpha//clojure.tools.cli.api-api.html#clojure.tools.cli.api/mvn-install"}
   {:raw-source-url
-   "https://github.com/clojure/tools.deps.alpha/raw/f1afae14c6d6d1b3a6faf15f2748043ce6d8eee1/src/main/clojure/clojure/tools/cli/api.clj",
+   "https://github.com/clojure/tools.deps.alpha/raw/175f1fd05f7f111d3b5bf95d387b843b38f6a2ba/src/main/clojure/clojure/tools/cli/api.clj",
    :name "mvn-pom",
    :file "src/main/clojure/clojure/tools/cli/api.clj",
    :source-url
-   "https://github.com/clojure/tools.deps.alpha/blob/f1afae14c6d6d1b3a6faf15f2748043ce6d8eee1/src/main/clojure/clojure/tools/cli/api.clj#L52",
-   :line 52,
+   "https://github.com/clojure/tools.deps.alpha/blob/175f1fd05f7f111d3b5bf95d387b843b38f6a2ba/src/main/clojure/clojure/tools/cli/api.clj#L53",
+   :line 53,
    :var-type "function",
    :arglists ([{:keys [argmaps]}]),
    :doc
@@ -41,15 +54,15 @@
    :wiki-url
    "https://clojure.github.io/tools.deps.alpha//clojure.tools.cli.api-api.html#clojure.tools.cli.api/mvn-pom"}
   {:raw-source-url
-   "https://github.com/clojure/tools.deps.alpha/raw/f1afae14c6d6d1b3a6faf15f2748043ce6d8eee1/src/main/clojure/clojure/tools/cli/api.clj",
+   "https://github.com/clojure/tools.deps.alpha/raw/175f1fd05f7f111d3b5bf95d387b843b38f6a2ba/src/main/clojure/clojure/tools/cli/api.clj",
    :name "tree",
    :file "src/main/clojure/clojure/tools/cli/api.clj",
    :source-url
-   "https://github.com/clojure/tools.deps.alpha/blob/f1afae14c6d6d1b3a6faf15f2748043ce6d8eee1/src/main/clojure/clojure/tools/cli/api.clj#L38",
+   "https://github.com/clojure/tools.deps.alpha/blob/175f1fd05f7f111d3b5bf95d387b843b38f6a2ba/src/main/clojure/clojure/tools/cli/api.clj#L38",
    :line 38,
    :var-type "function",
    :arglists ([_]),
-   :doc "Print deps tree. Takes an opts map, but no opts yet.",
+   :doc "Print deps tree.",
    :namespace "clojure.tools.cli.api",
    :wiki-url
    "https://clojure.github.io/tools.deps.alpha//clojure.tools.cli.api-api.html#clojure.tools.cli.api/tree"}
