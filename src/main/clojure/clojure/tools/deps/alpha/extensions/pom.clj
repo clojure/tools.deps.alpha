@@ -12,7 +12,8 @@
     [clojure.java.io :as jio]
     [clojure.string :as str]
     [clojure.tools.deps.alpha.extensions :as ext]
-    [clojure.tools.deps.alpha.util.maven :as maven])
+    [clojure.tools.deps.alpha.util.maven :as maven]
+    [clojure.tools.deps.alpha.util.io :as io])
   (:import
     [java.io File]
     [java.util List]
@@ -104,14 +105,18 @@
     (model-deps model)))
 
 (defmethod ext/coord-paths :pom
-  [_lib {:keys [deps/root] :as _coord} _mf config]
+  [lib {:keys [deps/root] :as _coord} _mf config]
   (let [pom (jio/file root "pom.xml")
         model (read-model-file pom config)
         srcs (into [(.getCanonicalPath (jio/file root (.. model getBuild getSourceDirectory)))
                     (.getCanonicalPath (jio/file root "src/main/clojure"))]
                    (for [^Resource resource (.. model getBuild getResources)]
-                     (.getCanonicalPath (jio/file root (.getDirectory resource)))))]
-    (distinct srcs)))
+                     (let [dir (jio/file (.getDirectory resource))]
+                       (when dir
+                         (if (.isAbsolute dir)
+                           (io/printerrln "Skipping absolute resource directory of" lib ":" dir)
+                           (.getCanonicalPath (jio/file root dir)))))))]
+    (->> srcs (remove nil?) distinct)))
 
 (comment
   (ext/coord-deps 'org.clojure/core.async {:deps/root "../core.async" :deps/manifest :pom}
