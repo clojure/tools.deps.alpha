@@ -25,6 +25,7 @@ Changelog
   * Bump to tools.gitlibs 1.0.96 (see TDEPS-160)
 * 0.9.755 on July 30, 2020
   * TDEPS-157 Fix regression with groupId getting overwritten when syncing existing pom
+  * TDEPS-159 Cut orphaned children of previously selected version after expansion
 * 0.9.751 on July 30, 2020
   * Fixed docstring for make-classpath-map
 * 0.9.745 on July 22, 2020
