@@ -3,6 +3,8 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.1/CHANGELOG.md)*
 
+* next
+  * Fix issues with transitive orphan handling when finding newer versions during expansion
 * 0.9.810 on Sep 24, 2020
   * Fix issue with merging non-map alias args
   * TDEPS-167 - Handle absolute resource paths in pom deps
