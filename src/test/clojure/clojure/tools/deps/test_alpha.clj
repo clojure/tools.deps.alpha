@@ -230,6 +230,28 @@
                                                'ex/b {:fkn/version "1"}}} nil)]
             (libs->lib-ver res))))))
 
+;; +a -> +b -> -x2 -> -y2 -> -z2
+;;    -> +c -> +d -> +x3 -> +y2 -> +z2
+;;    -> -x1 -> -y1 -> -z1
+;; include all of x3/y3/z3
+(deftest test-multi-version-discovery
+  (fkn/with-libs {'ex/a {{:fkn/version "1"} [['ex/b {:fkn/version "1"}]
+                                             ['ex/c {:fkn/version "1"}]
+                                             ['ex/x {:fkn/version "1"}]]}
+                  'ex/b {{:fkn/version "1"} [['ex/x {:fkn/version "2"}]]}
+                  'ex/c {{:fkn/version "1"} [['ex/d {:fkn/version "1"}]]}
+                  'ex/d {{:fkn/version "1"} [['ex/x {:fkn/version "3"}]]}
+                  'ex/x {{:fkn/version "1"} [['ex/y {:fkn/version "1"}]]
+                         {:fkn/version "2"} [['ex/y {:fkn/version "2"}]]
+                         {:fkn/version "3"} [['ex/y {:fkn/version "2"}]]}
+                  'ex/y {{:fkn/version "1"} [['ex/z {:fkn/version "1"}]]
+                         {:fkn/version "2"} [['ex/z {:fkn/version "2"}]]}
+                  'ex/z {{:fkn/version "1"} nil
+                         {:fkn/version "2"} nil}}
+    (is (= {:a "1", :b "1", :c "1", :d "1", :x "3", :y "2", :z "2"}
+          (let [res (deps/resolve-deps {:deps {'ex/a {:fkn/version "1"}}} nil)]
+            (libs->lib-ver res))))))
+
 (deftest test-local-root
   (let [base (.getCanonicalFile (File. "."))]
     (testing "a relative local root canonicalizes relative to parent dep"

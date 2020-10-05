@@ -270,6 +270,11 @@
   [vmap lib]
   (get-in vmap [lib :versions (selected-version vmap lib)]))
 
+(defn- selected-paths
+  "Get paths to selected coord of lib"
+  [vmap lib]
+  (get-in vmap [lib :paths (selected-version vmap lib)]))
+
 (defn- parent-missing?
   "Is any part of the parent path missing from the selected lib/versions?
   This can happen if a newer version was found, orphaning previously selected children."
@@ -284,6 +289,19 @@
             (recur check-path)
             true))
         false))))
+
+(defn- deselect-orphans
+  "For the given paths, deselect any libs whose only selected version paths are in omitted-paths"
+  [vmap omitted-paths]
+  (reduce-kv
+    (fn [ret lib {:keys [select paths]}]
+      (let [lib-paths (get paths select)]
+        ;; if every selected path for this lib has omitted paths as prefixes, deselect
+        (if (every? (fn [p] (some #(= % (take (count %) p)) omitted-paths)) lib-paths)
+          (update-in ret [lib] dissoc :select)
+          ret)))
+    vmap
+    vmap))
 
 (defn- dominates?
   "Is new-coord newer than old-coord?"
@@ -316,8 +334,8 @@
     (parent-missing? vmap path)
     {:include false, :reason :parent-omitted, :vmap vmap}
 
-    ;; new lib => select
-    (not (contains? vmap lib))
+    ;; new lib or no selection => select
+    (not (selected-version vmap lib))
     {:include true, :reason :new-dep,
      :vmap (-> vmap
              (add-version lib coord path coord-id)
@@ -332,6 +350,7 @@
     {:include true, :reason :newer-version,
      :vmap (-> vmap
              (add-version lib coord path coord-id)
+             (deselect-orphans (set (map #(conj % lib) (selected-paths vmap lib))))
              (select-version lib coord-id false))}
 
     ;; existing lib, older version => omit
@@ -403,6 +422,7 @@
                 use-coord (merge choose-coord (ext/manifest-type lib choose-coord config))
                 coord-id (ext/dep-id lib use-coord config)
                 {:keys [include reason vmap]} (include-coord? version-map lib use-coord coord-id parents exclusions config)
+                ;_ (println "loop" lib coord-id "include=" include "reason=" reason)
                 {:keys [exclusions' cut' child-pred]} (update-excl lib use-coord coord-id use-path include reason exclusions cut)
                 new-q (if child-pred (conj q' (children-task lib use-coord use-path child-pred)) q')]
             (recur pendq new-q vmap exclusions' cut'
@@ -413,12 +433,10 @@
   "Remove any selected lib that does not have a selected parent path"
   [version-map]
   (reduce-kv
-    (fn [vmap lib {:keys [select paths]}]
-      (let [parent-paths (get paths select)]
-        ;(println "check parent-missing" lib parent-paths)
-        (if (every? #(parent-missing? version-map %) parent-paths)
-          (dissoc vmap lib)
-          vmap)))
+    (fn [vmap lib {:keys [select]}]
+      (if (nil? select)
+        (dissoc vmap lib)
+        vmap))
     version-map version-map))
 
 (defn- lib-paths
