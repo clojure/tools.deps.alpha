@@ -34,7 +34,8 @@
 (defn- read-basis
   "Read runtime and return the runtime basis"
   []
-  (-> (System/getProperty "clojure.basis") jio/file slurp edn/read-string))
+  (let [edn (-> (System/getProperty "clojure.basis") jio/file slurp)]
+    (edn/read-string {:default tagged-literal} edn)))
 
 (defn tree
   "Print deps tree."

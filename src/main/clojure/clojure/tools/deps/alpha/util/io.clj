@@ -32,7 +32,7 @@
   [^Reader reader]
   (let [EOF (Object.)]
     (with-open [rdr (PushbackReader. reader)]
-      (let [val (edn/read {:eof EOF} rdr)]
+      (let [val (edn/read {:default tagged-literal :eof EOF} rdr)]
         (if (identical? EOF val)
           nil
           (if (not (identical? EOF (edn/read {:eof EOF} rdr)))
