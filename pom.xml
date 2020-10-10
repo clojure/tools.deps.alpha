@@ -21,7 +21,7 @@
     <!-- used for build -->
     <clojure.warnOnReflection>true</clojure.warnOnReflection>
     <clojure.version>1.10.1</clojure.version>
-    <resolverVersion>1.4.1</resolverVersion>
+    <resolverVersion>1.6.1</resolverVersion>
     <mavenVersion>3.6.3</mavenVersion>
 
     <!-- default published in install deps.edn -->
@@ -104,17 +104,17 @@
     <dependency>
       <groupId>com.cognitect.aws</groupId>
       <artifactId>api</artifactId>
-      <version>0.8.408</version>
+      <version>0.8.474</version>
     </dependency>
     <dependency>
       <groupId>com.cognitect.aws</groupId>
       <artifactId>endpoints</artifactId>
-      <version>1.1.11.705</version>
+      <version>1.1.11.842</version>
     </dependency>
     <dependency>
       <groupId>com.cognitect.aws</groupId>
       <artifactId>s3</artifactId>
-      <version>784.2.593.0</version>
+      <version>809.2.734.0</version>
     </dependency>
     <dependency>
       <groupId>javax.inject</groupId>

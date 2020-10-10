@@ -1,21 +1,21 @@
 {:paths ["src/main/clojure" "src/main/resources"]
  :deps {
    org.clojure/clojure {:mvn/version "1.10.1"}
-   org.apache.maven.resolver/maven-resolver-api {:mvn/version "1.4.1"}
-   org.apache.maven.resolver/maven-resolver-spi {:mvn/version "1.4.1"}
-   org.apache.maven.resolver/maven-resolver-impl {:mvn/version "1.4.1"}
-   org.apache.maven.resolver/maven-resolver-util {:mvn/version "1.4.1"}
-   org.apache.maven.resolver/maven-resolver-connector-basic {:mvn/version "1.4.1"}
-   org.apache.maven.resolver/maven-resolver-transport-file {:mvn/version "1.4.1"}
-   org.apache.maven.resolver/maven-resolver-transport-http {:mvn/version "1.4.1"}
+   org.apache.maven.resolver/maven-resolver-api {:mvn/version "1.6.1"}
+   org.apache.maven.resolver/maven-resolver-spi {:mvn/version "1.6.1"}
+   org.apache.maven.resolver/maven-resolver-impl {:mvn/version "1.6.1"}
+   org.apache.maven.resolver/maven-resolver-util {:mvn/version "1.6.1"}
+   org.apache.maven.resolver/maven-resolver-connector-basic {:mvn/version "1.6.1"}
+   org.apache.maven.resolver/maven-resolver-transport-file {:mvn/version "1.6.1"}
+   org.apache.maven.resolver/maven-resolver-transport-http {:mvn/version "1.6.1"}
    org.apache.maven/maven-resolver-provider {:mvn/version "3.6.3"}
    org.apache.maven/maven-core {:mvn/version "3.6.3"}
    org.clojure/data.xml {:mvn/version "0.2.0-alpha6"}
    org.clojure/tools.gitlibs {:mvn/version "1.0.100"}
    org.clojure/tools.cli {:mvn/version "1.0.194"}
-   com.cognitect.aws/api {:mvn/version "0.8.408"}
-   com.cognitect.aws/endpoints {:mvn/version "1.1.11.705"}
-   com.cognitect.aws/s3 {:mvn/version "784.2.593.0"}
+   com.cognitect.aws/api {:mvn/version "0.8.474"}
+   com.cognitect.aws/endpoints {:mvn/version "1.1.11.842"}
+   com.cognitect.aws/s3 {:mvn/version "809.2.734.0"}
    javax.inject/javax.inject {:mvn/version "1"}
  }
 }

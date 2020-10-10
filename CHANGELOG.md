@@ -3,6 +3,9 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.1/CHANGELOG.md)*
 
+* next
+  * Bump to latest deps for maven-resolver and aws api
+  * Read deps.edn to be tolerant of unknown tagged literals in alias data
 * 0.9.816 on Oct 5, 2020
   * Fix issues with transitive orphan handling when finding newer versions during expansion
 * 0.9.810 on Sep 24, 2020
