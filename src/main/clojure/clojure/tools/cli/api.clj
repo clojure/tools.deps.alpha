@@ -20,11 +20,11 @@
     [clojure.tools.deps.alpha.util.maven :as mvn]
     [clojure.tools.deps.alpha.util.io :refer [printerrln]])
   (:import
-    [java.io File FileNotFoundException]
-    [java.net URL]
+    [java.io File FileNotFoundException IOException]
+    [java.nio.file Files]
+    [java.nio.file.attribute FileAttribute]
     [java.util.jar JarFile]
     [org.apache.maven.model Model]
-    [org.apache.maven.model.building UrlModelSource]
     [org.eclipse.aether.artifact DefaultArtifact]
     [org.eclipse.aether.installation InstallRequest]
     [clojure.lang IExceptionInfo]))
@@ -76,28 +76,46 @@
 
 ;;;; Install jar into local repository
 
-(defn- pom-attributes
-  [^Model model]
-  {:group-id (.getGroupId model)
-   :artifact-id (.getArtifactId model)
-   :version (.getVersion model)})
-
 (defn- read-pom-file
   [pom]
   (let [pom-file (jio/file pom)]
-    (when (.exists pom-file)
-      (pom-attributes (pom/read-model-file pom-file (deps/root-deps))))))
+    (if (.exists pom-file)
+      (let [^Model model (pom/read-model-file pom-file (deps/root-deps))]
+        {:group-id (.getGroupId model)
+         :artifact-id (.getArtifactId model)
+         :version (.getVersion model)
+         :pom-file pom})
+      (throw (FileNotFoundException. (str "Pom file not found: " (str pom)))))))
+
+(defn- gen-pom-file
+  [lib version classifier]
+  (let [group-id (namespace lib)
+        artifact-id (name lib)
+        temp-dir (.toString (Files/createTempDirectory "pom" (make-array FileAttribute 0)))
+        pom-file (str temp-dir "/pom.xml")]
+    (gen-pom/sync-pom {:params {:target-dir temp-dir
+                                :src-pom pom-file
+                                :lib lib
+                                :version version}})
+    {:group-id group-id
+     :artifact-id artifact-id
+     :version version
+     :classifier classifier
+     :pom-file pom-file}))
 
 (defn- read-pom-in-jar
-  [jar]
-  (let [jar-file (jio/file jar)]
-    (when (or (nil? jar) (not (.exists jar-file)))
-      (throw (FileNotFoundException. (str "Jar file not found: " jar))))
-    (when-let [path (local/find-pom (JarFile. jar-file))]
-      (let [url (URL. (str "jar:file:" jar "!/" path))
-            src (UrlModelSource. url)
-            model (pom/read-model src (deps/root-deps))]
-        (pom-attributes model)))))
+  [jar-name]
+  (let [jar-file (jio/file jar-name)]
+    (when (or (nil? jar-name) (not (.exists jar-file)))
+      (throw (FileNotFoundException. (str "Jar file not found: " jar-name))))
+    (let [jar (JarFile. jar-file)]
+      (if-let [path (local/find-pom jar)]
+        (let [entry (.getJarEntry jar path)
+              jis (.getInputStream jar entry)
+              tmp (File/createTempFile "pom" ".xml")]
+          (jio/copy jis tmp)
+          (read-pom-file tmp))
+        (throw (IOException. (str "Jar file does not contain pom: " jar-name)))))))
 
 (defn- output-path
   [local-repo group-id artifact-id version]
@@ -108,38 +126,41 @@
     (.getAbsolutePath ^File (apply jio/file path-parts))))
 
 (defn mvn-install
-  "Install a jar and optional pom to the Maven local cache.
+  "Install a jar and pom to the Maven local cache.
+  The pom file must either be supplied, or generated based
+  on provided lib/version/classifier, or provided inside the jar.
   The group/artifact/version coordinate will be pulled from the
-  pom if supplied, or the pom in the jar file, or must be provided.
-  Any provided attributes override those in the pom or jar.
+  pom source as above.
 
-  Options:
-    :jar (required) - path to jar file
-    :pom (optional) - path to pom file
-    :lib (optional) - qualified symbol like my.org/lib
-    :version (optional) - string
-    :classifier (optional) - string
+  Required:
+    :jar (reqired) - path to jar file (embedded pom used by default)
+
+  Explicit pom options:
+    :pom - path to pom file (pom in jar ignored)
+
+  Generated pom options:
+    :lib - qualified symbol like my.org/lib
+    :version - string
+    :classifier - string
+
+  Other options:
     :local-repo (optional) - path to local repo (default = ~/.m2/repository)
 
   Execute ad-hoc:
-    clj -X:deps mvn/install :jar '\"foo.jar\"'"
-  [{:keys [lib jar pom classifier local-repo] :as opts}]
+    clj -X:deps mvn/install :jar '\"foo-1.2.3.jar\"'"
+  [{:keys [jar pom lib version classifier local-repo] :as opts}]
   (println "Installing" jar (if pom (str "and " pom) ""))
-  (let [{:keys [group-id artifact-id version]} (merge (if pom
-                                                        (read-pom-file pom)
-                                                        (read-pom-in-jar jar))
-                                                 (when lib
-                                                   {:group-id (when lib (namespace lib))
-                                                    :artifact-id (when lib (name lib))})
-                                                 (when-let [v (:version opts)]
-                                                   {:version v}))
+  (let [{:keys [pom-file group-id artifact-id version classifier]}
+        (cond
+          pom (read-pom-file pom)
+          lib (gen-pom-file lib version classifier)
+          :else (read-pom-in-jar jar))
         jar-file (jio/file jar)
-        pom-file (jio/file pom)
+        pom-file (jio/file pom-file)
         system (mvn/make-system)
         session (mvn/make-session system (or local-repo mvn/default-local-repo))
-        jar-artifact (.setFile (DefaultArtifact. group-id artifact-id classifier "jar" version) jar-file)
-        artifacts (cond-> [jar-artifact]
-                    (and pom (.exists pom-file)) (conj (.setFile (DefaultArtifact. group-id artifact-id classifier "pom" version) pom-file)))
+        artifacts [(.setFile (DefaultArtifact. group-id artifact-id classifier "jar" version) jar-file)
+                   (.setFile (DefaultArtifact. group-id artifact-id classifier "pom" version) pom-file)]
         install-request (.setArtifacts (InstallRequest.) artifacts)]
     (.install system session install-request)
     (println "Installed to" (output-path local-repo group-id artifact-id version))))
