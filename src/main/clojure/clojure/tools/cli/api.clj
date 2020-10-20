@@ -31,17 +31,20 @@
 
 (set! *warn-on-reflection* true)
 
-(defn- read-basis
-  "Read runtime and return the runtime basis"
-  []
-  (let [edn (-> (System/getProperty "clojure.basis") jio/file slurp)]
-    (edn/read-string {:default tagged-literal} edn)))
-
 (defn tree
-  "Print deps tree."
+  "Print deps tree for the current project's deps.edn."
   [_]
-  (let [{:keys [libs]} (read-basis)]
-    (deps/print-tree libs)))
+  (try
+    (let [{:keys [root-edn user-edn project-edn]} (deps/find-edn-maps)
+          merged (deps/merge-edns [root-edn user-edn project-edn])
+          basis (deps/calc-basis merged nil)
+          libs (:libs basis)]
+      (deps/print-tree libs))
+    (catch Throwable t
+      (printerrln "Error generating pom manifest:" (.getMessage t))
+      (when-not (instance? IExceptionInfo t)
+        (.printStackTrace t))
+      (System/exit 1))))
 
 ;;;; git resolve-tags
 

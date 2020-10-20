@@ -5,6 +5,7 @@ Changelog
 
 * next
   * TDEPS-169 mvn-install should extract and install pom inside jar file
+  * `-X:deps tree` program should use project basis, not injected basis
 * 0.9.821 on Oct 10, 2020
   * Bump to latest deps for maven-resolver and aws api
   * Read deps.edn to be tolerant of unknown tagged literals in alias data
