@@ -3,7 +3,7 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.1/CHANGELOG.md)*
 
-* next
+* 0.9.828 on Oct 20, 2020
   * TDEPS-169 mvn-install should extract and install pom inside jar file
   * `-X:deps tree` program should use project basis, not injected basis
 * 0.9.821 on Oct 10, 2020
