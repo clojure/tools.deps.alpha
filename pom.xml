@@ -121,7 +121,12 @@
       <artifactId>javax.inject</artifactId>
       <version>1</version>
     </dependency>
-  </dependencies>
+    <dependency>
+      <groupId>clj-http</groupId>
+      <artifactId>clj-http</artifactId>
+      <version>3.10.0</version>
+    </dependency>
+</dependencies>
 
   <build>
     <resources>
