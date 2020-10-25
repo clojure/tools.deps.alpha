@@ -86,7 +86,7 @@
    (add-libs '{org.clojure/core.memoize {:mvn/version \"0.7.1\"}})"
   [lib-coords]
   (let [{:keys [libs] :as initial-basis} (current-basis)]
-    (if (seq (set/intersection (-> libs keys set) (-> lib-coords keys set)))
+    (if (empty? (set/difference (-> libs keys set) (-> lib-coords keys set)))
       nil ;; already loaded
       (let [updated-deps (reduce-kv (fn [m k v] (assoc m k (dissoc v :dependents :paths))) lib-coords libs)
             updated-edn (merge (dissoc initial-basis :libs :classpath :deps) {:deps updated-deps})
