@@ -3,6 +3,8 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.1/CHANGELOG.md)*
 
+* next
+  * Update specs to cover alias changes
 * 0.9.833 on Oct 21, 2020
   * Fixed issue where -Spom had stopped paying attention to -A dep changes
 * 0.9.828 on Oct 20, 2020
