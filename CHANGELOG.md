@@ -3,7 +3,7 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.1/CHANGELOG.md)*
 
-* next
+* 0.9.840 on Nov 23, 2020
   * When resolving pom models, use System properties so jdk profile activation works
   * Update specs to cover alias changes
 * 0.9.833 on Oct 21, 2020
