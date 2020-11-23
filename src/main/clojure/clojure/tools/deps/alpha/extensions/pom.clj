@@ -54,6 +54,7 @@
 (defn read-model
   ^Model [^ModelSource source config]
   (let [props (java.util.Properties.)
+        _ (.putAll props (System/getProperties))
         _ (.setProperty props "project.basedir" ".")
         req (doto (DefaultModelBuildingRequest.)
               (.setModelSource source)
