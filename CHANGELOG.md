@@ -5,6 +5,7 @@ Changelog
 
 * next
   * Add new clj -X:deps tree printer
+  * Bump aws api deps
 * 0.9.840 on Nov 23, 2020
   * When resolving pom models, use System properties so jdk profile activation works
   * Update specs to cover alias changes
