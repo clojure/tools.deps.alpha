@@ -367,7 +367,7 @@
   "Add an entry to the trace if needed"
   [trace? trace parents lib coord use-coord coord-id override-coord include reason]
   (when trace?
-    (let [entry (cond-> {:path parents, :lib lib, :coord coord, :use-coord use-coord, :coord-id coord-id
+    (let [entry (cond-> {:path parents, :lib lib, :coord use-coord, :orig-coord coord, :coord-id coord-id
                          :include include, :reason reason}
                   override-coord (assoc :override-coord override-coord))]
       (conj trace entry))))

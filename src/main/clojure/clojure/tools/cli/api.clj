@@ -13,12 +13,13 @@
     [clojure.edn :as edn]
     [clojure.string :as str]
     [clojure.tools.deps.alpha :as deps]
+    [clojure.tools.deps.alpha.tree :as tree]
     [clojure.tools.deps.alpha.script.resolve-tags :as resolve-tags]
     [clojure.tools.deps.alpha.extensions.pom :as pom]
     [clojure.tools.deps.alpha.extensions.local :as local]
     [clojure.tools.deps.alpha.gen.pom :as gen-pom]
     [clojure.tools.deps.alpha.util.maven :as mvn]
-    [clojure.tools.deps.alpha.util.io :refer [printerrln]])
+    [clojure.tools.deps.alpha.util.io :as io :refer [printerrln]])
   (:import
     [java.io File FileNotFoundException IOException]
     [java.nio.file Files]
@@ -31,17 +32,28 @@
 
 (set! *warn-on-reflection* true)
 
+(defn- make-trace
+  []
+  (let [{:keys [root-edn user-edn project-edn]} (deps/find-edn-maps)
+        merged (deps/merge-edns [root-edn user-edn project-edn])
+        basis (deps/calc-basis merged {:resolve-args {:trace true}})]
+    (-> basis :libs meta :trace)))
+
 (defn tree
-  "Print deps tree for the current project's deps.edn."
-  [_]
+  "Print deps tree for the current project's deps.edn.
+  Options:
+    :file      Path to trace.edn file (from clj -Strace) to use in computing the tree
+    :indent    Indent spacing (default = 2)
+    :hide-libs Set of libs to hide as deps (if not top dep), default = #{org.clojure/clojure}"
+  [opts]
   (try
-    (let [{:keys [root-edn user-edn project-edn]} (deps/find-edn-maps)
-          merged (deps/merge-edns [root-edn user-edn project-edn])
-          basis (deps/calc-basis merged nil)
-          libs (:libs basis)]
-      (deps/print-tree libs))
+    (let [trace (if-let [f (:file opts)]
+                  (io/slurp-edn f)
+                  (make-trace))
+          tree (tree/trace->tree trace)]
+      (tree/print-tree tree opts))
     (catch Throwable t
-      (printerrln "Error generating pom manifest:" (.getMessage t))
+      (printerrln "Error generating tree:" (.getMessage t))
       (when-not (instance? IExceptionInfo t)
         (.printStackTrace t))
       (System/exit 1))))
