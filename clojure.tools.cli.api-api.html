@@ -1,7 +1,7 @@
 <html>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>clojure.tools.cli.api - tools.deps.alpha 0.9.800-SNAPSHOT API documentation</title>
+    <title>clojure.tools.cli.api - tools.deps.alpha 0.9.848-SNAPSHOT API documentation</title>
     <link rel="icon" href="static/favicon.png" />
     <link rel="shortcut icon" href="static/favicon.png" />
     <link rel="stylesheet" href="static/clojure.css" type="text/css" media="all" />
@@ -25,7 +25,7 @@ namespace.
       <div id="leftcolumn"><div style="text-align: center;"></div>
 <div class="menu">
   <div class="WikiCustomNav WikiElement wiki">
-    <span class="toc-header"><span id="project-name">tools.deps.alpha</span> <span id="version">0.9.800-SNAPSHOT</span> API</span><br />
+    <span class="toc-header"><span id="project-name">tools.deps.alpha</span> <span id="version">0.9.848-SNAPSHOT</span> API</span><br />
     <ul>
       <li><a href="index.html" class="wiki_link">Overview</a></li>
       <li><a href="api-index.html" class="wiki_link">API Index</a></li>
@@ -78,7 +78,7 @@ namespace.
 </div>
 </div>
                 <div id="content-tag"><h1 id="overview">API for <span id="clojure.tools.cli.api">clojure.tools.cli.api</span>
-  - <span id="header-project">tools.deps.alpha</span> <span id="header-version">0.9.800-SNAPSHOT</span><span id="header-status-block"> (<span id="header-status">in development</span>)</span>
+  - <span id="header-project">tools.deps.alpha</span> <span id="header-version">0.9.848-SNAPSHOT</span><span id="header-status-block"> (<span id="header-status">in development</span>)</span>
   </h1>
 
 <br />Full namespace name: <span id="long-name">clojure.tools.cli.api</span>
@@ -106,33 +106,40 @@ namespace.
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/1d5c850da069370215345028fff0ead8ab017992/src/main/clojure/clojure/tools/cli/api.clj#L47">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/1b6b5a6ce585d1fb57e9051512ace8e8ed2ce89e/src/main/clojure/clojure/tools/cli/api.clj#L63">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
     <h2 id="clojure.tools.cli.api/mvn-install">mvn-install</h2>
     <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (mvn-install {:keys [lib jar pom classifier local-repo], :as opts})
+    <pre id="var-usage">Usage: (mvn-install {:keys [jar pom lib version classifier local-repo], :as opts})
 </pre>
-    <pre id="var-docstr">Install a jar and optional pom to the Maven local cache.
+    <pre id="var-docstr">Install a jar and pom to the Maven local cache.
+The pom file must either be supplied, or generated based
+on provided lib/version/classifier, or provided inside the jar.
 The group/artifact/version coordinate will be pulled from the
-pom if supplied, or the pom in the jar file, or must be provided.
-Any provided attributes override those in the pom or jar.
+pom source as above.
 
-Options:
-  :jar (required) - path to jar file
-  :pom (optional) - path to pom file
-  :lib (optional) - qualified symbol like my.org/lib
-  :version (optional) - string
-  :classifier (optional) - string
+Required:
+  :jar (reqired) - path to jar file (embedded pom used by default)
+
+Explicit pom options:
+  :pom - path to pom file (pom in jar ignored)
+
+Generated pom options:
+  :lib - qualified symbol like my.org/lib
+  :version - string
+  :classifier - string
+
+Other options:
   :local-repo (optional) - path to local repo (default = ~/.m2/repository)
 
 Execute ad-hoc:
-  clj -X:deps mvn/install :jar '"foo.jar"'</pre>
+  clj -X:deps mvn/install :jar '"foo-1.2.3.jar"'</pre>
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/1d5c850da069370215345028fff0ead8ab017992/src/main/clojure/clojure/tools/cli/api.clj#L109">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/1b6b5a6ce585d1fb57e9051512ace8e8ed2ce89e/src/main/clojure/clojure/tools/cli/api.clj#L143">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
@@ -147,19 +154,23 @@ Options:
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/1d5c850da069370215345028fff0ead8ab017992/src/main/clojure/clojure/tools/cli/api.clj#L54">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/1b6b5a6ce585d1fb57e9051512ace8e8ed2ce89e/src/main/clojure/clojure/tools/cli/api.clj#L70">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
     <h2 id="clojure.tools.cli.api/tree">tree</h2>
     <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (tree _)
+    <pre id="var-usage">Usage: (tree opts)
 </pre>
-    <pre id="var-docstr">Print deps tree.</pre>
+    <pre id="var-docstr">Print deps tree for the current project's deps.edn.
+Options:
+  :file      Path to trace.edn file (from clj -Strace) to use in computing the tree
+  :indent    Indent spacing (default = 2)
+  :hide-libs Set of libs to hide as deps (if not top dep), default = #{org.clojure/clojure}</pre>
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/1d5c850da069370215345028fff0ead8ab017992/src/main/clojure/clojure/tools/cli/api.clj#L39">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/1b6b5a6ce585d1fb57e9051512ace8e8ed2ce89e/src/main/clojure/clojure/tools/cli/api.clj#L42">Source</a>
   </div>
 </div>
 
