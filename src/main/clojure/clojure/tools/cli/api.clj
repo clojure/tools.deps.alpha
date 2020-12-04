@@ -11,6 +11,7 @@
   (:require
     [clojure.java.io :as jio]
     [clojure.edn :as edn]
+    [clojure.pprint :as pprint]
     [clojure.string :as str]
     [clojure.tools.deps.alpha :as deps]
     [clojure.tools.deps.alpha.tree :as tree]
@@ -40,18 +41,35 @@
     (-> basis :libs meta :trace)))
 
 (defn tree
-  "Print deps tree for the current project's deps.edn.
-  Options:
+  "Print deps tree for the current project's deps.edn built from either the
+  current directory deps.edn, or if provided, the trace file.
+
+  By default, :format will :print to the console in a human friendly tree. Use
+  :edn mode to print the tree to edn.
+
+  In print mode, deps are printed with prefix of either . (included) or X (excluded).
+  A reason code for inclusion/exclusion may be added at the end of the line.
+
+  Input options:
     :file      Path to trace.edn file (from clj -Strace) to use in computing the tree
+
+  Output mode:
+    :format    :print (default) or :edn
+
+  Print output mode modifiers:
     :indent    Indent spacing (default = 2)
     :hide-libs Set of libs to hide as deps (if not top dep), default = #{org.clojure/clojure}"
   [opts]
   (try
-    (let [trace (if-let [f (:file opts)]
-                  (io/slurp-edn f)
+    (let [{:keys [file format] :or {format :print}} opts
+          trace (if file
+                  (io/slurp-edn file)
                   (make-trace))
           tree (tree/trace->tree trace)]
-      (tree/print-tree tree opts))
+      (case format
+        :print (tree/print-tree tree opts)
+        :edn (pprint/pprint tree)
+        (throw (ex-info (str "Unknown format " format) {}))))
     (catch Throwable t
       (printerrln "Error generating tree:" (.getMessage t))
       (when-not (instance? IExceptionInfo t)
