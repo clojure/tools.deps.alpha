@@ -3,7 +3,7 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.1/CHANGELOG.md)*
 
-* next
+* 0.9.853 on Dec 6, 2020
   * More tree printing options and support for -Stree
 * 0.9.847 on Dec 2, 2020
   * Add new clj -X:deps tree printer
