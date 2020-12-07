@@ -112,16 +112,16 @@
 
 (defn run
   "Run make-classpath script. See -main for details."
-  [{:keys [config-user config-project libs-file cp-file jvm-file main-file basis-file skip-cp tree] :as opts}]
+  [{:keys [config-user config-project libs-file cp-file jvm-file main-file basis-file skip-cp trace tree] :as opts}]
   (let [opts' (merge opts {:install-deps (deps/root-deps)
                            :user-deps (read-deps config-user)
                            :project-deps (read-deps config-project)})
         {:keys [libs classpath-roots jvm main] :as basis} (run-core opts')
-        trace (-> libs meta :trace)]
+        trace-log (-> libs meta :trace)]
     (when trace
-      (spit "trace.edn" (binding [*print-namespace-maps* false] (with-out-str (clojure.pprint/pprint trace)))))
+      (spit "trace.edn" (binding [*print-namespace-maps* false] (with-out-str (clojure.pprint/pprint trace-log)))))
     (when tree
-      (-> trace tree/trace->tree (tree/print-tree nil)))
+      (-> trace-log tree/trace->tree (tree/print-tree nil)))
     (when-not skip-cp
       (io/write-file libs-file (binding [*print-namespace-maps* false] (pr-str libs)))
       (io/write-file cp-file (-> classpath-roots deps/join-classpath)))
