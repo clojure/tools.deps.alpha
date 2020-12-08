@@ -1,7 +1,7 @@
 <html>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>clojure.tools.cli.api - tools.deps.alpha 0.9.848-SNAPSHOT API documentation</title>
+    <title>clojure.tools.cli.api - tools.deps.alpha 0.9.854-SNAPSHOT API documentation</title>
     <link rel="icon" href="static/favicon.png" />
     <link rel="shortcut icon" href="static/favicon.png" />
     <link rel="stylesheet" href="static/clojure.css" type="text/css" media="all" />
@@ -25,7 +25,7 @@ namespace.
       <div id="leftcolumn"><div style="text-align: center;"></div>
 <div class="menu">
   <div class="WikiCustomNav WikiElement wiki">
-    <span class="toc-header"><span id="project-name">tools.deps.alpha</span> <span id="version">0.9.848-SNAPSHOT</span> API</span><br />
+    <span class="toc-header"><span id="project-name">tools.deps.alpha</span> <span id="version">0.9.854-SNAPSHOT</span> API</span><br />
     <ul>
       <li><a href="index.html" class="wiki_link">Overview</a></li>
       <li><a href="api-index.html" class="wiki_link">API Index</a></li>
@@ -78,7 +78,7 @@ namespace.
 </div>
 </div>
                 <div id="content-tag"><h1 id="overview">API for <span id="clojure.tools.cli.api">clojure.tools.cli.api</span>
-  - <span id="header-project">tools.deps.alpha</span> <span id="header-version">0.9.848-SNAPSHOT</span><span id="header-status-block"> (<span id="header-status">in development</span>)</span>
+  - <span id="header-project">tools.deps.alpha</span> <span id="header-version">0.9.854-SNAPSHOT</span><span id="header-status-block"> (<span id="header-status">in development</span>)</span>
   </h1>
 
 <br />Full namespace name: <span id="long-name">clojure.tools.cli.api</span>
@@ -106,7 +106,7 @@ namespace.
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/1b6b5a6ce585d1fb57e9051512ace8e8ed2ce89e/src/main/clojure/clojure/tools/cli/api.clj#L63">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/f3a2fbb426ae65d5a5c79a756f3b95b463f334a4/src/main/clojure/clojure/tools/cli/api.clj#L81">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
@@ -139,7 +139,7 @@ Execute ad-hoc:
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/1b6b5a6ce585d1fb57e9051512ace8e8ed2ce89e/src/main/clojure/clojure/tools/cli/api.clj#L143">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/f3a2fbb426ae65d5a5c79a756f3b95b463f334a4/src/main/clojure/clojure/tools/cli/api.clj#L161">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
@@ -154,7 +154,7 @@ Options:
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/1b6b5a6ce585d1fb57e9051512ace8e8ed2ce89e/src/main/clojure/clojure/tools/cli/api.clj#L70">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/f3a2fbb426ae65d5a5c79a756f3b95b463f334a4/src/main/clojure/clojure/tools/cli/api.clj#L88">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
@@ -162,15 +162,28 @@ Options:
     <span id="var-type">function</span><br />
     <pre id="var-usage">Usage: (tree opts)
 </pre>
-    <pre id="var-docstr">Print deps tree for the current project's deps.edn.
-Options:
+    <pre id="var-docstr">Print deps tree for the current project's deps.edn built from either the
+current directory deps.edn, or if provided, the trace file.
+
+By default, :format will :print to the console in a human friendly tree. Use
+:edn mode to print the tree to edn.
+
+In print mode, deps are printed with prefix of either . (included) or X (excluded).
+A reason code for inclusion/exclusion may be added at the end of the line.
+
+Input options:
   :file      Path to trace.edn file (from clj -Strace) to use in computing the tree
+
+Output mode:
+  :format    :print (default) or :edn
+
+Print output mode modifiers:
   :indent    Indent spacing (default = 2)
   :hide-libs Set of libs to hide as deps (if not top dep), default = #{org.clojure/clojure}</pre>
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/1b6b5a6ce585d1fb57e9051512ace8e8ed2ce89e/src/main/clojure/clojure/tools/cli/api.clj#L42">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/f3a2fbb426ae65d5a5c79a756f3b95b463f334a4/src/main/clojure/clojure/tools/cli/api.clj#L43">Source</a>
   </div>
 </div>
 
