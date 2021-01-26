@@ -25,7 +25,7 @@
     <mavenVersion>3.6.3</mavenVersion>
 
     <!-- default published in install deps.edn -->
-    <clojure.default>1.10.1</clojure.default>
+    <clojure.default>1.10.2</clojure.default>
   </properties>
 
   <dependencies>
