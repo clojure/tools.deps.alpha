@@ -3,7 +3,7 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.1/CHANGELOG.md)*
 
-* next
+* 0.9.859 on Jan 26, 2021
   * TDEPS-176 - Improve error message for missing git relationship
 * 0.9.857 on Dec 7, 2020
   * Fix bug that saved trace.edn when using -Stree
