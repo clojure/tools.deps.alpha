@@ -577,7 +577,7 @@
   Returns a map:
     :classpath map of path entry (string) to a map describing where its from,  either a :lib-name or :path-key entry.
     :classpath-roots coll of the classpath keys in classpath order"
-  [{:keys [paths aliases] :as deps-edn-map} lib-map classpath-args]
+  [deps-edn-map lib-map classpath-args]
   (let [flat-paths (flatten-paths deps-edn-map classpath-args)
         flat-libs (flatten-libs lib-map classpath-args)
         all-paths (concat flat-paths flat-libs)
