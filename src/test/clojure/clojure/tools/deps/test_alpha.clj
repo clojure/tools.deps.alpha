@@ -413,8 +413,6 @@
      'ex/y {{:fkn/version "1"} [['ex/a {:fkn/version "2"}]]}
      'ex/z {{:fkn/version "1"} [['ex/y {:fkn/version "1"}]]}}
     (is (= (let [res (deps/resolve-deps {:deps {'ex/x {:fkn/version "1"}, 'ex/z {:fkn/version "1"}}} nil)]
-             (clojure.pprint/pprint res)
              (reduce-kv #(assoc %1 (-> %2 name keyword) (:fkn/version %3)) {} res))
            (let [res (deps/resolve-deps {:deps {'ex/z {:fkn/version "1"}, 'ex/x {:fkn/version "1"}}} nil)]
-             (clojure.pprint/pprint res)
              (reduce-kv #(assoc %1 (-> %2 name keyword) (:fkn/version %3)) {} res))))))
