@@ -13,9 +13,9 @@
   (:import
     [java.io File]))
 
-(deftest test-as-canonical
+(deftest test-canonicalize
   (let [base (.getCanonicalFile (File. "."))]
     (binding [dir/*the-dir* base]
       (let [abs (File. "/a/b")]
-        (is (= abs (dir/as-canonical abs)))
-        (is (= (File. base "xyz") (dir/as-canonical (File. "xyz"))))))))
+        (is (= abs (dir/canonicalize abs)))
+        (is (= (File. base "xyz") (dir/canonicalize (File. "xyz"))))))))

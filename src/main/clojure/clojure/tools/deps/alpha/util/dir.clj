@@ -21,20 +21,6 @@
   java.io.File, never null."
   (jio/file (System/getProperty "user.dir")))
 
-(defn as-canonical
-  "As canonical File in terms of the current directory context"
-  ^File [^File dir]
-  (.getCanonicalFile
-    (if (.isAbsolute dir)
-      dir
-      (File. ^File *the-dir* (.getPath dir)))))
-
-(defmacro with-dir
-  "Push directory into current directory context for execution of body."
-  [^File dir & body]
-  `(binding [*the-dir* (as-canonical ~dir)]
-     ~@body))
-
 (defn canonicalize
   "Make canonical File in terms of the current directory context.
   f may be either absolute or relative."
@@ -43,3 +29,9 @@
     (if (.isAbsolute f)
       f
       (jio/file *the-dir* f))))
+
+(defmacro with-dir
+  "Push directory into current directory context for execution of body."
+  [^File dir & body]
+  `(binding [*the-dir* (canonicalize ~dir)]
+     ~@body))
