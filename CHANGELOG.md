@@ -3,6 +3,8 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.1/CHANGELOG.md)*
 
+* 0.9.871 on Feb 8, 2021
+  * Print warning if :paths or :extra-paths refers to directory not under the project root. Will eventually error.
 * 0.9.863 on Jan 26, 2021
   * Update defualt clojure version in deps.edn resource file to 1.10.2
 * 0.9.859 on Jan 26, 2021
