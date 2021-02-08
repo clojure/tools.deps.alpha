@@ -539,6 +539,13 @@
   (let [aliases' (assoc aliases :paths paths :extra-paths extra-paths)]
     (into [] (mapcat #(chase-key aliases' %)) (remove nil? [:extra-paths :paths]))))
 
+(defn- validate-paths
+  [paths]
+  (doto paths
+    (->> (map first)
+      (run! #(when (not (dir/sub-path? (jio/file %)))
+               (io/printerrln "WARNING: Specified path is external to project:" %))))))
+
 (defn- tree-paths
   "Given a lib map, return a vector of all vector paths to included libs in the tree.
   Libs are often included at multiple paths."
@@ -578,7 +585,7 @@
     :classpath map of path entry (string) to a map describing where its from,  either a :lib-name or :path-key entry.
     :classpath-roots coll of the classpath keys in classpath order"
   [deps-edn-map lib-map classpath-args]
-  (let [flat-paths (flatten-paths deps-edn-map classpath-args)
+  (let [flat-paths (->> classpath-args (flatten-paths deps-edn-map) validate-paths)
         flat-libs (flatten-libs lib-map classpath-args)
         all-paths (concat flat-paths flat-libs)
         cp (mapv first all-paths)
@@ -731,6 +738,12 @@
     (resolve-deps {:deps {'cheshire/cheshire {:mvn/version "5.8.0"}}
                    :mvn/repos mvn/standard-repos}
       {:extra-deps {'org.clojure/tools.gitlibs {:mvn/version "0.2.64"}}}))
+
+  ;; validate paths
+  (make-classpath-map
+    {:paths ["../foo/src"]}
+    (resolve-deps {:deps {} :mvn/repos mvn/standard-repos} nil)
+    nil)
 
   ;; override-deps
   (make-classpath-map
