@@ -3,7 +3,7 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.1/CHANGELOG.md)*
 
-* next on Feb 17, 2021
+* 0.9.876 on Feb 17, 2021
   * TDEPS-56 - New format for .main and .jvm files to address word splitting
 * 0.9.871 on Feb 8, 2021
   * Print warning if :paths or :extra-paths refers to directory not under the project root. Will eventually error.
