@@ -127,12 +127,12 @@
       (io/write-file cp-file (-> classpath-roots deps/join-classpath)))
     (io/write-file basis-file (binding [*print-namespace-maps* false] (pr-str basis)))
     (if jvm
-      (io/write-file jvm-file (str/join " " jvm))
+      (io/write-file jvm-file (apply str (interleave jvm (repeat "\n"))))
       (let [jf (jio/file jvm-file)]
         (when (.exists jf)
           (.delete jf))))
     (if main
-      (io/write-file main-file (str/join " " main))
+      (io/write-file main-file (apply str (interleave main (repeat "\n"))))
       (let [mf (jio/file main-file)]
         (when (.exists mf)
           (.delete mf))))))
