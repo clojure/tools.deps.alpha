@@ -33,7 +33,7 @@ Also see:
 
 Latest release: 0.9.876
 
-* [All released versions](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22org.clojure%22%20AND%20a%3A%22tools.deps.alpha%22)
+* [All released versions](https://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22org.clojure%22%20AND%20a%3A%22tools.deps.alpha%22)
 
 [deps.edn](https://clojure.org/guides/deps_and_cli) dependency information:
 
@@ -68,7 +68,7 @@ For info on using tools.deps as a library, see:
 
 * [GitHub project](https://github.com/clojure/tools.deps.alpha)
 * [How to contribute](https://clojure.org/community/contributing)
-* [Bug Tracker](https://dev.clojure.org/jira/browse/TDEPS)
+* [Bug Tracker](https://clojure.atlassian.net/browse/TDEPS)
 * [Continuous Integration](https://build.clojure.org/job/tools.deps.alpha/)
 * [Compatibility Test Matrix](https://build.clojure.org/job/tools.deps.alpha-test-matrix/)
 
@@ -84,4 +84,4 @@ in any fashion, you are agreeing to be bound by the terms of this
 license. You must not remove this notice, or any other, from this
 software.
 
-[Eclipse Public License 1.0]: http://opensource.org/licenses/eclipse-1.0.php
+[Eclipse Public License 1.0]: https://opensource.org/licenses/eclipse-1.0.php
