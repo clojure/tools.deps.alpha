@@ -13,7 +13,8 @@
     [clojure.string :as str]
     [clojure.tools.deps.alpha.extensions :as ext]
     [clojure.tools.deps.alpha.util.maven :as maven]
-    [clojure.tools.deps.alpha.util.io :as io])
+    [clojure.tools.deps.alpha.util.io :as io]
+    [clojure.tools.deps.alpha.util.session :as session])
   (:import
     [java.io File]
     [java.util List]
@@ -66,7 +67,9 @@
 
 (defn read-model-file
   ^Model [^File file config]
-  (read-model (FileModelSource. file) config))
+  (session/retrieve
+    {:pom :model :file (.getAbsolutePath root)} ;; session key
+    #(read-model (FileModelSource. file) config)))
 
 (defn- model-exclusions->data
   [exclusions]
