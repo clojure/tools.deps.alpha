@@ -68,7 +68,7 @@
 (defn read-model-file
   ^Model [^File file config]
   (session/retrieve
-    {:pom :model :file (.getAbsolutePath root)} ;; session key
+    {:pom :model :file (.getAbsolutePath file)} ;; session key
     #(read-model (FileModelSource. file) config)))
 
 (defn- model-exclusions->data
