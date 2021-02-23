@@ -3,9 +3,10 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.1/CHANGELOG.md)*
 
-* next
+* 0.9.884 on Feb 23, 2021
   * Cache pom model reading for improved performance on pom deps
   * git-resolve-tags will update the existing sha if it doesn't match the tag or is invalid
+  * Re-add deprecated method removed in 0.9.871
 * 0.9.876 on Feb 17, 2021
   * TDEPS-56 - New format for .main and .jvm files to address word splitting
 * 0.9.871 on Feb 8, 2021
