@@ -60,3 +60,8 @@
           (nil? check-path) false
           (same-file? root-path check-path) true
           :else (recur (.getParent check-path)))))))
+
+;; DEPRECATED
+(defn as-canonical
+  ^File [^File dir]
+  (canonicalize dir))
