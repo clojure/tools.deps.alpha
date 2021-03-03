@@ -3,6 +3,8 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.1/CHANGELOG.md)*
 
+* next
+  * Update to tools.gitlibs 2.0.109 (shell out to git)
 * 0.9.884 on Feb 23, 2021
   * Cache pom model reading for improved performance on pom deps
   * git-resolve-tags will update the existing sha if it doesn't match the tag or is invalid
