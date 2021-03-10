@@ -3,6 +3,8 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.2/CHANGELOG.md)*
 
+* next
+  * Bump dep version for tools.gitlibs
 * 0.10.895 on Mar 10, 2021
   * Bump dep versions for tools.gitlibs, tools.cli, and aws to latest
 * 0.10.889 on Mar 3, 2021
