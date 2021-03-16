@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-*Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.2/CHANGELOG.md)*
+*Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.3/CHANGELOG.md)*
 
 * 0.11.905 on Mar 12, 2021
   * Bump dep version for tools.gitlibs to 2.1.144
