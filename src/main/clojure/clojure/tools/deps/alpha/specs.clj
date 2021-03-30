@@ -51,10 +51,10 @@
 (s/def ::extra-paths (s/coll-of string? :kind vector? :into []))
 
 ;; deps map (format of the deps.edn file)
-(s/def ::paths (s/coll-of string? :kind vector? :into []))
-(s/def ::deps (s/map-of ::lib ::coord))
 (s/def ::alias keyword?)
-(s/def ::aliases (s/map-of ::alias (s/or :resolve-deps ::resolve-args :make-classpath ::classpath-args)))
+(s/def ::paths (s/coll-of (s/or :path ::path :alias ::alias) :kind vector? :into []))
+(s/def ::deps (s/map-of ::lib ::coord))
+(s/def ::aliases (s/map-of ::alias any?))
 (s/def ::deps-map (s/keys :opt-un [::paths ::deps ::aliases]))
 
 ;; lib map

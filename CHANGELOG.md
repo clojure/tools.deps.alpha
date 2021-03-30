@@ -1,8 +1,39 @@
 Changelog
 ===========
 
-*Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.1/CHANGELOG.md)*
+*Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.3/CHANGELOG.md)*
 
+* 0.11.905 on Mar 12, 2021
+  * Bump dep version for tools.gitlibs to 2.1.144
+* 0.11.901 on Mar 10, 2021 
+  * Bump dep version for tools.gitlibs
+  * Update root deps.edn clojure version to 1.10.3
+* 0.10.895 on Mar 10, 2021
+  * Bump dep versions for tools.gitlibs, tools.cli, and aws to latest
+* 0.10.889 on Mar 3, 2021
+  * Update to tools.gitlibs 2.0.109 (shell out to git)
+* 0.9.884 on Feb 23, 2021
+  * Cache pom model reading for improved performance on pom deps
+  * git-resolve-tags will update the existing sha if it doesn't match the tag or is invalid
+  * Re-add deprecated method removed in 0.9.871
+* 0.9.876 on Feb 17, 2021
+  * TDEPS-56 - New format for .main and .jvm files to address word splitting
+* 0.9.871 on Feb 8, 2021
+  * Print warning if :paths or :extra-paths refers to directory not under the project root. Will eventually error.
+* 0.9.863 on Jan 26, 2021
+  * Update defualt clojure version in deps.edn resource file to 1.10.2
+* 0.9.859 on Jan 26, 2021
+  * TDEPS-176 - Improve error message for missing git relationship
+* 0.9.857 on Dec 7, 2020
+  * Fix bug that saved trace.edn when using -Stree
+* 0.9.853 on Dec 6, 2020
+  * More tree printing options and support for -Stree
+* 0.9.847 on Dec 2, 2020
+  * Add new clj -X:deps tree printer
+  * Bump aws api deps
+* 0.9.840 on Nov 23, 2020
+  * When resolving pom models, use System properties so jdk profile activation works
+  * Update specs to cover alias changes
 * 0.9.833 on Oct 21, 2020
   * Fixed issue where -Spom had stopped paying attention to -A dep changes
 * 0.9.828 on Oct 20, 2020

@@ -399,3 +399,20 @@
     (let [pred (:child-pred ret)] ;; everything already enqueued
       (is (false? (boolean (pred 'c))))
       (is (false? (boolean (pred 'd)))))))
+
+;; +x1 -> -a1 -> +b2
+;; +z1 -> +y1 -> +a2 -> -b1 (or +b1, but at least a consistent result)
+;; TDEPS-58
+(deftest test-dep-ordering
+  (fkn/with-libs
+    {'ex/a {{:fkn/version "1"} [['ex/b {:fkn/version "2"}]]
+            {:fkn/version "2"} [['ex/b {:fkn/version "1"}]]}
+     'ex/b {{:fkn/version "1"} nil
+            {:fkn/version "2"} nil}
+     'ex/x {{:fkn/version "1"} [['ex/a {:fkn/version "1"}]]}
+     'ex/y {{:fkn/version "1"} [['ex/a {:fkn/version "2"}]]}
+     'ex/z {{:fkn/version "1"} [['ex/y {:fkn/version "1"}]]}}
+    (is (= (let [res (deps/resolve-deps {:deps {'ex/x {:fkn/version "1"}, 'ex/z {:fkn/version "1"}}} nil)]
+             (reduce-kv #(assoc %1 (-> %2 name keyword) (:fkn/version %3)) {} res))
+           (let [res (deps/resolve-deps {:deps {'ex/z {:fkn/version "1"}, 'ex/x {:fkn/version "1"}}} nil)]
+             (reduce-kv #(assoc %1 (-> %2 name keyword) (:fkn/version %3)) {} res))))))

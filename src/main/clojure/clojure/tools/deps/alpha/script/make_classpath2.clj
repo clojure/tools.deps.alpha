@@ -15,7 +15,8 @@
     [clojure.tools.deps.alpha :as deps]
     [clojure.tools.deps.alpha.util.io :as io :refer [printerrln]]
     [clojure.tools.deps.alpha.util.session :as session]
-    [clojure.tools.deps.alpha.script.parse :as parse])
+    [clojure.tools.deps.alpha.script.parse :as parse]
+    [clojure.tools.deps.alpha.tree :as tree])
   (:import
     [clojure.lang IExceptionInfo]))
 
@@ -39,7 +40,8 @@
    ["-X" "--exec-aliases ALIASES" "Concatenated exec alias names" :parse-fn parse/parse-kws]
    ;; options
    [nil "--trace" "Emit trace log to trace.edn"]
-   [nil "--threads THREADS" "Threads for concurrent downloads"]])
+   [nil "--threads THREADS" "Threads for concurrent downloads"]
+   [nil "--tree" "Print deps tree to console"]])
 
 (defn parse-opts
   "Parse the command line opts to make-classpath"
@@ -68,7 +70,7 @@
     }"
   [{:keys [install-deps user-deps project-deps config-data ;; all deps.edn maps
            resolve-aliases makecp-aliases main-aliases exec-aliases repl-aliases
-           skip-cp threads trace] :as opts}]
+           skip-cp threads trace tree] :as opts}]
   (when (and main-aliases exec-aliases)
     (throw (ex-info "-M and -X cannot be used at the same time" {})))
   (let [;; tool use - :deps/:paths/:replace-deps/:replace-paths in project if needed
@@ -84,7 +86,8 @@
         resolve-argmap (deps/combine-aliases merge-edn (concat resolve-aliases combined-exec-aliases))
         resolve-args (cond-> resolve-argmap
                        threads (assoc :threads (Long/parseLong threads))
-                       trace (assoc :trace trace))
+                       trace (assoc :trace trace)
+                       tree (assoc :trace true))
         basis (when-not skip-cp (deps/calc-basis merge-edn {:resolve-args resolve-args
                                                             :classpath-args (deps/combine-aliases merge-edn
                                                                               (concat makecp-aliases combined-exec-aliases))}))
@@ -109,25 +112,27 @@
 
 (defn run
   "Run make-classpath script. See -main for details."
-  [{:keys [config-user config-project libs-file cp-file jvm-file main-file basis-file skip-cp] :as opts}]
+  [{:keys [config-user config-project libs-file cp-file jvm-file main-file basis-file skip-cp trace tree] :as opts}]
   (let [opts' (merge opts {:install-deps (deps/root-deps)
                            :user-deps (read-deps config-user)
                            :project-deps (read-deps config-project)})
         {:keys [libs classpath-roots jvm main] :as basis} (run-core opts')
-        trace (-> libs meta :trace)]
+        trace-log (-> libs meta :trace)]
     (when trace
-      (spit "trace.edn" (binding [*print-namespace-maps* false] (with-out-str (clojure.pprint/pprint trace)))))
+      (spit "trace.edn" (binding [*print-namespace-maps* false] (with-out-str (clojure.pprint/pprint trace-log)))))
+    (when tree
+      (-> trace-log tree/trace->tree (tree/print-tree nil)))
     (when-not skip-cp
       (io/write-file libs-file (binding [*print-namespace-maps* false] (pr-str libs)))
       (io/write-file cp-file (-> classpath-roots deps/join-classpath)))
     (io/write-file basis-file (binding [*print-namespace-maps* false] (pr-str basis)))
     (if jvm
-      (io/write-file jvm-file (str/join " " jvm))
+      (io/write-file jvm-file (apply str (interleave jvm (repeat "\n"))))
       (let [jf (jio/file jvm-file)]
         (when (.exists jf)
           (.delete jf))))
     (if main
-      (io/write-file main-file (str/join " " main))
+      (io/write-file main-file (apply str (interleave main (repeat "\n"))))
       (let [mf (jio/file main-file)]
         (when (.exists mf)
           (.delete mf))))))

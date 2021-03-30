@@ -11,7 +11,8 @@
   (:require
     [clojure.java.io :as jio])
   (:import
-    [java.io File]))
+    [java.io File]
+    [java.nio.file Files Path]))
 
 (set! *warn-on-reflection* true)
 
@@ -21,20 +22,6 @@
   java.io.File, never null."
   (jio/file (System/getProperty "user.dir")))
 
-(defn as-canonical
-  "As canonical File in terms of the current directory context"
-  ^File [^File dir]
-  (.getCanonicalFile
-    (if (.isAbsolute dir)
-      dir
-      (File. ^File *the-dir* (.getPath dir)))))
-
-(defmacro with-dir
-  "Push directory into current directory context for execution of body."
-  [^File dir & body]
-  `(binding [*the-dir* (as-canonical ~dir)]
-     ~@body))
-
 (defn canonicalize
   "Make canonical File in terms of the current directory context.
   f may be either absolute or relative."
@@ -43,3 +30,38 @@
     (if (.isAbsolute f)
       f
       (jio/file *the-dir* f))))
+
+(defmacro with-dir
+  "Push directory into current directory context for execution of body."
+  [^File dir & body]
+  `(binding [*the-dir* (canonicalize ~dir)]
+     ~@body))
+
+(defn- same-file?
+  "If a file can't be read (most common reason is directory does not exist), then
+  treat this as not the same file (ie unknown)."
+  [^Path p1 ^Path p2]
+  (try
+    (Files/isSameFile p1 p2)
+    (catch Exception _ false)))
+
+(defn sub-path?
+  "True if the path is a sub-path of the current directory context.
+  path may be either absolute or relative. Will return true if path
+  has a parent that is the current directory context, false otherwise.
+  Handles relative paths, .., ., etc. The sub-path does not need to
+  exist on disk (but the current directory context must)."
+  [^File path]
+  (if (nil? path)
+    false
+    (let [root-path (.toPath ^File *the-dir*)]
+      (loop [check-path (.toPath (canonicalize path))]
+        (cond
+          (nil? check-path) false
+          (same-file? root-path check-path) true
+          :else (recur (.getParent check-path)))))))
+
+;; DEPRECATED
+(defn as-canonical
+  ^File [^File dir]
+  (canonicalize dir))

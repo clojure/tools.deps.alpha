@@ -12,7 +12,8 @@
     [clojure.java.io :as jio]
     [clojure.tools.deps.alpha :as deps]
     [clojure.tools.deps.alpha.extensions :as ext]
-    [clojure.tools.deps.alpha.util.dir :as dir]))
+    [clojure.tools.deps.alpha.util.dir :as dir]
+    [clojure.tools.deps.alpha.util.io :as io]))
 
 (defn- deps-map
   [config dir]
@@ -29,7 +30,12 @@
 (defmethod ext/coord-paths :deps
   [_lib {:keys [deps/root] :as _coord} _mf config]
   (dir/with-dir (jio/file root)
-    (into []
-      (map #(.getCanonicalPath (dir/canonicalize (jio/file %))))
-      (:paths (deps-map config root)))))
+    (->> (:paths (deps-map config root))
+      (map #(dir/canonicalize (jio/file %)))
+      (map #(do
+              (when (not (dir/sub-path? %))
+                (io/printerrln "WARNING: Specified path" % "is external to project" root))
+              %))
+      (map #(.getCanonicalPath %))
+      vec)))
 

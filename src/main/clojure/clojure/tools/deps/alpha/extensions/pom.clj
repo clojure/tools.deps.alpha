@@ -13,7 +13,8 @@
     [clojure.string :as str]
     [clojure.tools.deps.alpha.extensions :as ext]
     [clojure.tools.deps.alpha.util.maven :as maven]
-    [clojure.tools.deps.alpha.util.io :as io])
+    [clojure.tools.deps.alpha.util.io :as io]
+    [clojure.tools.deps.alpha.util.session :as session])
   (:import
     [java.io File]
     [java.util List]
@@ -54,6 +55,7 @@
 (defn read-model
   ^Model [^ModelSource source config]
   (let [props (java.util.Properties.)
+        _ (.putAll props (System/getProperties))
         _ (.setProperty props "project.basedir" ".")
         req (doto (DefaultModelBuildingRequest.)
               (.setModelSource source)
@@ -65,7 +67,9 @@
 
 (defn read-model-file
   ^Model [^File file config]
-  (read-model (FileModelSource. file) config))
+  (session/retrieve
+    {:pom :model :file (.getAbsolutePath file)} ;; session key
+    #(read-model (FileModelSource. file) config)))
 
 (defn- model-exclusions->data
   [exclusions]

@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <artifactId>tools.deps.alpha</artifactId>
-  <version>0.9.834-SNAPSHOT</version>
+  <version>0.11.906-SNAPSHOT</version>
   <name>tools.deps.alpha</name>
 
   <parent>
@@ -25,7 +25,7 @@
     <mavenVersion>3.6.3</mavenVersion>
 
     <!-- default published in install deps.edn -->
-    <clojure.default>1.10.1</clojure.default>
+    <clojure.default>1.10.3</clojure.default>
   </properties>
 
   <dependencies>
@@ -94,27 +94,27 @@
     <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>tools.gitlibs</artifactId>
-      <version>1.0.100</version>
+      <version>2.1.144</version>
     </dependency>
     <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>tools.cli</artifactId>
-      <version>1.0.194</version>
+      <version>1.0.206</version>
     </dependency>
     <dependency>
       <groupId>com.cognitect.aws</groupId>
       <artifactId>api</artifactId>
-      <version>0.8.474</version>
+      <version>0.8.505</version>
     </dependency>
     <dependency>
       <groupId>com.cognitect.aws</groupId>
       <artifactId>endpoints</artifactId>
-      <version>1.1.11.842</version>
+      <version>1.1.11.969</version>
     </dependency>
     <dependency>
       <groupId>com.cognitect.aws</groupId>
       <artifactId>s3</artifactId>
-      <version>809.2.734.0</version>
+      <version>811.2.858.0</version>
     </dependency>
     <dependency>
       <groupId>javax.inject</groupId>

@@ -57,7 +57,7 @@
 ;; negative if x is parent of y (y derives from x)
 ;; positive if y is parent of x (x derives from y)
 (defmethod ext/compare-versions [:git :git]
-  [_lib {x-url :git/url, x-sha :sha :as x} {y-url :git/url, y-sha :sha :as y} _config]
+  [lib {x-url :git/url, x-sha :sha :as x} {y-url :git/url, y-sha :sha :as y} _config]
   (if (= x-sha y-sha)
     0
     (let [desc (if (= x-url y-url)
@@ -68,7 +68,10 @@
                    (gitlibs/descendant x-url [x-sha y-sha])
                    (gitlibs/descendant y-url [x-sha y-sha])))]
       (cond
-        (nil? desc) (throw (ex-info "No known relationship between git versions" {:x x :y y}))
+        (nil? desc) (throw (ex-info (str "No known ancestor relationship between git versions for " lib "\n"
+                                         "  " x-url " at " x-sha "\n"
+                                         "  " y-url " at " y-sha)
+                             {:x x :y y}))
         (= desc x-sha) 1
         (= desc y-sha) -1))))
 

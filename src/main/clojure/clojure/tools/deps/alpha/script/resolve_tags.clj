@@ -24,11 +24,14 @@
 
 (defn- resolve-git-dep
   [counter {:keys [git/url sha tag] :as git-coord}]
-  (if (and (not sha) tag)
-    (let [sha (gitlibs/resolve url tag)]
-      (printerrln "Resolved" tag "=>" sha "in" url)
-      (swap! counter inc)
-      (assoc git-coord :sha sha))
+  (if tag
+    (let [new-sha (gitlibs/resolve url tag)]
+      (if (= sha new-sha)
+        git-coord ;; no change
+        (do
+          (printerrln "Resolved" tag "=>" new-sha "in" url)
+          (swap! counter inc)
+          (assoc git-coord :sha new-sha))))
     git-coord))
 
 (defn- resolve-git-deps
