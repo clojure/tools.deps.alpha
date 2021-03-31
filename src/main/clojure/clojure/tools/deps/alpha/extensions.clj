@@ -103,6 +103,15 @@
   (throw (ex-info (str "Unable to compare versions for " lib ": " (pr-str coord-x) " and " (pr-str coord-y))
            {:lib lib :coord-x coord-x :coord-y coord-y})))
 
+;; Find coords
+
+(defmulti find-versions
+  "Return a coll of version strings based on a lib and a partial coord"
+  (fn [lib coord coord-type config] coord-type))
+
+(defmethod find-versions :default [lib coord coord-type config]
+  (throw-bad-coord lib coord))
+
 ;; Methods switching on manifest type
 
 (defn- throw-bad-manifest

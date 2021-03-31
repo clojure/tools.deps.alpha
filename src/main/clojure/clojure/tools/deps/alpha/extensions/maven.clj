@@ -21,6 +21,7 @@
     [org.eclipse.aether RepositorySystem RepositorySystemSession]
     [org.eclipse.aether.resolution ArtifactRequest ArtifactDescriptorRequest VersionRangeRequest
                                    VersionRequest ArtifactResolutionException]
+    [org.eclipse.aether.version Version]
 
     ;; maven-resolver-util
     [org.eclipse.aether.util.version GenericVersionScheme]
@@ -136,8 +137,20 @@
         session ^RepositorySystemSession (session/retrieve :mvn/session #(maven/make-session system local-repo))]
     [(get-artifact lib coord system session mvn-repos)]))
 
+(defmethod ext/find-versions :mvn
+  [lib _coord _coord-type {:keys [mvn/repos mvn/local-repo]}]
+  (let [local-repo (or local-repo maven/default-local-repo)
+        system ^RepositorySystem (session/retrieve :mvn/system #(maven/make-system))
+        session ^RepositorySystemSession (session/retrieve :mvn/session #(maven/make-session system local-repo))
+        artifact (maven/coord->artifact lib {:mvn/version "(0,]"})
+        req (VersionRangeRequest. artifact (maven/remote-repos repos) nil)
+        result (.resolveVersionRange system session req)]
+    (into [] (map #(.toString ^Version %)) (.getVersions result))))
+
 (comment
   (ext/lib-location 'org.clojure/clojure {:mvn/version "1.8.0"} {})
+
+  (ext/find-versions 'org.clojure/clojure nil :mvn {:mvn/repos maven/standard-repos})
 
   ;; given a dep, find the child deps
   (ext/coord-deps 'org.clojure/clojure {:mvn/version "1.9.0-alpha17"} :mvn {:mvn/repos maven/standard-repos})
@@ -160,6 +173,6 @@
     {:mvn/repos (merge maven/standard-repos
                   {"sonatype-oss-public" {:url "https://oss.sonatype.org/content/groups/public/"}})})
 
-  (def rr (maven/remote-repo ["sonatype-oss-public" {:url "https://oss.sonatype.org/content/groups/public/"}]))
-  )
+  (def rr (maven/remote-repo ["sonatype-oss-public" {:url "https://oss.sonatype.org/content/groups/public/"}])))
+
 

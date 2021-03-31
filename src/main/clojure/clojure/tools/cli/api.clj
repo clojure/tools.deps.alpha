@@ -10,17 +10,19 @@
   "This api provides functions that can be executed from the Clojure tools using -X:deps."
   (:require
     [clojure.java.io :as jio]
-    [clojure.edn :as edn]
     [clojure.pprint :as pprint]
     [clojure.string :as str]
     [clojure.tools.deps.alpha :as deps]
+    [clojure.tools.deps.alpha.tool :as tool]
     [clojure.tools.deps.alpha.tree :as tree]
     [clojure.tools.deps.alpha.script.resolve-tags :as resolve-tags]
+    [clojure.tools.deps.alpha.extensions :as ext]
     [clojure.tools.deps.alpha.extensions.pom :as pom]
     [clojure.tools.deps.alpha.extensions.local :as local]
     [clojure.tools.deps.alpha.gen.pom :as gen-pom]
     [clojure.tools.deps.alpha.util.maven :as mvn]
-    [clojure.tools.deps.alpha.util.io :as io :refer [printerrln]])
+    [clojure.tools.deps.alpha.util.io :as io :refer [printerrln]]
+    [clojure.tools.gitlibs :as gitlibs])
   (:import
     [java.io File FileNotFoundException IOException]
     [java.nio.file Files]
@@ -197,3 +199,98 @@
         install-request (.setArtifacts (InstallRequest.) artifacts)]
     (.install system session install-request)
     (println "Installed to" (output-path local-repo group-id artifact-id version))))
+
+;;;; Tools
+
+(defn- auto-git-url
+  "Create url from lib name, ie:
+    io.github.foo/bar => https://github.com/foo/bar.git"
+  [lib]
+  (let [[_ service user] (str/split (namespace lib) #"\.")
+        project (name lib)
+        tld (if (= service "bitbucket") "org" "com")]
+    (str "https://" service "." tld "/" user "/" project ".git")))
+
+(defn install-tool
+  "Install a tool for later use. Tools must provide a lib indicating the procurer type via
+  :mvn/lib, :git/lib, or :local/lib. For git, the url will be automatically converted to a
+  repository url. The version intent is specified by the :v attribute. For maven, a version.
+  For git, a tag, branch, or sha. For local, a path.
+
+  The lib and v will be resolved to a lib and coord. The tool will be procured, and the tool
+  will be persisted with the name in :as."
+  [{mvn-lib :mvn/lib, git-lib :git/lib, local-lib :local/lib, :keys [v as] :as args}]
+  (when (or (not as) (not (or git-lib mvn-lib local-lib)) (not v))
+    (println "Missing required args: :as :v and one of :git/lib :mvn/lib :local/lib"))
+  (let [[lib coord] (cond mvn-lib [mvn-lib {:mvn/version v}]
+                          git-lib [git-lib (let [url (auto-git-url git-lib)
+                                                 sha (gitlibs/resolve url v)]
+                                             (cond->
+                                               {:git/url url, :sha sha}
+                                               (not (= sha v)) (assoc :rev v)))]
+                          local-lib [local-lib {:local/root v}])]
+    (when-not (and lib coord)
+      (throw (ex-info (format "Could not resolve tool: %s" (pr-str args)) args)))
+    (tool/install-tool lib coord as)
+    (println "Installed" as)))
+
+(defn find-versions
+  "Find available tool versions given either a lib or existing installed tool.
+  Lib is specified with :mvn/lib or :git/lib (local not supported).
+  Tool is specified with :tool.
+  Prints one \"version\" per line."
+  [{tool :tool, git-lib :git/lib, mvn-lib :mvn/lib, :as args}]
+  (let [{:keys [lib coord coord-type]}
+        (cond tool (let [tool-data (tool/resolve-tool (name tool))
+                         coord-type (ext/coord-type (:coord tool-data))]
+                     (assoc tool-data :coord-type coord-type))
+              git-lib {:lib git-lib, :coord {:git/url (auto-git-url git-lib)} :coord-type :git}
+              mvn-lib {:lib mvn-lib, :coord-type :mvn})]
+    (if coord-type
+      (let [{:keys [root-edn user-edn]} (deps/find-edn-maps)
+            master-edn (deps/merge-edns [root-edn user-edn])
+            vs (ext/find-versions lib coord coord-type master-edn)]
+        (run!
+          (fn [v]
+            (if tool
+              (case coord-type
+                    :mvn (if (= (:mvn/version coord) v)
+                           (println v "(installed)")
+                           (println v))
+                    :git (if (= (:rev coord) v)
+                           (println v "(installed)")
+                           (println v))
+                    (println v))
+              (println v)))
+          vs))
+      (throw (ex-info (str "Unable to determine tool or lib from args: " (binding [*print-namespace-maps* false] (pr-str args))) args)))))
+
+(defn tool-info
+  "If no args given, list available tools. Specify particular :tool to get more info about the tool."
+  [{:keys [tool] :as args}]
+  (if tool
+    (let [{:keys [lib coord] :as info} (tool/resolve-tool tool)]
+      (if info
+        (do
+          (println "Info for" tool ":")
+          (println)
+          (println "lib:" lib)
+          (println "coord:")
+          (pprint/pprint coord))
+        (println "Tool not found")))
+    (run! #(println (str %)) (tool/list-tools))))
+
+(defn tool-remove
+  "Remove tool, if it exists."
+  [{:keys [tool] :as args}]
+  (if tool
+    (if (tool/remove-tool tool)
+      (println "Tool removed")
+      (println "Tool not found or could not be removed"))))
+
+(comment
+  (find-versions '{:mvn/lib org.clojure/tools.gitlibs})
+  (find-versions '{:git/lib io.github.clojure/tools.gitlibs})
+
+  (install-tool '{:mvn/lib org.clojure/tools.gitlibs :v "2.0.109" :as "tgm"})
+  )

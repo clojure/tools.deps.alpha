@@ -75,7 +75,27 @@
         (= desc x-sha) 1
         (= desc y-sha) -1))))
 
+(defmethod ext/manifest-type :git
+  [lib {:keys [git/url sha deps/manifest deps/root] :as _coord} _config]
+  (let [sha-dir (gitlibs/procure url lib sha)
+        root-dir (if root
+                   (let [root-file (jio/file root)]
+                     (if (.isAbsolute root-file) ;; should be only after coordinate resolution
+                       (.getCanonicalPath root-file)
+                       (.getCanonicalPath (jio/file sha-dir root-file))))
+                   sha-dir)]
+    (if manifest
+      {:deps/manifest manifest, :deps/root root-dir}
+      (ext/detect-manifest root-dir))))
+
+(defmethod ext/find-versions :git
+  [lib {:keys [git/url] :as coord} _coord-type _config]
+  (gitlibs/tags url))
+
 (comment
+  (ext/find-versions 'org.clojure/spec.alpha
+    {:git/url "https://github.com/clojure/spec.alpha.git"} :git nil)
+
   (ext/lib-location 'foo/foo
                     {:git/url "https://github.com/clojure/core.async.git"
                      :sha "ecea2539a724a415b15e50f12815b4ab115cfd35"} {})

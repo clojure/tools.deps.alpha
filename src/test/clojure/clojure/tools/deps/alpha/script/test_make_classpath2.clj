@@ -1,7 +1,8 @@
 (ns clojure.tools.deps.alpha.script.test-make-classpath2
   (:require
     [clojure.test :refer [deftest is]]
-    [clojure.tools.deps.alpha.script.make-classpath2 :as mc]))
+    [clojure.tools.deps.alpha.script.make-classpath2 :as mc]
+    [clojure.java.io :as jio]))
 
 (def install-data
   {:paths ["src"]
@@ -154,6 +155,56 @@
                              :skip-cp true})]
     (is (nil? (:cp basis)))
     (is (nil? (:libs basis)))))
+
+(deftest tool-alias
+  (let [{:keys [libs classpath-roots classpath]}
+        (mc/run-core {:install-deps install-data
+                      :user-deps {:aliases {:t {:extra-deps {'org.clojure/data.json {:mvn/version "2.0.1"}}}}}
+                      :project-deps {:deps {'cheshire/cheshire {:mvn/version "5.10.0"}}}
+                      :tool-aliases [:t]
+                      :tool-mode true})
+        paths (filter #(get-in classpath [% :path-key]) classpath-roots)
+        _ (println "paths" paths)]
+    ;; includes tool dep and not project deps
+    (is (contains? libs 'org.clojure/data.json))
+    (is (not (contains? libs 'cheshire/cheshire)))
+    ;; paths only contains project root dir
+    (is (= 1 (count paths)))
+    (is (= (.getCanonicalPath (jio/file (first paths))) (.getCanonicalPath (jio/file "."))))))
+
+(deftest tool-bare
+  (let [{:keys [libs classpath-roots classpath resolved-function]}
+        (mc/run-core {:install-deps install-data
+                      :user-deps {}
+                      :project-deps {:deps {'cheshire/cheshire {:mvn/version "5.10.0"}}}
+                      :tool-mode true
+                      :function 'a/b})
+        paths (filter #(get-in classpath [% :path-key]) classpath-roots)]
+    (is (not (contains? libs 'cheshire/cheshire)))
+    (is (= 1 (count paths)))
+    (is (= (.getCanonicalPath (jio/file (first paths))) (.getCanonicalPath (jio/file "."))))
+    (is (= 'a/b resolved-function))))
+
+(deftest tool-by-name
+  (let [{:keys [libs classpath-roots classpath resolved-function]}
+        (mc/run-core {:install-deps install-data
+                      :user-deps {}
+                      :project-deps {:deps {'cheshire/cheshire {:mvn/version "5.10.0"}}}
+                      :tool-mode true
+                      :tool-name "foo"
+                      :tool-resolver {"foo" {:lib 'org.clojure/data.json
+                                             :coord {:mvn/version "2.0.1"}
+                                             :usage {:exec {:ns-default 'my.ns}}}}
+                      :function 'abc})
+        paths (filter #(get-in classpath [% :path-key]) classpath-roots)]
+    ;; tool deps, not project deps
+    (is (not (contains? libs 'cheshire/cheshire)))
+    (is (contains? libs 'org.clojure/data.json))
+    ;; ., not project paths
+    (is (= 1 (count paths)))
+    (is (= (.getCanonicalPath (jio/file (first paths))) (.getCanonicalPath (jio/file "."))))
+    ;; function resolved based on usage
+    (is (= 'my.ns/abc resolved-function))))
 
 (comment
   (clojure.test/run-tests)
