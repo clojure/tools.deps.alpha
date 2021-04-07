@@ -66,7 +66,7 @@
     (.mkdirs (.getParentFile f))
     (spit f
       (binding [*print-namespace-maps* false]
-        (with-out-str (pprint/pprint (cond-> {:lib lib :coord coord'}
+        (with-out-str (pprint/pprint (cond-> {:lib lib :coord (dissoc coord' :deps/root :deps/manifest)}
                                        usage (assoc :usage usage))))))))
 
 (defn resolve-tool
