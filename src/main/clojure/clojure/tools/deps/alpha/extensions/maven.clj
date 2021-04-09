@@ -31,6 +31,10 @@
 
 ;; Main extension points for using Maven deps
 
+(defmethod ext/coord-type-keys :mvn
+  [_type]
+  #{:mvn/version})
+
 (defmethod ext/canonicalize :mvn
   [lib {:keys [:mvn/version] :as coord} {:keys [mvn/repos mvn/local-repo]}]
   (cond

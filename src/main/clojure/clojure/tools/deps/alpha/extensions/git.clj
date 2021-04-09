@@ -13,6 +13,10 @@
     [clojure.tools.deps.alpha.extensions :as ext]
     [clojure.tools.gitlibs :as gitlibs]))
 
+(defmethod ext/coord-type-keys :git
+  [_type]
+  #{:git/url :git/sha :git/tag :sha})
+
 (defmethod ext/canonicalize :git
   [lib {:keys [sha tag rev] :as coord} _config]
   (let [lib (if (nil? (namespace lib))

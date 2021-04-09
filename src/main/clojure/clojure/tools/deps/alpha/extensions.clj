@@ -8,7 +8,9 @@
 
 (ns ^{:skip-wiki true}
   clojure.tools.deps.alpha.extensions
-  (:require [clojure.java.io :as jio]))
+  (:require
+    [clojure.java.io :as jio]
+    [clojure.set :as set]))
 
 ;; Helper for autodetect of manifest type
 
@@ -30,12 +32,29 @@
           (recur others))))))
 
 ;; Methods switching on coordinate type
+
+(defmulti coord-type-keys
+  "Takes a coordinate type and returns valid set of keys indicating that coord type"
+  (fn [type] type))
+
+(defmethod coord-type-keys :default [type] #{})
+
 (defn coord-type
-  "The namespace (as a keyword) of the only qualified key in the coordinate,
-   excluding the reserved deps namespace."
+  "Determine the coordinate type of the coordinate, based on the self-published procurer
+  keys from coord-type-keys."
   [coord]
   (when (map? coord)
-    (->> coord keys (keep namespace) (remove #(= "deps" %)) first keyword)))
+    (let [exts (-> (.getMethodTable ^clojure.lang.MultiFn coord-type-keys) keys set)
+          coord-keys (-> coord keys set)
+          matches (reduce (fn [ms type]
+                            (cond-> ms
+                              (not (empty? (set/intersection (coord-type-keys type) coord-keys)))
+                              (conj type)))
+                    [] exts)]
+      (case (count matches)
+        0 (throw (ex-info (format "Coord of unknown type: %s" (pr-str coord)) {:coord coord}))
+        1 (first matches)
+        (throw (ex-info (format "Coord type is ambiguous: %s" (pr-str coord)) {:coord coord}))))))
 
 (defmulti lib-location
   "Takes a coordinate and returns the location where the lib would be

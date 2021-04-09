@@ -21,6 +21,10 @@
     ;; maven-builder-support
     [org.apache.maven.model.building UrlModelSource]))
 
+(defmethod ext/coord-type-keys :local
+  [_type]
+  #{:local/root})
+
 (defmethod ext/dep-id :local
   [lib {:keys [local/root] :as _coord} _config]
   {:lib lib
