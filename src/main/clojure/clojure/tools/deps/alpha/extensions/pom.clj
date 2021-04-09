@@ -17,18 +17,13 @@
     [clojure.tools.deps.alpha.util.session :as session])
   (:import
     [java.io File]
-    [java.util List]
+    [java.util Properties]
     ;; maven-model
     [org.apache.maven.model Model Dependency Exclusion]
     ;; maven-model-builder
     [org.apache.maven.model.building DefaultModelBuildingRequest DefaultModelBuilderFactory ModelSource FileModelSource]
     [org.apache.maven.model.resolution ModelResolver]
-    ;; maven-resolver-provider
-    [org.apache.maven.repository.internal DefaultVersionRangeResolver]
-    ;; maven-resolver-api
-    [org.eclipse.aether RepositorySystemSession RequestTrace]
     ;; maven-resolver-impl
-    [org.eclipse.aether.impl ArtifactResolver VersionRangeResolver RemoteRepositoryManager]
     [org.eclipse.aether.internal.impl DefaultRemoteRepositoryManager]
     ;; maven-resolver-spi
     [org.eclipse.aether.spi.locator ServiceLocator]
@@ -46,15 +41,13 @@
         locator ^ServiceLocator @maven/the-locator
         system (maven/make-system)
         session (maven/make-session system local-repo)
-        artifact-resolver (.getService locator ArtifactResolver)
-        version-range-resolver (doto (DefaultVersionRangeResolver.) (.initService locator))
         repo-mgr (doto (DefaultRemoteRepositoryManager.) (.initService locator))
         repos (mapv maven/remote-repo repos)]
     (ProjectModelResolver. session nil system repo-mgr repos ProjectBuildingRequest$RepositoryMerging/REQUEST_DOMINANT nil)))
 
 (defn read-model
   ^Model [^ModelSource source config]
-  (let [props (java.util.Properties.)
+  (let [props (Properties.)
         _ (.putAll props (System/getProperties))
         _ (.setProperty props "project.basedir" ".")
         req (doto (DefaultModelBuildingRequest.)
