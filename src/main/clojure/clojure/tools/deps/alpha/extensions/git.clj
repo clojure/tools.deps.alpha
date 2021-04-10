@@ -10,26 +10,61 @@
   clojure.tools.deps.alpha.extensions.git
   (:require
     [clojure.java.io :as jio]
+    [clojure.string :as str]
     [clojure.tools.deps.alpha.extensions :as ext]
     [clojure.tools.gitlibs :as gitlibs]))
+
+(defn auto-git-url
+  "Create url from lib name, ie:
+    io.github.foo/bar => https://github.com/foo/bar.git"
+  [lib]
+  (let [[_ service user] (str/split (namespace lib) #"\.")
+        project (name lib)
+        tld (if (= service "bitbucket") "org" "com")]
+    (str "https://" service "." tld "/" user "/" project ".git")))
+
+(defn full-sha?
+  [sha]
+  (boolean (and sha (= 40 (count sha)))))
 
 (defmethod ext/coord-type-keys :git
   [_type]
   #{:git/url :git/sha :git/tag :sha})
 
+(defn- coord-err
+  ^Throwable [msg lib coord]
+  (ex-info msg {:lib lib :coord coord}))
+
+(defn- make-standard
+  [coord url sha tag]
+  (->
+    (cond-> coord
+      url (assoc :git/url url)
+      sha (assoc :git/sha sha)
+      tag (assoc :git/tag tag))
+    (dissoc :sha :tag)))
+
 (defmethod ext/canonicalize :git
-  [lib {:keys [sha tag rev] :as coord} _config]
-  (let [lib (if (nil? (namespace lib))
-              (symbol (name lib) (name lib))
-              lib)]
-    (cond
-      (and sha (= 40 (count sha))) [lib coord]
-      sha (throw (ex-info (str "Prefix sha not supported, use full sha for " lib) {:lib lib :coord coord}))
-      tag (throw (ex-info (str "Library " lib " has :tag but no :sha.\nAdd :sha or run `clj -Sresolve-tags` to update deps.edn.")
-                   {:lib lib :coord coord}))
-      rev (throw (ex-info (str "Library " lib " has deprecated :rev attribute - use :sha or :tag instead.")
-                   {:lib lib :coord coord}))
-      :else (throw (ex-info (str "Library " lib " has missing :sha in coordinate.") {:lib lib :coord coord})))))
+  [lib {unsha :sha untag :tag :git/keys [url sha tag] :as coord} _config]
+  (when (nil? (namespace lib)) (throw (coord-err (format "Invalid lib name: %s" lib) lib coord)))
+  (when (and unsha sha) (throw (coord-err (format "git coord has both :sha and :git/sha for %s" lib) lib coord)))
+  (when (and untag tag) (throw (coord-err (format "git coord has both :tag and :git/tag for %s" tag) lib coord)))
+
+  (let [canon-sha (or sha unsha)
+        canon-tag (or tag untag)
+        canon-url (or url (auto-git-url lib))]
+    (when (and canon-tag (not (= :tag (gitlibs/object-type canon-url canon-tag))))
+      (throw (coord-err (format "Library %s has invalid tag: %s" lib canon-tag) lib coord)))
+    (if canon-sha
+      (if canon-tag
+        (let [full-sha (if (full-sha? canon-sha) canon-sha (gitlibs/resolve canon-url canon-sha))]
+          (when-not (= (gitlibs/resolve canon-url canon-sha) (gitlibs/resolve canon-url canon-tag))
+            (throw (coord-err (format "Library %s has sha and tag that point to different commits" lib) lib coord)))
+          [lib (make-standard coord canon-url full-sha canon-tag)])
+        (if (full-sha? canon-sha)
+          [lib (make-standard coord canon-url canon-sha canon-tag)]
+          (throw (ex-info (format "Library %s has prefix sha, use full sha or add tag" lib) {:lib lib :coord coord}))))
+      (throw (ex-info (format "Library %s has coord with missing sha" lib) {:lib lib :coord coord})))))
 
 (defmethod ext/lib-location :git
   [lib {:keys [sha]} _]
