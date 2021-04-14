@@ -65,9 +65,22 @@
         f (tool-file as)]
     (.mkdirs (.getParentFile f))
     (spit f
-      (binding [*print-namespace-maps* false]
-        (with-out-str (pprint/pprint (cond-> {:lib lib :coord (dissoc coord' :deps/root :deps/manifest)}
-                                       usage (assoc :usage usage))))))))
+      (with-out-str
+        (binding [*print-namespace-maps* false
+                  pprint/*print-right-margin* 100]
+          (pprint/pprint (cond-> {:lib lib :coord (dissoc coord' :deps/root :deps/manifest)}
+                           usage (assoc :usage usage))))))))
+
+(comment
+  (binding [*print-namespace-maps* false]
+    (with-out-str
+      (pprint/pprint {:git/url "abc" :git/sha "123"})))
+
+  (with-out-str
+    (binding [*print-namespace-maps* false]
+      (pprint/pprint {:git/url "abc" :git/sha "123"})))
+
+  )
 
 (defn resolve-tool
   "Resolve a tool by name, look up and return:
