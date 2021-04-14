@@ -246,14 +246,15 @@
           (fn [v]
             (if tool
               (case coord-type
-                    :mvn (if (= (:mvn/version coord) v)
-                           (println v "(installed)")
-                           (println v))
-                    :git (if (= (:rev coord) v)
-                           (println v "(installed)")
-                           (println v))
-                    (println v))
-              (println v)))
+                    :mvn (println lib (format "'{:mvn/version \"%s\"}'" v)
+                           (if (= (:mvn/version coord) v) "(installed)" ""))
+                    :git (println lib (format "'{:git/tag \"%s\"}'" v)
+                           (if (= (:git/tag coord) v) "(installed)" ""))
+                    (println lib v))
+              (println lib (case coord-type
+                             :mvn (format "'{:mvn/version \"%s\"}'" v)
+                             :git (format "'{:git/tag \"%s\"}'" v)
+                             v))))
           vs))
       (throw (ex-info (str "Unable to determine tool or lib from args: " (binding [*print-namespace-maps* false] (pr-str args))) args)))))
 
@@ -268,7 +269,8 @@
           (println)
           (println "lib:" lib)
           (println "coord:")
-          (pprint/pprint coord))
+          (binding [*print-namespace-maps* false]
+            (pprint/pprint coord)))
         (println "Tool not found")))
     (run! #(println (str %)) (tool/list-tools))))
 
