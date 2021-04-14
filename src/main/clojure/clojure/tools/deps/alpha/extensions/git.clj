@@ -53,7 +53,7 @@
   (let [canon-sha (or sha unsha)
         canon-tag (or tag untag)
         canon-url (or url (auto-git-url lib))]
-    (when (and canon-tag (not (= :tag (gitlibs/object-type canon-url canon-tag))))
+    (when (and canon-tag (not (some #{canon-tag} (gitlibs/tags canon-url))))
       (throw (coord-err (format "Library %s has invalid tag: %s" lib canon-tag) lib coord)))
     (if canon-sha
       (if canon-tag
@@ -67,18 +67,19 @@
       (throw (ex-info (format "Library %s has coord with missing sha" lib) {:lib lib :coord coord})))))
 
 (defmethod ext/lib-location :git
-  [lib {:keys [sha]} _]
+  [lib {unsha :sha sha :git/sha} _]
   {:base (str (gitlibs/cache-dir) "/libs") ;; gitlibs repo location is not in a public API...
-   :path (str lib "/" sha)
+   :path (str lib "/" (or sha unsha))
    :type :git})
 
 (defmethod ext/dep-id :git
-  [_lib coord _config]
-  (select-keys coord [:git/url :sha]))
+  [_lib {url :git/url, unsha :sha, sha :git/sha} _config]
+  {:git/url url, :git/sha (or sha unsha)})
 
 (defmethod ext/manifest-type :git
-  [lib {:keys [git/url sha deps/manifest deps/root] :as _coord} _config]
-  (let [sha-dir (gitlibs/procure url lib sha)
+  [lib {unsha :sha :git/keys [url sha] :deps/keys [manifest root] :as _coord} _config]
+  (let [sha (or sha unsha)
+        sha-dir (gitlibs/procure url lib sha)
         root-dir (if root
                    (let [root-file (jio/file root)]
                      (if (.isAbsolute root-file) ;; should be only after coordinate resolution
@@ -89,34 +90,37 @@
       {:deps/manifest manifest, :deps/root root-dir}
       (ext/detect-manifest root-dir))))
 
-(defmethod ext/coord-summary :git [lib {:keys [git/url sha]}]
-  (str lib " " url " " (subs sha 0 7)))
+(defmethod ext/coord-summary :git [lib {unsha :sha :git/keys [url sha]}]
+  (str lib " " url " " (subs (or sha unsha) 0 7)))
 
 ;; 0 if x and y are the same commit
 ;; negative if x is parent of y (y derives from x)
 ;; positive if y is parent of x (x derives from y)
 (defmethod ext/compare-versions [:git :git]
-  [lib {x-url :git/url, x-sha :sha :as x} {y-url :git/url, y-sha :sha :as y} _config]
-  (if (= x-sha y-sha)
-    0
-    (let [desc (if (= x-url y-url)
-                 (or
-                   (gitlibs/descendant x-url [x-sha y-sha])
-                   (gitlibs/descendant y-url [x-sha y-sha]))
-                 (and
-                   (gitlibs/descendant x-url [x-sha y-sha])
-                   (gitlibs/descendant y-url [x-sha y-sha])))]
-      (cond
-        (nil? desc) (throw (ex-info (str "No known ancestor relationship between git versions for " lib "\n"
-                                         "  " x-url " at " x-sha "\n"
-                                         "  " y-url " at " y-sha)
-                             {:x x :y y}))
-        (= desc x-sha) 1
-        (= desc y-sha) -1))))
+  [lib {x-url :git/url, x-unsha :sha, x-sha :git/sha :as x} {y-url :git/url, y-unsha :sha, y-sha :git/sha :as y} _config]
+  (let [x-sha (or x-sha x-unsha)
+        y-sha (or y-sha y-unsha)]
+    (if (= x-sha y-sha)
+      0
+      (let [desc (if (= x-url y-url)
+                   (or
+                     (gitlibs/descendant x-url [x-sha y-sha])
+                     (gitlibs/descendant y-url [x-sha y-sha]))
+                   (and
+                     (gitlibs/descendant x-url [x-sha y-sha])
+                     (gitlibs/descendant y-url [x-sha y-sha])))]
+        (cond
+          (nil? desc) (throw (ex-info (str "No known ancestor relationship between git versions for " lib "\n"
+                                        "  " x-url " at " x-sha "\n"
+                                        "  " y-url " at " y-sha)
+                               {:x x :y y}))
+          (= desc x-sha) 1
+          (= desc y-sha) -1)))))
 
 (defmethod ext/manifest-type :git
-  [lib {:keys [git/url sha deps/manifest deps/root] :as _coord} _config]
-  (let [sha-dir (gitlibs/procure url lib sha)
+  [lib {unsha :sha :git/keys [url sha] :deps/keys [manifest root] :as _coord} _config]
+  (let [sha (or sha unsha)
+        sha-dir (gitlibs/procure url lib sha)
         root-dir (if root
                    (let [root-file (jio/file root)]
                      (if (.isAbsolute root-file) ;; should be only after coordinate resolution
@@ -149,12 +153,12 @@
     nil)
 
   (ext/manifest-type 'org.clojure/spec.alpha
-    {:git/url "https://github.com/clojure/spec.alpha.git" :sha "739c1af56dae621aedf1bb282025a0d676eff713"}
+    {:git/url "https://github.com/clojure/spec.alpha.git" :git/sha "739c1af56dae621aedf1bb282025a0d676eff713"}
     nil)
 
   (ext/compare-versions
     'org.clojure/spec.alpha
-    {:git/url "https://github.com/clojure/spec.alpha.git" :sha "739c1af56dae621aedf1bb282025a0d676eff713"}
-    {:git/url "git@github.com:clojure/spec.alpha.git" :sha "a65fb3aceec67d1096105cab707e6ad7e5f063af"}
+    {:git/url "https://github.com/clojure/spec.alpha.git" :git/sha "739c1af56dae621aedf1bb282025a0d676eff713"}
+    {:git/url "git@github.com:clojure/spec.alpha.git" :git/sha "a65fb3aceec67d1096105cab707e6ad7e5f063af"}
     nil)
   )
