@@ -238,11 +238,11 @@
       (let [{:keys [lib coord]} (tool/resolve-tool (name tool))
             coord-type (ext/coord-type coord)
             coords (ext/find-versions lib coord coord-type master-edn)]
-        (run! #(binding [*print-namespace-maps* false] (pr-str %)) coords))
+        (run! #(binding [*print-namespace-maps* false] (prn %)) coords))
 
       lib
       (let [coords (ext/find-all-versions lib {} master-edn)]
-        (run! #(binding [*print-namespace-maps* false] (pr-str %)) coords))
+        (run! #(binding [*print-namespace-maps* false] (prn %)) coords))
 
       :else
       (throw (ex-info "Either :lib or :tool must be provided to find versions" args)))))
