@@ -18,8 +18,8 @@
   (are [url lib] (= url (git/auto-git-url lib))
     "https://github.com/clojure/tools.deps.alpha.git" 'io.github.clojure/tools.deps.alpha
     "https://github.com/clojure/tools.deps.alpha.git" 'com.github.clojure/tools.deps.alpha
-    "https://gitlabs.com/clojure/tools.deps.alpha.git" 'io.gitlabs.clojure/tools.deps.alpha
-    "https://gitlabs.com/clojure/tools.deps.alpha.git" 'com.gitlabs.clojure/tools.deps.alpha
+    "https://gitlab.com/clojure/tools.deps.alpha.git" 'io.gitlab.clojure/tools.deps.alpha
+    "https://gitlab.com/clojure/tools.deps.alpha.git" 'com.gitlab.clojure/tools.deps.alpha
     "https://bitbucket.org/clojure/tools.deps.alpha.git" 'io.bitbucket.clojure/tools.deps.alpha
     "https://bitbucket.org/clojure/tools.deps.alpha.git" 'org.bitbucket.clojure/tools.deps.alpha))
 

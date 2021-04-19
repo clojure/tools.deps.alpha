@@ -227,36 +227,25 @@
       (println "Installed" as))))
 
 (defn find-versions
-  "Find available tool versions given either a lib or existing installed tool.
-  Lib is specified with :mvn/lib or :git/lib (local not supported).
-  Tool is specified with :tool.
-  Prints one \"version\" per line."
-  [{tool :tool, git-lib :git/lib, mvn-lib :mvn/lib, :as args}]
-  (let [{:keys [lib coord coord-type]}
-        (cond tool (let [tool-data (tool/resolve-tool (name tool))
-                         coord-type (ext/coord-type (:coord tool-data))]
-                     (assoc tool-data :coord-type coord-type))
-              git-lib {:lib git-lib, :coord {:git/url (git/auto-git-url git-lib)} :coord-type :git}
-              mvn-lib {:lib mvn-lib, :coord-type :mvn})]
-    (if coord-type
-      (let [{:keys [root-edn user-edn]} (deps/find-edn-maps)
-            master-edn (deps/merge-edns [root-edn user-edn])
-            vs (ext/find-versions lib coord coord-type master-edn)]
-        (run!
-          (fn [v]
-            (if tool
-              (case coord-type
-                    :mvn (println lib (format "'{:mvn/version \"%s\"}'" v)
-                           (if (= (:mvn/version coord) v) "(installed)" ""))
-                    :git (println lib (format "'{:git/tag \"%s\"}'" v)
-                           (if (= (:git/tag coord) v) "(installed)" ""))
-                    (println lib v))
-              (println lib (case coord-type
-                             :mvn (format "'{:mvn/version \"%s\"}'" v)
-                             :git (format "'{:git/tag \"%s\"}'" v)
-                             v))))
-          vs))
-      (throw (ex-info (str "Unable to determine tool or lib from args: " (binding [*print-namespace-maps* false] (pr-str args))) args)))))
+  "Find available tool versions given either a lib (with :lib) or
+  existing installed tool (with :tool). If lib, check all registered
+  procurers and print one coordinate per line when found."
+  [{:keys [lib tool] :as args}]
+  (let [{:keys [root-edn user-edn]} (deps/find-edn-maps)
+        master-edn (deps/merge-edns [root-edn user-edn])]
+    (cond
+      tool
+      (let [{:keys [lib coord]} (tool/resolve-tool (name tool))
+            coord-type (ext/coord-type coord)
+            coords (ext/find-versions lib coord coord-type master-edn)]
+        (run! #(binding [*print-namespace-maps* false] (pr-str %)) coords))
+
+      lib
+      (let [coords (ext/find-all-versions lib {} master-edn)]
+        (run! #(binding [*print-namespace-maps* false] (pr-str %)) coords))
+
+      :else
+      (throw (ex-info "Either :lib or :tool must be provided to find versions" args)))))
 
 (defn tool-info
   "If no args given, list available tools. Specify particular :tool to get more info about the tool."

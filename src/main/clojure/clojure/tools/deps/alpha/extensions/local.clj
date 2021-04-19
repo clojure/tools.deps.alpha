@@ -40,6 +40,10 @@
    :path ""
    :type :local})
 
+(defmethod ext/find-versions :local
+  [_lib _coord _type _config]
+  nil)
+
 (defmethod ext/manifest-type :local
   [_lib {:keys [local/root deps/manifest] :as _coord} _config]
   (cond

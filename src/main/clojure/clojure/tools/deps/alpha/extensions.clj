@@ -39,12 +39,17 @@
 
 (defmethod coord-type-keys :default [type] #{})
 
+(defn procurer-types
+  "Returns set of registerd procurer types (results may change if procurer methods are registered)."
+  []
+  (disj (-> (.getMethodTable ^clojure.lang.MultiFn coord-type-keys) keys set) :default))
+
 (defn coord-type
   "Determine the coordinate type of the coordinate, based on the self-published procurer
   keys from coord-type-keys."
   [coord]
   (when (map? coord)
-    (let [exts (-> (.getMethodTable ^clojure.lang.MultiFn coord-type-keys) keys set)
+    (let [exts (procurer-types)
           coord-keys (-> coord keys set)
           matches (reduce (fn [ms type]
                             (cond-> ms
@@ -125,11 +130,17 @@
 ;; Find coords
 
 (defmulti find-versions
-  "Return a coll of version strings based on a lib and a partial coord"
+  "Return a coll of coords based on a lib and a partial coord"
   (fn [lib coord coord-type config] coord-type))
 
 (defmethod find-versions :default [lib coord coord-type config]
   (throw-bad-coord lib coord))
+
+(defn find-all-versions
+  "Find versions across all registered procurer types and return first that finds some.
+  Returns coll of coordinates for this lib (based on lib and partial coordinate)."
+  [lib coord config]
+  (some #(find-versions lib coord % config) (procurer-types)))
 
 ;; Methods switching on manifest type
 
@@ -155,3 +166,15 @@
 (defmethod coord-paths :default [lib coord manifest-type config]
   (throw-bad-manifest lib coord manifest-type))
 
+(comment
+  (require '[clojure.tools.deps.alpha.util.maven :as maven])
+
+  (binding [*print-namespace-maps* false]
+    (run! prn
+      (find-all-versions 'io.github.clojure/tools.deps.alpha nil {:mvn/repos maven/standard-repos})))
+
+  (binding [*print-namespace-maps* false]
+    (run! prn
+      (find-all-versions 'org.clojure/tools.deps.alpha nil {:mvn/repos maven/standard-repos})))
+
+  )

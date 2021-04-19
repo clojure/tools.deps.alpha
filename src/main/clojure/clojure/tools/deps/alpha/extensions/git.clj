@@ -14,14 +14,23 @@
     [clojure.tools.deps.alpha.extensions :as ext]
     [clojure.tools.gitlibs :as gitlibs]))
 
+(def ^:private git-services
+  {:github {:service #"^(?:com|io).github.([^.]+)$" :url "https://github.com/%s/%s.git"}
+   :gitlab {:service #"^(?:com|io).gitlab.([^.]+)$" :url "https://gitlab.com/%s/%s.git"}
+   :bitbucket {:service #"^(?:org|io).bitbucket.([^.]+)$" :url "https://bitbucket.org/%s/%s.git"}
+   :beanstalk {:service #"^(?:com|io).beanstalkapp.([^.]+)$" :url "https://%s.git.beanstalkapp.com/%s.git"}})
+
 (defn auto-git-url
   "Create url from lib name, ie:
-    io.github.foo/bar => https://github.com/foo/bar.git"
+    io.github.foo/bar => https://github.com/foo/bar.git
+   or return nil if not a name that can be auto converted to a url."
   [lib]
-  (let [[_ service user] (str/split (namespace lib) #"\.")
-        project (name lib)
-        tld (if (= service "bitbucket") "org" "com")]
-    (str "https://" service "." tld "/" user "/" project ".git")))
+  (let [group (namespace lib)
+        project (name lib)]
+    (some (fn [{:keys [service url]}]
+            (when-let [matches (re-matches service group)]
+              (format url (second matches) project)))
+      (vals git-services))))
 
 (defn full-sha?
   [sha]
@@ -133,7 +142,10 @@
 
 (defmethod ext/find-versions :git
   [lib {:keys [git/url] :as coord} _coord-type _config]
-  (gitlibs/tags url))
+  (let [url (or url (auto-git-url lib))]
+    (try
+      (map (fn [tag] {:git/tag tag}) (gitlibs/tags url))
+      (catch Throwable _ nil))))
 
 (comment
   (ext/find-versions 'org.clojure/spec.alpha
@@ -142,6 +154,10 @@
   (ext/lib-location 'foo/foo
                     {:git/url "https://github.com/clojure/core.async.git"
                      :sha "ecea2539a724a415b15e50f12815b4ab115cfd35"} {})
+
+  (binding [*print-namespace-maps* false]
+    (run! prn
+      (ext/find-versions 'io.github.clojure/tools.deps.alpha nil :git nil)))
 
   ;; error - prefix sha
   (ext/canonicalize 'org.clojure/spec.alpha
@@ -161,4 +177,5 @@
     {:git/url "https://github.com/clojure/spec.alpha.git" :git/sha "739c1af56dae621aedf1bb282025a0d676eff713"}
     {:git/url "git@github.com:clojure/spec.alpha.git" :git/sha "a65fb3aceec67d1096105cab707e6ad7e5f063af"}
     nil)
+
   )

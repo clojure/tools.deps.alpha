@@ -148,13 +148,17 @@
         session ^RepositorySystemSession (session/retrieve :mvn/session #(maven/make-session system local-repo))
         artifact (maven/coord->artifact lib {:mvn/version "(0,]"})
         req (VersionRangeRequest. artifact (maven/remote-repos repos) nil)
-        result (.resolveVersionRange system session req)]
-    (into [] (map #(.toString ^Version %)) (.getVersions result))))
+        result (.resolveVersionRange system session req)
+        versions (.getVersions result)]
+    (when (seq versions)
+      (into [] (map (fn [v] {:mvn/version (.toString ^Version v)}) versions)))))
 
 (comment
   (ext/lib-location 'org.clojure/clojure {:mvn/version "1.8.0"} {})
 
-  (ext/find-versions 'org.clojure/clojure nil :mvn {:mvn/repos maven/standard-repos})
+  (binding [*print-namespace-maps* false]
+    (run! prn
+      (ext/find-versions 'org.clojure/clojure nil :mvn {:mvn/repos maven/standard-repos})))
 
   ;; given a dep, find the child deps
   (ext/coord-deps 'org.clojure/clojure {:mvn/version "1.9.0-alpha17"} :mvn {:mvn/repos maven/standard-repos})
