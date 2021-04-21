@@ -247,24 +247,52 @@
       :else
       (throw (ex-info "Either :lib or :tool must be provided to find versions" args)))))
 
-(defn tool-info
-  "If no args given, list available tools. Specify particular :tool to get more info about the tool."
-  [{:keys [tool] :as args}]
-  (if tool
-    (let [{:keys [lib coord] :as info} (tool/resolve-tool tool)]
-      (if info
-        (do
-          (println "Info for" tool ":")
-          (println)
-          (println "lib:" lib)
-          (println "coord:")
-          (binding [*print-namespace-maps* false]
-            (pprint/pprint coord)))
-        (println "Tool not found")))
-    (run! #(println (str %)) (tool/list-tools))))
+(defn- max-len
+  [vals]
+  (apply max (map #(count (str %)) vals)))
 
-(defn tool-remove
-  "Remove tool, if it exists."
+(defn- pad
+  [s len]
+  (format (str "%-" len "s") s))
+
+(defn- print-table
+  [ks rows]
+  (let [widths (map (fn [k] (+ 2 (max-len (map k rows)))) (butlast ks))]
+    (run!
+      (fn [row]
+        (let [padded-cols (map #(pad (get row %1) %2) ks widths)]
+          (println (str (apply str padded-cols) (get row (last ks))))))
+      rows)))
+
+(defn list-tools
+  "List available tools"
+  [_]
+  (print-table [:tool :lib :type :version]
+    (cons
+      {:tool "TOOL" :lib "LIB" :type "TYPE" :version "VERSION"}
+      (map (fn [tool]
+             (let [{:keys [lib coord]} (tool/resolve-tool tool)
+                   ctype (ext/coord-type coord)
+                   {mver :mvn/version gtag :git/tag} coord]
+               {:tool tool :lib lib :type ctype :version (or mver gtag)}))
+        (tool/list-tools)))))
+
+(defn show-tool
+  "Print info and usage for this :tool"
+  [{:keys [tool] :as args}]
+  (let [{:keys [lib coord] :as info} (tool/resolve-tool tool)]
+    (if info
+      (do
+        (println "Info for" tool ":")
+        (println)
+        (println "lib:" lib)
+        (println "coord:")
+        (binding [*print-namespace-maps* false]
+          (pprint/pprint coord)))
+      (println "Tool not found"))))
+
+(defn remove-tool
+  "Remove :tool, if it exists."
   [{:keys [tool] :as args}]
   (if tool
     (if (tool/remove-tool tool)
@@ -277,4 +305,6 @@
 
   (install-tool '{io.github.seancorfield/clj-new
                   {:git/tag "v1.1.243"} :as "clj-new"})
+
+  (list-tools nil)
   )
