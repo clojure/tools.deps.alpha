@@ -192,10 +192,8 @@
                       :project-deps {:deps {'cheshire/cheshire {:mvn/version "5.10.0"}}}
                       :tool-mode true
                       :tool-name "foo"
-                      :tool-resolver {"foo" {:lib 'org.clojure/data.json
-                                             :coord {:mvn/version "2.0.1"}
-                                             :usage {:exec {:ns-default 'my.ns}}}}
-                      :function 'abc})
+                      :tool-resolver {"foo" {:lib 'org.clojure/data.json, :coord {:mvn/version "2.0.1"}}}
+                      :function 'my.ns/abc})
         paths (filter #(get-in classpath [% :path-key]) classpath-roots)]
     ;; tool deps, not project deps
     (is (not (contains? libs 'cheshire/cheshire)))
@@ -203,7 +201,7 @@
     ;; ., not project paths
     (is (= 1 (count paths)))
     (is (= (.getCanonicalPath (jio/file (first paths))) (.getCanonicalPath (jio/file "."))))
-    ;; function resolved based on usage
+    ;; fq function (not easy to fake reading :tools/usage from deps.edn of lib)
     (is (= 'my.ns/abc resolved-function))))
 
 (comment

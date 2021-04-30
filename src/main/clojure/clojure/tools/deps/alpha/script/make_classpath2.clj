@@ -13,6 +13,7 @@
     [clojure.string :as str]
     [clojure.tools.cli :as cli]
     [clojure.tools.deps.alpha :as deps]
+    [clojure.tools.deps.alpha.extensions :as ext]
     [clojure.tools.deps.alpha.tool :as tool]
     [clojure.tools.deps.alpha.util.io :as io :refer [printerrln]]
     [clojure.tools.deps.alpha.script.parse :as parse]
@@ -64,9 +65,11 @@
   "Resolves the tool by name to the coord + usage data.
    Create the proper args to include the lib/coord for the tool
    and the resolved f in terms of usage data."
-  [tool-data function]
-  (let [{:keys [lib coord usage]} tool-data
-        {:keys [ns-default ns-aliases]} (:exec usage)
+  [tool-data function config]
+  (let [{:keys [lib coord]} tool-data
+        manifest-type (ext/manifest-type lib coord config)
+        coord' (merge coord manifest-type)
+        {:keys [ns-default ns-aliases]} (ext/coord-usage lib coord' (:deps/manifest coord') config)
         resolved-function (let [fns (when-let [nss (namespace function)] (symbol nss))
                                 fn (symbol (name function))]
                             (if fns
@@ -76,7 +79,7 @@
                               (if ns-default
                                 (symbol (str ns-default) (str fn))
                                 function)))]
-    {:tool-args {:replace-deps {lib coord}
+    {:tool-args {:replace-deps {lib coord'}
                  :replace-paths ["."]}
      :resolved-function resolved-function}))
 
@@ -100,20 +103,20 @@
            skip-cp threads trace tree] :as _opts}]
   (when (and main-aliases exec-aliases)
     (throw (ex-info "-M and -X cannot be used at the same time" {})))
-  (let [;; tool use - :deps/:paths/:replace-deps/:replace-paths in project if needed
+  (let [pretool-edn (deps/merge-edns [install-deps user-deps project-deps config-data])
+        ;; tool use - :deps/:paths/:replace-deps/:replace-paths in project if needed
         {:keys [resolved-function tool-args]} (cond
-                                                tool-name (resolve-tool-args (tool-resolver tool-name) function)
+                                                tool-name (resolve-tool-args (tool-resolver tool-name) function pretool-edn)
                                                 tool-mode {:tool-args {:replace-deps {} :replace-paths ["."]}
                                                            :resolved-function function})
+        ;; :deps/TOOL is used only here to inject the tool's alias config into the tool args
         combined-tool-args (deps/combine-aliases
-                             ;; merge just to get all aliases
-                            (deps/merge-edns [install-deps user-deps project-deps config-data
-                                              (when tool-args {:aliases {:__TOOL tool-args}})])
-                            (concat main-aliases exec-aliases repl-aliases tool-aliases (when tool-args [:__TOOL])))
+                            (deps/merge-edns [pretool-edn (when tool-args {:aliases {:deps/TOOL tool-args}})])
+                            (concat main-aliases exec-aliases repl-aliases tool-aliases (when tool-args [:deps/TOOL])))
         project-deps (deps/tool project-deps combined-tool-args)
 
         ;; calc basis
-        merge-edn (deps/merge-edns [install-deps user-deps project-deps config-data])
+        merge-edn (deps/merge-edns [install-deps user-deps project-deps config-data]) ;; recalc to get updated project-deps
         combined-exec-aliases (concat main-aliases exec-aliases repl-aliases tool-aliases)
         _ (check-aliases merge-edn (concat resolve-aliases makecp-aliases combined-exec-aliases))
         resolve-argmap (deps/combine-aliases merge-edn (concat resolve-aliases combined-exec-aliases))

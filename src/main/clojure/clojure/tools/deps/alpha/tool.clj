@@ -15,8 +15,7 @@
     [clojure.tools.deps.alpha.extensions :as ext]
     [clojure.tools.deps.alpha.util.io :as io])
   (:import
-    [java.io File InputStreamReader]
-    [java.util.jar JarFile]))
+    [java.io File]))
 
 (defn- tool-dir
   ^File []
@@ -27,66 +26,28 @@
   ^File [tool]
   (jio/file (tool-dir) (str tool ".edn")))
 
-(defn- read-usage
-  "Read usage.edn from paths, which is a coll of either a directory or a jar file.
-  If a directory, read from dir/usage.edn. If a jar, read from usage.edn at the root
-  of the jar. The first usage.edn found is slurped and returned as edn. If none found,
-  nil is returned."
-  [paths]
-  (loop [[path & ps] paths]
-    (when path
-      (let [f (jio/file path)]
-        (cond
-          (.isDirectory f)
-          (let [usage-file (jio/file f "usage.edn")]
-            (if (.exists usage-file)
-              (io/slurp-edn usage-file)
-              (recur ps)))
-
-          (and (.exists f) (str/ends-with? path ".jar"))
-          (let [jar (JarFile. f)]
-            (let [entry (.getJarEntry jar "usage.edn")]
-              (if entry
-                (io/read-edn (InputStreamReader. (.getInputStream jar entry)))
-                (recur ps))))
-
-          :else
-          (recur ps))))))
-
 (defn install-tool
-  "Procure the lib+coord, find it's usage.edn if any, install the tool to the user
-  tools dir (records lib, coord, usage)."
+  "Procure the lib+coord, install the tool to the user tools dir (with lib, coord)"
   [lib coord as]
   (let [{:keys [root-edn user-edn]} (deps/find-edn-maps)
         master-edn (deps/merge-edns [root-edn user-edn])
-        coord' (merge coord (ext/manifest-type lib coord master-edn))
-        paths (ext/coord-paths lib coord' (:deps/manifest coord') master-edn)
-        usage (read-usage paths)
+        deps-info (ext/manifest-type lib coord master-edn)
         f (tool-file as)]
+    ;; procure
+    (ext/coord-paths lib (merge coord deps-info) (:deps/manifest deps-info) master-edn)
+    ;; ensure tool dir
     (.mkdirs (.getParentFile f))
+    ;; write tool file
     (spit f
       (with-out-str
         (binding [*print-namespace-maps* false
                   pprint/*print-right-margin* 100]
-          (pprint/pprint (cond-> {:lib lib :coord (dissoc coord' :deps/root :deps/manifest)}
-                           usage (assoc :usage usage))))))))
-
-(comment
-  (binding [*print-namespace-maps* false]
-    (with-out-str
-      (pprint/pprint {:git/url "abc" :git/sha "123"})))
-
-  (with-out-str
-    (binding [*print-namespace-maps* false]
-      (pprint/pprint {:git/url "abc" :git/sha "123"})))
-
-  )
+          (pprint/pprint {:lib lib :coord coord}))))))
 
 (defn resolve-tool
   "Resolve a tool by name, look up and return:
   {:lib lib
-   :coord coord
-   :usage usage-edn}
+   :coord coord}
   Or nil if unknown."
   [tool]
   (let [f (tool-file tool)]
