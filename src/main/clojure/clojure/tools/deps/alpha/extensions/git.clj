@@ -75,19 +75,27 @@
           (throw (ex-info (format "Library %s has prefix sha, use full sha or add tag" lib) {:lib lib :coord coord}))))
       (throw (ex-info (format "Library %s has coord with missing sha" lib) {:lib lib :coord coord})))))
 
+(defn- to-canonical
+  [lib {:git/keys [url sha] :as coord} config]
+  (if (and url (full-sha? sha))
+    [lib coord]
+    (ext/canonicalize lib coord config)))
+
 (defmethod ext/lib-location :git
-  [lib {unsha :sha sha :git/sha} _]
-  {:base (str (gitlibs/cache-dir) "/libs") ;; gitlibs repo location is not in a public API...
-   :path (str lib "/" (or sha unsha))
-   :type :git})
+  [lib coord config]
+  (let [[lib {:git/keys [sha]}] (to-canonical lib coord config)]
+    {:base (str (gitlibs/cache-dir) "/libs") ;; gitlibs repo location is not in a public API...
+     :path (str lib "/" sha)
+     :type :git}))
 
 (defmethod ext/dep-id :git
-  [_lib {url :git/url, unsha :sha, sha :git/sha} _config]
-  {:git/url url, :git/sha (or sha unsha)})
+  [lib coord config]
+  (let [[_lib {:git/keys [url sha]}] (to-canonical lib coord config)]
+    {:git/url url, :git/sha sha}))
 
 (defmethod ext/manifest-type :git
-  [lib {unsha :sha :git/keys [url sha] :deps/keys [manifest root] :as _coord} _config]
-  (let [sha (or sha unsha)
+  [lib coord config]
+  (let [[lib {:git/keys [url sha] :deps/keys [manifest root]}] (to-canonical lib coord config)
         sha-dir (gitlibs/procure url lib sha)
         root-dir (if root
                    (let [root-file (jio/file root)]
@@ -99,16 +107,17 @@
       {:deps/manifest manifest, :deps/root root-dir}
       (ext/detect-manifest root-dir))))
 
-(defmethod ext/coord-summary :git [lib {unsha :sha :git/keys [url sha]}]
-  (str lib " " url " " (subs (or sha unsha) 0 7)))
+(defmethod ext/coord-summary :git [lib coord]
+  (let [[lib {:git/keys [url sha]}] (to-canonical lib coord nil)]
+    (str lib " " url " " (subs sha 0 7))))
 
 ;; 0 if x and y are the same commit
 ;; negative if x is parent of y (y derives from x)
 ;; positive if y is parent of x (x derives from y)
 (defmethod ext/compare-versions [:git :git]
-  [lib {x-url :git/url, x-unsha :sha, x-sha :git/sha :as x} {y-url :git/url, y-unsha :sha, y-sha :git/sha :as y} _config]
-  (let [x-sha (or x-sha x-unsha)
-        y-sha (or y-sha y-unsha)]
+  [lib x-coord y-coord config]
+  (let [[_ {x-url :git/url, x-sha :git/sha, :as x}] (to-canonical lib x-coord config)
+        [_ {y-url :git/url, y-sha :git/sha, :as y}] (to-canonical lib y-coord config)]
     (if (= x-sha y-sha)
       0
       (let [desc (if (= x-url y-url)
@@ -126,23 +135,9 @@
           (= desc x-sha) 1
           (= desc y-sha) -1)))))
 
-(defmethod ext/manifest-type :git
-  [lib {unsha :sha :git/keys [url sha] :deps/keys [manifest root] :as _coord} _config]
-  (let [sha (or sha unsha)
-        sha-dir (gitlibs/procure url lib sha)
-        root-dir (if root
-                   (let [root-file (jio/file root)]
-                     (if (.isAbsolute root-file) ;; should be only after coordinate resolution
-                       (.getCanonicalPath root-file)
-                       (.getCanonicalPath (jio/file sha-dir root-file))))
-                   sha-dir)]
-    (if manifest
-      {:deps/manifest manifest, :deps/root root-dir}
-      (ext/detect-manifest root-dir))))
-
 (defmethod ext/find-versions :git
-  [lib {:keys [git/url] :as coord} _coord-type _config]
-  (let [url (or url (auto-git-url lib))]
+  [lib coord _coord-type config]
+  (let [[_lib {:git/keys [url]}] (to-canonical lib coord config)]
     (try
       (map (fn [tag] {:git/tag tag}) (gitlibs/tags url))
       (catch Throwable _ nil))))
