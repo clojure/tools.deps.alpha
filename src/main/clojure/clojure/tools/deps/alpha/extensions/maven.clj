@@ -153,6 +153,11 @@
     (when (seq versions)
       (into [] (map (fn [v] {:mvn/version (.toString ^Version v)}) versions)))))
 
+(defmethod ext/coord-usage :mvn
+  [lib {:keys [deps/root]} manifest-type config]
+  ;; TBD - could look in jar, could download well-known classifier
+  nil)
+
 (comment
   (ext/lib-location 'org.clojure/clojure {:mvn/version "1.8.0"} {})
 

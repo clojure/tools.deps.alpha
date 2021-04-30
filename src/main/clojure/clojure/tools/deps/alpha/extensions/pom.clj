@@ -115,6 +115,11 @@
                            (.getCanonicalPath (jio/file root dir)))))))]
     (->> srcs (remove nil?) distinct)))
 
+(defmethod ext/coord-usage :pom
+  [lib {:keys [deps/root]} manifest-type config]
+  ;; TBD
+  nil)
+
 (comment
   (ext/coord-deps 'org.clojure/core.async {:deps/root "../core.async" :deps/manifest :pom}
     :pom {:mvn/repos maven/standard-repos})

@@ -39,3 +39,6 @@
       (map #(.getCanonicalPath %))
       vec)))
 
+(defmethod ext/coord-usage :deps [lib {:keys [deps/root]} manifest-type config]
+  (dir/with-dir (jio/file root)
+    (-> (dir/canonicalize (jio/file "deps.edn")) io/slurp-edn :tools/usage)))

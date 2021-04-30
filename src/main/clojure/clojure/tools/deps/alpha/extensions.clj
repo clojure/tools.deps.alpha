@@ -166,6 +166,15 @@
 (defmethod coord-paths :default [lib coord manifest-type config]
   (throw-bad-manifest lib coord manifest-type))
 
+(defmulti coord-usage
+  "Return usage info map for this library with the following optional keys:
+    :ns-default - default namespace symbol
+    :ns-aliases - map of alias to namespace symbol"
+  (fn [lib coord manifest-type config] manifest-type))
+
+(defmethod coord-usage :default [lib coord manifest-type config]
+  (throw-bad-manifest lib coord manifest-type))
+
 (comment
   (require '[clojure.tools.deps.alpha.util.maven :as maven])
 
