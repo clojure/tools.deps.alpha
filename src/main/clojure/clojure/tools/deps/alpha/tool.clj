@@ -54,6 +54,18 @@
     (when (.exists f)
       (io/slurp-edn f))))
 
+(defn usage
+  "Resolve a tool and return it's usage data, which may be nil.
+  Throws ex-info if tool is unknown."
+  [tool]
+  (if-let [{:keys [lib coord]} (resolve-tool tool)]
+    (let [{:keys [root-edn user-edn]} (deps/find-edn-maps)
+          config (deps/merge-edns [root-edn user-edn])
+          [lib coord] (ext/canonicalize lib coord config)
+          manifest-type (ext/manifest-type lib coord config)]
+      (ext/coord-usage lib (merge coord manifest-type) (:deps/manifest manifest-type) config))
+    (throw (ex-info (str "Unknown tool: " tool) {:tool tool}))))
+
 (defn list-tools
   "Return seq of available tool names"
   []
