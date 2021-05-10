@@ -218,9 +218,11 @@
         (run! #(binding [*print-namespace-maps* false] (prn %)) coords))
 
       :else
-      (throw (ex-info "Either :lib or :tool must be provided to find versions" args)))))
+      (throw (ex-info "Either :lib or :tool must be provided to find versions" (or args {}))))))
 
 (comment
-  (find-versions '{:mvn/lib org.clojure/tools.gitlibs})
-  (find-versions '{:git/lib io.github.clojure/tools.gitlibs})
+  (find-versions '{:lib org.clojure/tools.gitlibs})
+  (find-versions '{:lib io.github.clojure/tools.gitlibs})
+  (find-versions '{:tool tools})
+  (find-versions nil)
   )

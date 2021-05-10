@@ -137,12 +137,14 @@
 
 (defmethod ext/find-versions :git
   [lib coord _coord-type config]
-  (let [[_lib {:git/keys [url]}] (to-canonical lib coord config)]
+  (let [url (or (:git/url coord) (auto-git-url lib))]
     (try
       (map (fn [tag] {:git/tag tag}) (gitlibs/tags url))
       (catch Throwable _ nil))))
 
 (comment
+  (ext/find-versions 'io.github.cognitect-labs/test-runner {} :git nil)
+
   (ext/find-versions 'org.clojure/spec.alpha
     {:git/url "https://github.com/clojure/spec.alpha.git"} :git nil)
 
