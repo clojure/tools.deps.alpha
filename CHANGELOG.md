@@ -3,7 +3,7 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.3/CHANGELOG.md)*
 
-* next
+* 0.11.918 on May 11, 2021
   * TDEPS-177 - Use server id, not server name to select Maven mirror
   * Update to latest tools.gitlibs to 2.3.167
 * 0.11.910 on Apr 3, 2021
