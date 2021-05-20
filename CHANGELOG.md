@@ -3,7 +3,7 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.3/CHANGELOG.md)*
 
-* next
+* 0.11.922 on May 20, 2021
   * TDEPS-178 - Update to latest Maven deps (resolver 1.7.0, core 1.8.3)
     * See https://maven.apache.org/docs/3.8.1/release-notes.html for CVE details
 * 0.11.918 on May 11, 2021
