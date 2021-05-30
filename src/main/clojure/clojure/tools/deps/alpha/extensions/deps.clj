@@ -37,7 +37,7 @@
       (map #(dir/canonicalize (jio/file %)))
       (map #(do
               (when (not (dir/sub-path? %))
-                (io/printerrln "WARNING: Specified path" % "is external to project" root))
+                (io/printerrln "WARNING: Deprecated use of path" % "external to project" root))
               %))
       (map #(.getCanonicalPath %))
       vec)))

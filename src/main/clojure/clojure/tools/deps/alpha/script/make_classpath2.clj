@@ -59,7 +59,7 @@
   "Check that all aliases are known and warn if aliases are undeclared"
   [deps aliases]
   (when-let [unknown (seq (remove #(contains? (:aliases deps) %) (distinct aliases)))]
-    (printerrln "WARNING: Specified aliases are undeclared:" (vec unknown))))
+    (printerrln "WARNING: Specified aliases are undeclared and are not being used:" (vec unknown))))
 
 (defn resolve-tool-args
   "Resolves the tool by name to the coord + usage data.

@@ -582,7 +582,7 @@
   (doto paths
     (->> (map first)
       (run! #(when (not (dir/sub-path? (jio/file %)))
-               (io/printerrln "WARNING: Specified path is external to project:" %))))))
+               (io/printerrln "WARNING: Use of :paths external to the project has been deprecated, please remove:" %))))))
 
 (defn- tree-paths
   "Given a lib map, return a vector of all vector paths to included libs in the tree.
