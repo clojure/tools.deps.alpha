@@ -13,14 +13,17 @@
     [clojure.tools.deps.alpha :as deps]
     [clojure.tools.deps.alpha.extensions :as ext]
     [clojure.tools.deps.alpha.util.dir :as dir]
-    [clojure.tools.deps.alpha.util.io :as io]))
+    [clojure.tools.deps.alpha.util.io :as io]
+    [clojure.tools.deps.alpha.util.session :as session]))
 
 (defn- deps-map
   [config dir]
   (let [f (jio/file dir "deps.edn")]
-    (if (.exists f)
-      (deps/merge-edns [(deps/root-deps) (deps/slurp-deps f)])
-      (deps/root-deps))))
+    (session/retrieve
+      {:deps :map :file (.getAbsolutePath f)} ;; session key
+      #(if (.exists f)
+         (deps/merge-edns [(deps/root-deps) (deps/slurp-deps f)])
+         (deps/root-deps)))))
 
 (defmethod ext/coord-deps :deps
   [_lib {:keys [deps/root] :as _coord} _mf config]
@@ -39,6 +42,10 @@
       (map #(.getCanonicalPath %))
       vec)))
 
-(defmethod ext/coord-usage :deps [lib {:keys [deps/root]} manifest-type config]
+(defmethod ext/coord-usage :deps [lib {:keys [deps/root] :as _coord} manifest-type config]
   (dir/with-dir (jio/file root)
-    (-> (dir/canonicalize (jio/file "deps.edn")) io/slurp-edn :tools/usage)))
+    (:tools/usage (deps-map config root))))
+
+(defmethod ext/coord-prep :deps [lib {:keys [deps/root] :as _coord} manifest-type config]
+  (dir/with-dir (jio/file root)
+    (:deps/prep-lib (deps-map config root))))

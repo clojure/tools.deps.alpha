@@ -21,7 +21,9 @@
   (:import
     [clojure.lang EdnReader$ReaderException]
     [clojure.lang PersistentQueue]
-    [java.io File InputStreamReader BufferedReader]))
+    [java.io File InputStreamReader BufferedReader]
+    [java.lang ProcessBuilder ProcessBuilder$Redirect]
+    [java.util List]))
 
 ;(set! *warn-on-reflection* true)
 
@@ -501,6 +503,42 @@
   ([deps-map args-map settings]
    (resolve-deps deps-map (merge args-map settings))))
 
+(defn- exec-prep!
+  "Exec the prep command in the command-args coll. Redirect stdout/stderr to this process,
+  wait for the process to complete, and return the exit code"
+  [^File dir lib alias f]
+  (println "\nPrepping" lib)
+  (let [command-args ["clojure" (str "-T" alias) (str f)]
+        proc-builder (doto (ProcessBuilder. ^List command-args)
+                       (.directory dir)
+                       (.redirectOutput ProcessBuilder$Redirect/INHERIT)
+                       (.redirectError ProcessBuilder$Redirect/INHERIT))
+        proc (.start proc-builder)]
+    (.waitFor proc)))
+
+(defn- prep-deps!
+  "Takes a lib map and looks for deps that need prepping. If :prep is
+  set in args-map, also do prepping. Returns nil."
+  [lib-map {:keys [prep]} config]
+  (let [to-prep (reduce-kv
+                  (fn [prep-able lib {:deps/keys [root manifest] :as coord}]
+                    (if-let [prep-lib (ext/coord-prep lib coord manifest config)]
+                      (conj prep-able [lib coord prep-lib])
+                      prep-able))
+                  [] lib-map)]
+    ;(println "prep-able:" to-prep)
+    (run!
+      (fn [[lib {:deps/keys [root manifest]} {f :fn :keys [alias ensure]}]]
+        (let [ensure-dir (when ensure (jio/file root ensure))]
+          (if (and ensure (.exists ensure-dir))
+            (println "Prep lib" lib "already prepped at" (.getCanonicalPath (jio/file root ensure)))
+            (do
+              (println "Prep lib" lib "needs prepping with: clj" (str "-T" alias) f)
+              (let [exit (exec-prep! (jio/file root) lib alias f)]
+                (when (not (zero? exit))
+                  (throw (ex-info (str "Dep build failure: " exit) {:lib lib :exit exit}))))))))
+      to-prep)))
+
 (defn- make-tree
   [lib-map]
   (let [{roots false, nonroots true} (group-by #(-> % val :dependents boolean) lib-map)]
@@ -653,6 +691,7 @@
   ([master-edn {:keys [resolve-args classpath-args]}]
    (session/with-session
      (let [libs (resolve-deps master-edn resolve-args)
+           _ (prep-deps! libs resolve-args master-edn)
            cp (make-classpath-map master-edn libs classpath-args)]
        (cond->
          (merge master-edn {:libs libs} cp)

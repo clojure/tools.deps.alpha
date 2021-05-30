@@ -175,6 +175,16 @@
 (defmethod coord-usage :default [lib coord manifest-type config]
   (throw-bad-manifest lib coord manifest-type))
 
+(defmulti coord-prep
+  "Return prep lib data for this library with the following keys:
+    :alias - alias to use when invoking (keyword)
+    :fn - function to invoke in alias (symbol)
+    :ensure - relative path in repo to ensure exists after prep"
+  (fn [lib coord manifest-type config] manifest-type))
+
+(defmethod coord-prep :default [lib coord manifest-type config]
+  (throw-bad-manifest lib coord manifest-type))
+
 (comment
   (require '[clojure.tools.deps.alpha.util.maven :as maven])
 

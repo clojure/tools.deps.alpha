@@ -158,6 +158,11 @@
   ;; TBD - could look in jar, could download well-known classifier
   nil)
 
+(defmethod ext/coord-prep :mvn
+  [lib {:keys [deps/root]} manifest-type config]
+  ;; TBD - could look in jar, could download well-known classifier
+  nil)
+
 (comment
   (ext/lib-location 'org.clojure/clojure {:mvn/version "1.8.0"} {})
 
