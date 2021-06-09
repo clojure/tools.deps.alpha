@@ -14,7 +14,11 @@
     [clojure.tools.deps.alpha.extensions :as ext]
     [clojure.tools.deps.alpha.util.dir :as dir]
     [clojure.tools.deps.alpha.util.io :as io]
-    [clojure.tools.deps.alpha.util.session :as session]))
+    [clojure.tools.deps.alpha.util.session :as session])
+  (:import
+    [java.io File]))
+
+(set! *warn-on-reflection* true)
 
 (defn- deps-map
   [config dir]
@@ -39,7 +43,7 @@
               (when (not (dir/sub-path? %))
                 (io/printerrln "WARNING: Deprecated use of path" % "external to project" root))
               %))
-      (map #(.getCanonicalPath %))
+      (map #(.getCanonicalPath ^File %))
       vec)))
 
 (defmethod ext/coord-usage :deps [lib {:keys [deps/root] :as _coord} manifest-type config]

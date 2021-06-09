@@ -153,8 +153,20 @@
   (let [basis (mc/run-core {:install-deps install-data
                              :project-deps {:deps {'org.clojure/clojure {:mvn/version "1.10.0"}}}
                              :skip-cp true})]
-    (is (nil? (:cp basis)))
-    (is (nil? (:libs basis)))))
+    (is (nil? basis))))
+
+(deftest removing-deps
+  (let [basis (mc/run-core {:install-deps install-data
+                            :user-deps {:aliases
+                                        {:remove-clojure
+                                         {:classpath-overrides
+                                          '{org.clojure/clojure nil
+                                            org.clojure/spec.alpha nil
+                                            org.clojure/core.specs.alpha nil}}}}
+                            :repl-aliases [:remove-clojure]})]
+    (is (= 3 (count (:libs basis)))) ;; lib set is not changed by classpath-overrides
+    (is (= ["src"] (:classpath-roots basis)))
+    (is (= {"src" {:path-key :paths}} (:classpath basis)))))
 
 (deftest tool-alias
   (let [{:keys [libs classpath-roots classpath]}
