@@ -567,7 +567,19 @@
 
 (defn- flatten-libs
   [lib-map {:keys [classpath-overrides] :as classpath-args}]
-  (let [override-libs (merge-with (fn [coord path] (assoc coord :paths [path])) lib-map classpath-overrides)
+  (let [override-libs (if classpath-overrides
+                        (reduce-kv
+                          (fn [lm lib path]
+                            (if (contains? lm lib)
+                              (if (str/blank? path)
+                                ;; classpath-override removes lib
+                                (dissoc lm lib)
+                                ;; override path for lib
+                                (assoc-in lm [lib :paths] [path]))
+                              lm))
+                          lib-map
+                          classpath-overrides)
+                        lib-map)
         lib-order (->> override-libs tree-paths sort-paths (map peek) distinct)
         lib-paths (mapcat
                     #(map vector (get-in override-libs [% :paths]) (repeat {:lib-name %}))

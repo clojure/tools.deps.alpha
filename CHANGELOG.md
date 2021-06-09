@@ -3,6 +3,8 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.3/CHANGELOG.md)*
 
+* next
+  * TDEPS-179 - Fix incorrect classpath when :classpath-overrides removes path
 * 0.11.926 on June 6, 2021
   * Fix reflection warning
 * 0.11.922 on May 20, 2021
