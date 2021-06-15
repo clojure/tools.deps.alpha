@@ -11,6 +11,34 @@
     [clojure.string :as str]
     [clojure.repl :as repl]))
 
+(defn- garner-ns-defaults []
+  (try
+    (let [nsd (-> "clojure.run.exec/*ns-default*" symbol resolve deref)
+          nsa (-> "clojure.run.exec/*ns-aliases*" symbol resolve deref)]
+      (require 'clojure.run.exec)
+      (require nsd)
+      {:ns-default nsd
+       :ns-aliases nsa})
+    (catch RuntimeException _
+      {})))
+
+(defn- qualify-fn
+  "Compute function symbol based on exec-fn, ns-aliases, and ns-default"
+  [fsym ns-aliases ns-default]
+  ;; validation - make specs?
+  (when (and fsym (not (symbol? fsym)))
+    (throw (ex-info (str "Expected function symbol:" fsym) {})))
+
+  (when fsym
+    (if (qualified-ident? fsym)
+      (let [nsym (get ns-aliases (symbol (namespace fsym)))]
+        (if nsym
+          (symbol (str nsym) (name fsym))
+          fsym))
+      (if ns-default
+        (symbol (str ns-default) (str fsym))
+        (throw (ex-info (str "Unqualified function can't be resolved:" fsym) {}))))))
+
 (defn doc
   "Print doc for the specified namespace or function. If neither is specified, print docs
   for :ns-default.
@@ -19,18 +47,19 @@
     :ns Print docs for namespace
     :fn Print docs for function"
   [{:keys [ns fn]}]
-  (if fn
-    (#'repl/print-doc (meta (resolve fn))) ;; TODO - resolve with :ns-default+:ns-aliases
-    (let [ns (or ns :TODO)] ;; TODO - default to :ns-default
-      (let [my-ns (the-ns ns)
-            ns-doc (:doc (meta my-ns))]
-        ;; Print namespace docs
-        (when (not (str/blank? ns-doc))
-          (println ns-doc)
-          (println))
-        ;; Print function docs
-        (doseq [v (->> my-ns ns-publics (sort-by key) (map val))]
-          (#'repl/print-doc (meta v)))))))
+  (let [{:keys [ns-default ns-aliases]} (garner-ns-defaults)]
+    (if fn
+      (#'repl/print-doc (meta (resolve (qualify-fn fn ns-aliases ns-default)))) ;; TODO - resolve with :ns-default+:ns-aliases
+      (let [ns (or ns ns-default)]
+        (let [my-ns (the-ns ns)
+              ns-doc (:doc (meta my-ns))]
+          ;; Print namespace docs
+          (when (not (str/blank? ns-doc))
+            (println ns-doc)
+            (println))
+          ;; Print function docs
+          (doseq [v (->> my-ns ns-publics (sort-by key) (map val))]
+            (#'repl/print-doc (meta v))))))))
 
 (comment
   (doc {:ns 'clojure.tools.cli.help})
