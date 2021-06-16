@@ -17,8 +17,9 @@
           nsa (-> "clojure.run.exec/*ns-aliases*" symbol resolve deref)]
       (require 'clojure.run.exec)
       (require nsd)
-      {:ns-default nsd
-       :ns-aliases nsa})
+      (cond-> {}
+        nsd (assoc :ns-default nsd)
+        nsa (assoc :ns-aliases nsa)))
     (catch RuntimeException _
       {})))
 
@@ -46,10 +47,10 @@
   Options:
     :ns Print docs for namespace
     :fn Print docs for function"
-  [{:keys [ns fn]}]
-  (let [{:keys [ns-default ns-aliases]} (garner-ns-defaults)]
+  [{:keys [ns fn] :as args}]
+  (let [{:keys [ns-default ns-aliases]} (merge args (garner-ns-defaults))]
     (if fn
-      (#'repl/print-doc (meta (resolve (qualify-fn fn ns-aliases ns-default)))) ;; TODO - resolve with :ns-default+:ns-aliases
+      (#'repl/print-doc (meta (resolve (qualify-fn fn ns-aliases ns-default))))
       (let [ns (or ns ns-default)]
         (let [my-ns (the-ns ns)
               ns-doc (:doc (meta my-ns))]
@@ -61,7 +62,18 @@
           (doseq [v (->> my-ns ns-publics (sort-by key) (map val))]
             (#'repl/print-doc (meta v))))))))
 
+(defn dir
+  "Prints a sorted directory of public vars in a namespace. If a namespace is not
+  specified :ns-default is used instead."
+  [{:keys [ns] :as args}]
+  (let [{:keys [ns-default ns-aliases]} (merge args (garner-ns-defaults))
+        ns (or ns ns-default)
+        my-ns (the-ns ns)]
+    (doseq [v (->> my-ns ns-publics (sort-by key) (map first))]
+      (println v))))
+
 (comment
   (doc {:ns 'clojure.tools.cli.help})
   (doc {:fn 'clojure.tools.cli.help/doc})
+  (dir {:ns 'clojure.tools.cli.help})
   )
