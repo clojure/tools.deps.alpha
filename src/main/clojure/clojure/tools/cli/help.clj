@@ -11,7 +11,7 @@
     [clojure.string :as str]
     [clojure.repl :as repl]))
 
-(defn- garner-ns-defaults []
+(defn garner-ns-defaults []
   (try
     (let [nsd (-> "clojure.run.exec/*ns-default*" symbol resolve deref)
           nsa (-> "clojure.run.exec/*ns-aliases*" symbol resolve deref)]
@@ -23,7 +23,7 @@
     (catch RuntimeException _
       {})))
 
-(defn- qualify-fn
+(defn qualify-fn
   "Compute function symbol based on exec-fn, ns-aliases, and ns-default"
   [fsym ns-aliases ns-default]
   ;; validation - make specs?
