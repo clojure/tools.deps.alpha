@@ -50,6 +50,6 @@
   (dir/with-dir (jio/file root)
     (:tools/usage (deps-map config root))))
 
-(defmethod ext/coord-prep :deps [lib {:keys [deps/root] :as _coord} manifest-type config]
+(defmethod ext/prep-command :deps [lib {:keys [deps/root] :as _coord} manifest-type config]
   (dir/with-dir (jio/file root)
     (:deps/prep-lib (deps-map config root))))

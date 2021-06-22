@@ -503,42 +503,6 @@
   ([deps-map args-map settings]
    (resolve-deps deps-map (merge args-map settings))))
 
-(defn- exec-prep!
-  "Exec the prep command in the command-args coll. Redirect stdout/stderr to this process,
-  wait for the process to complete, and return the exit code"
-  [^File dir lib alias f]
-  (println "\nPrepping" lib)
-  (let [command-args ["clojure" (str "-T" alias) (str f)]
-        proc-builder (doto (ProcessBuilder. ^List command-args)
-                       (.directory dir)
-                       (.redirectOutput ProcessBuilder$Redirect/INHERIT)
-                       (.redirectError ProcessBuilder$Redirect/INHERIT))
-        proc (.start proc-builder)]
-    (.waitFor proc)))
-
-(defn- prep-deps!
-  "Takes a lib map and looks for deps that need prepping. If :prep is
-  set in args-map, also do prepping. Returns nil."
-  [lib-map {:keys [prep]} config]
-  (let [to-prep (reduce-kv
-                  (fn [prep-able lib {:deps/keys [root manifest] :as coord}]
-                    (if-let [prep-lib (ext/coord-prep lib coord manifest config)]
-                      (conj prep-able [lib coord prep-lib])
-                      prep-able))
-                  [] lib-map)]
-    ;(println "prep-able:" to-prep)
-    (run!
-      (fn [[lib {:deps/keys [root manifest]} {f :fn :keys [alias ensure]}]]
-        (let [ensure-dir (when ensure (jio/file root ensure))]
-          (if (and ensure (.exists ensure-dir))
-            (println "Prep lib" lib "already prepped at" (.getCanonicalPath (jio/file root ensure)))
-            (do
-              (println "Prep lib" lib "needs prepping with: clj" (str "-T" alias) f)
-              (let [exit (exec-prep! (jio/file root) lib alias f)]
-                (when (not (zero? exit))
-                  (throw (ex-info (str "Dep build failure: " exit) {:lib lib :exit exit}))))))))
-      to-prep)))
-
 (defn- make-tree
   [lib-map]
   (let [{roots false, nonroots true} (group-by #(-> % val :dependents boolean) lib-map)]
@@ -676,6 +640,80 @@
       (or deps replace-deps) (merge {:deps (merge deps replace-deps)})
       (or paths replace-paths) (merge {:paths (vec (concat paths replace-paths))}))))
 
+(defn- qualify-fn
+  "Compute function symbol based on fn, ns-aliases, and ns-default"
+  [fsym {:keys [ns-aliases ns-default] :as x}]
+  (when (and fsym (not (symbol? fsym)))
+    (throw (ex-info (format "Expected function symbol: %s" fsym) {})))
+
+  (when fsym
+    (if (qualified-ident? fsym)
+      (let [nsym (get ns-aliases (symbol (namespace fsym)))]
+        (if nsym
+          (symbol (str nsym) (name fsym))
+          fsym))
+      (if ns-default
+        (symbol (str ns-default) (str fsym))
+        (throw (ex-info (format "Unqualified function can't be resolved: %s" fsym) {}))))))
+
+(defn- exec-prep!
+  "Exec the prep command in the command-args coll. Redirect stdout/stderr to this process,
+  wait for the process to complete, and return the exit code"
+  [^File dir classpath f]
+  ;; java -cp <classpath> clojure.main -e '((requiring-resolve f) nil)'
+  (let [command-args ["java" "-cp" classpath "clojure.main" "-e" (str "((requiring-resolve '" f ") nil)")]
+        ;;_ (apply println (map #(if (str/includes? % " ") (str "\"" % "\"") %) command-args))
+        proc-builder (doto (ProcessBuilder. ^List command-args)
+                       (.directory dir)
+                       (.redirectOutput ProcessBuilder$Redirect/INHERIT)
+                       (.redirectError ProcessBuilder$Redirect/INHERIT))
+        proc (.start proc-builder)]
+    (.waitFor proc)))
+
+(declare configure-basis)
+
+(defn prep-libs!
+  "Takes a lib map and looks for unprepped libs, optionally prepping them.
+
+  Options:
+    :action - what to do when an unprepped lib is found, one of:
+                :prep - if unprepped, prep
+                :force - prep regardless of whether already prepped
+                :error (default) - don't prep, error
+    :log -  print to console based on log level (default, no logging):
+              :info  - print only when prepping
+              :debug - :info + print for each lib considered"
+  [lib-map {:keys [action log]} config]
+  (let [unprepped
+        (reduce-kv
+          (fn [ret lib {:deps/keys [root manifest] :as coord}]
+            (if-let [{f :fn, :keys [alias ensure]} (ext/prep-command lib coord manifest config)]
+              (let [ensure-dir (when ensure (jio/file root ensure))
+                    unprepped (and ensure (not (.exists ^File ensure-dir)))]
+                (when (= log :debug) (println lib "-" (if unprepped "unprepped" "prepped")))
+                (if (or (= action :force) (and unprepped (= action :prep)))
+                  (do
+                    (when (= log :info) (println "Prepping" lib "in" root))
+                    (let [root-dir (jio/file root)
+                          basis (configure-basis
+                                  {:project (.getAbsolutePath (jio/file root "deps.edn"))
+                                   :ext {:aliases {:deps/TOOL {:replace-deps {} :replace-paths ["."]}}}
+                                   :argmaps [:deps/TOOL alias]})
+                          cp (join-classpath (:classpath-roots basis))
+                          qual-f (qualify-fn f (get-in basis [:aliases alias]))
+                          exit (exec-prep! root-dir cp qual-f)]
+                      (when (not (zero? exit))
+                        (throw (ex-info (format "Error building %s" lib) {:lib lib :exit exit})))
+                      ret))
+                  (if unprepped (conj (or ret []) lib) ret)))
+              (do
+                (when (= log :debug) (println lib "- no prep"))
+                ret)))
+          nil lib-map)]
+    (when unprepped
+      (throw (ex-info (format "The following libs must be prepared before use: %s" unprepped)
+               {:unprepped unprepped})))))
+
 (defn calc-basis
   "Calculates and returns the runtime basis from a master deps edn map, modifying
    resolve-deps and make-classpath args as needed.
@@ -688,6 +726,11 @@
         :default-deps
         :threads - number of threads to use during deps resolution
         :trace - flag to record a trace log
+      :prep-args - map of args to prep-libs!
+        :action - what to do when an unprepped lib is found, one of:
+                    :prep - if unprepped, prep
+                    :force - prep regardless of whether already prepped
+                    :error (default) - don't prep, error
       :classpath-args - map of args to make-classpath-map, with possible keys:
         :extra-paths
         :classpath-overrides
@@ -700,15 +743,82 @@
     :classpath-roots - vector of paths in classpath order"
   ([master-edn]
    (calc-basis master-edn nil))
-  ([master-edn {:keys [resolve-args classpath-args]}]
+  ([master-edn {:keys [resolve-args prep-args classpath-args]}]
    (session/with-session
-     (let [libs (resolve-deps master-edn resolve-args)
-           _ (prep-deps! libs resolve-args master-edn)
-           cp (make-classpath-map master-edn libs classpath-args)]
-       (cond->
-         (merge master-edn {:libs libs} cp)
-         resolve-args (assoc :resolve-args resolve-args)
-         classpath-args (assoc :classpath-args classpath-args))))))
+     (let [libs (resolve-deps master-edn resolve-args)]
+       (prep-libs! libs prep-args master-edn)
+       (let [cp (make-classpath-map master-edn libs classpath-args)]
+         (cond->
+           (merge master-edn {:libs libs} cp)
+           resolve-args (assoc :resolve-args resolve-args)
+           classpath-args (assoc :classpath-args classpath-args)))))))
+
+;(defn runtime-basis
+;  "Load the runtime execution basis context and return it."
+;  []
+;  (when-let [f (jio/file (System/getProperty "clojure.basis"))]
+;    (if (and f (.exists f))
+;      {:basis (slurp-deps f)}
+;      (throw (IllegalArgumentException. "No basis declared in clojure.basis system property")))))
+
+(defn- choose-deps
+  [requested standard-fn]
+  (cond
+    (= :standard requested) (standard-fn)
+    (string? requested) (-> requested jio/file slurp-deps)
+    (or (nil? requested) (map? requested)) requested
+    :else (throw (ex-info (format "Unexpected dep source: %s" (pr-str requested))
+                   {:requested requested}))))
+
+(defn configure-basis
+  "Configure a basis from a set of deps sources and a set of aliases. By default, use
+   root, user, and project deps and no argmaps (essentially the same classpath you get by
+   default from the Clojure CLI).
+
+   Each dep source value can be :standard, a string path, a deps edn map, or nil.
+   Sources are merged in the order - :root, :user, :project, :ext.
+
+   Argmaps supply args to any of the basis subprocesses (tool, resolve-deps, make-classpath-map).
+   Argmaps may be either a keyword (to refer to alias data in the merged dep sources) or a map.
+
+   The following subprocess argmap args can be provided:
+     Key                  Subproc             Description
+     :replace-deps        tool                Replace project deps
+     :replace-paths       tool                Replace project paths
+     :extra-deps          resolve-deps        Add additional deps
+     :override-deps       resolve-deps        Override coord of dep
+     :default-deps        resolve-deps        Provide coord if missing
+     :extra-paths         make-classpath-map  Add additional paths
+     :classpath-overrides make-classpath-map  Replace lib path in cp
+
+   Options:
+     :root    - dep source, default = :standard
+     :user    - dep source, default = :standard
+     :project - dep source, default = :standard (\"./deps.edn\")
+     :ext     - dep source, default = nil
+     :argmaps - coll of argmaps to apply to subprocesses during basis calculation"
+  [{:keys [root user project ext argmaps] :as params
+    :or {root :standard, user :standard, project :standard}}]
+  (let [root-edn (choose-deps root #(root-deps))
+        user-edn (choose-deps user #(-> (user-deps-path) jio/file slurp-deps))
+        project-edn (choose-deps project #(-> "deps.edn" jio/file slurp-deps))
+        ext-edn (choose-deps ext (constantly nil))
+        edn-maps [root-edn user-edn project-edn ext-edn]
+
+        alias-data (->> edn-maps
+                     (map :aliases)
+                     (remove nil?)
+                     (apply merge-with merge))
+
+        argmap-data (map #(cond
+                            (keyword? %) (get alias-data %)
+                            (or (nil? %) (map? %)) %
+                            :else (throw (ex-info (format "Invalid argmap source: %s" (pr-str %)) params)))
+                      argmaps)
+        argmap (apply merge-alias-maps argmap-data)
+        project-tooled-edn (tool project-edn argmap)
+        master-edn (merge-edns [root-edn user-edn project-tooled-edn ext-edn])]
+    (calc-basis master-edn {:resolve-args argmap :prep-args argmap :classpath-args argmap})))
 
 ;; Load extensions
 (load "/clojure/tools/deps/alpha/extensions/maven")

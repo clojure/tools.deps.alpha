@@ -34,6 +34,74 @@
 
 (set! *warn-on-reflection* true)
 
+(defn basis
+  "Calculate a basis from a set of deps sources and a set of aliases. By default, use
+   root, user, and project deps and no argmaps (essentially the same classpath you get by
+   default from the Clojure CLI). Returns as {:basis basis}.
+
+   Each dep source value can be :standard, a string path, a deps edn map, or nil.
+   Sources are merged in the order - :root, :user, :project, :ext.
+
+   Argmaps supply args to any of the basis subprocesses (tool, resolve-deps, make-classpath-map).
+   Argmaps may be either a keyword (to refer to alias data in the merged dep sources) or a map.
+
+   The following subprocess argmap args can be provided:
+     Key                  Subproc             Description
+     :replace-deps        tool                Replace project deps
+     :replace-paths       tool                Replace project paths
+     :extra-deps          resolve-deps        Add additional deps
+     :override-deps       resolve-deps        Override coord of dep
+     :default-deps        resolve-deps        Provide coord if missing
+     :extra-paths         make-classpath-map  Add additional paths
+     :classpath-overrides make-classpath-map  Replace lib path in cp
+
+   Options:
+     :root    - dep source, default = :standard
+     :user    - dep source, default = :standard
+     :project - dep source, default = :standard (\"./deps.edn\")
+     :ext     - dep source, default = nil
+     :argmaps - coll of argmaps to apply to subprocesses during basis calculation"
+  [params]
+  {:basis (deps/configure-basis params)})
+
+(defn prep
+  "Prep the libs found in the basis.
+
+  Each dep source value can be :standard, a string path, a deps edn map, or nil.
+  Sources are merged in the order - :root, :user, :project, :ext.
+
+  Argmaps supply args to any of the basis subprocesses (tool, resolve-deps).
+  Argmaps may be either a keyword (to refer to alias data in the merged dep sources) or a map.
+
+  The following subprocess argmap args can be provided:
+     Key                 subproc         Description
+     :replace-deps       tool            Replace project deps
+     :replace-paths      tool            Replace project paths
+     :extra-deps         resolve-deps    Add additional deps
+     :override-deps      resolve-deps    Override coord of dep
+     :default-deps       resolve-deps    Provide coord if missing
+     :action             prep-libs!      :prep (default) - prep if needed, :force (always prep)
+
+   Basis options:
+     :root    - dep source, default = :standard
+     :user    - dep source, default = :standard
+     :project - dep source, default = :standard (\"./deps.edn\")
+     :ext     - dep source, default = nil
+     :argmaps - coll of argmaps to apply to subprocesses during prepping"
+  [params]
+  (deps/configure-basis
+    (assoc params :argmaps (cons {:action :prep, :log :info} (:argmaps params))))
+  nil)
+
+(comment
+  (prep
+    {:root {:mvn/repos mvn/standard-repos, :deps nil}
+     :project {:deps '{org.clojure/clojure {:mvn/version "1.10.3"}
+                       io.github.puredanger/cool-lib
+                       {:git/sha "657d5ce88be340ab2a6c0befeae998366105be84"}}}
+     :argmaps [{:log :debug, :action :prep}]})
+  )
+
 (defn- make-trace
   []
   (let [{:keys [root-edn user-edn project-edn]} (deps/find-edn-maps)

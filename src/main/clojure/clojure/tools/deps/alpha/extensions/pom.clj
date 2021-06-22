@@ -120,7 +120,7 @@
   ;; TBD
   nil)
 
-(defmethod ext/coord-prep :pom
+(defmethod ext/prep-command :pom
   [lib {:keys [deps/root]} manifest-type config]
   ;; TBD
   nil)

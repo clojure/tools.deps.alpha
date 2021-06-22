@@ -158,7 +158,7 @@
   ;; TBD - could look in jar, could download well-known classifier
   nil)
 
-(defmethod ext/coord-prep :mvn
+(defmethod ext/prep-command :mvn
   [lib {:keys [deps/root]} manifest-type config]
   ;; TBD - could look in jar, could download well-known classifier
   nil)
