@@ -37,7 +37,7 @@
 
 (defn- model-resolver
   ^ModelResolver [{:keys [mvn/repos mvn/local-repo]}]
-  (let [local-repo (or local-repo maven/default-local-repo)
+  (let [local-repo (or local-repo @maven/cached-local-repo)
         locator ^ServiceLocator @maven/the-locator
         system (maven/make-system)
         session (maven/make-session system local-repo)

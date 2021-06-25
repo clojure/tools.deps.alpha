@@ -134,8 +134,19 @@
 
 ;; Local repository
 
-(def ^:private home (System/getProperty "user.home"))
-(def default-local-repo (.getAbsolutePath (jio/file home ".m2" "repository")))
+(defn ^:private local-repo-path
+  "Helper to form the path to the default local repo - use `@cached-local-repo` for
+  caching delayed value"
+  []
+  (.getAbsolutePath (jio/file (System/getProperty "user.home") ".m2" "repository")))
+
+(def default-local-repo
+  "DEPRECATED - use `@cached-local-repo`"
+  (local-repo-path))
+
+(def cached-local-repo
+  "Delayed default local repo lookup for ~/.m2/repository, access with `@cached-local-repo`"
+  (delay (local-repo-path)))
 
 (defn make-local-repo
   ^LocalRepository [^String dir]

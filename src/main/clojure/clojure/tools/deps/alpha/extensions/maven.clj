@@ -34,7 +34,7 @@
   [lib {:keys [:mvn/version] :as coord} {:keys [mvn/repos mvn/local-repo]}]
   (cond
     (contains? #{"RELEASE" "LATEST"} version)
-    (let [local-repo (or local-repo maven/default-local-repo)
+    (let [local-repo (or local-repo @maven/cached-local-repo)
           system ^RepositorySystem (session/retrieve :mvn/system #(maven/make-system))
           session ^RepositorySystemSession (session/retrieve :mvn/session #(maven/make-session system local-repo))
           artifact (maven/coord->artifact lib coord)
@@ -45,7 +45,7 @@
         (throw (ex-info (str "Unable to resolve " lib " version: " version) {:lib lib :coord coord}))))
 
     (maven/version-range? version)
-    (let [local-repo (or local-repo maven/default-local-repo)
+    (let [local-repo (or local-repo @maven/cached-local-repo)
           system ^RepositorySystem (session/retrieve :mvn/system #(maven/make-system))
           session ^RepositorySystemSession (session/retrieve :mvn/session #(maven/make-session system local-repo))
           artifact (maven/coord->artifact lib coord)
@@ -61,7 +61,7 @@
 (defmethod ext/lib-location :mvn
   [lib {:keys [mvn/version]} {:keys [mvn/local-repo]}]
   (let [[group-id artifact-id classifier] (maven/lib->names lib)]
-    {:base (or local-repo maven/default-local-repo)
+    {:base (or local-repo @maven/cached-local-repo)
      :path (.getPath ^File
              (apply jio/file
                (concat (str/split group-id #"\.") [artifact-id version])))
@@ -98,7 +98,7 @@
 (defmethod ext/coord-deps :mvn
   [lib coord _manifest {:keys [mvn/repos mvn/local-repo]}]
   (check-version lib coord)
-  (let [local-repo (or local-repo maven/default-local-repo)
+  (let [local-repo (or local-repo @maven/cached-local-repo)
         system ^RepositorySystem (session/retrieve :mvn/system #(maven/make-system))
         session ^RepositorySystemSession (session/retrieve :mvn/session #(maven/make-session system local-repo))
         artifact (maven/coord->artifact lib coord)
@@ -130,7 +130,7 @@
 (defmethod ext/coord-paths :mvn
   [lib coord _manifest {:keys [mvn/repos mvn/local-repo]}]
   (check-version lib coord)
-  (let [local-repo (or local-repo maven/default-local-repo)
+  (let [local-repo (or local-repo @maven/cached-local-repo)
         mvn-repos (maven/remote-repos repos)
         system ^RepositorySystem (session/retrieve :mvn/system #(maven/make-system))
         session ^RepositorySystemSession (session/retrieve :mvn/session #(maven/make-session system local-repo))]

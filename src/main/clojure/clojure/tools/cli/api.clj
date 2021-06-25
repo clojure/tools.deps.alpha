@@ -153,7 +153,7 @@
 (defn- output-path
   [local-repo group-id artifact-id version]
   (let [path-parts (concat
-                     [(or local-repo mvn/default-local-repo)]
+                     [(or local-repo @mvn/cached-local-repo)]
                      (str/split group-id #"\.")
                      [artifact-id version])]
     (.getAbsolutePath ^File (apply jio/file path-parts))))
@@ -191,7 +191,7 @@
         jar-file (jio/file jar)
         pom-file (jio/file pom-file)
         system (mvn/make-system)
-        session (mvn/make-session system (or local-repo mvn/default-local-repo))
+        session (mvn/make-session system (or local-repo @mvn/cached-local-repo))
         artifacts [(.setFile (DefaultArtifact. group-id artifact-id classifier "jar" version) jar-file)
                    (.setFile (DefaultArtifact. group-id artifact-id classifier "pom" version) pom-file)]
         install-request (.setArtifacts (InstallRequest.) artifacts)]
