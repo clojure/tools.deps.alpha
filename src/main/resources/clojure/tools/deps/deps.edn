@@ -8,7 +8,8 @@
   :aliases {
     :deps {:replace-deps {org.clojure/tools.deps.alpha {:mvn/version "${project.version}"}
                           org.slf4j/slf4j-nop {:mvn/version "1.7.25"}}
-           :ns-default clojure.tools.cli.api}
+           :ns-default clojure.tools.cli.api
+           :ns-aliases {help clojure.tools.cli.help}}
     :test {:extra-paths ["test"]}
   }
 
