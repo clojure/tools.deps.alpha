@@ -35,63 +35,49 @@
 (set! *warn-on-reflection* true)
 
 (defn basis
-  "Calculate a basis from a set of deps sources and a set of aliases. By default, use
-   root, user, and project deps and no argmaps (essentially the same classpath you get by
-   default from the Clojure CLI). Returns as {:basis basis}.
+  "Calculates and returns the runtime basis from a master deps edn map, modifying
+   resolve-deps and make-classpath args as needed.
 
-   Each dep source value can be :standard, a string path, a deps edn map, or nil.
-   Sources are merged in the order - :root, :user, :project, :ext.
+    master-edn - a master deps edn map
+    args - an optional map of arguments to constituent steps, keys:
+      :resolve-args - map of args to resolve-deps, with possible keys:
+        :extra-deps
+        :override-deps
+        :default-deps
+        :threads - number of threads to use during deps resolution
+        :trace - flag to record a trace log
+      :prep-args - map of args to prep-libs!
+        :action - what to do when an unprepped lib is found, one of:
+                    :prep - if unprepped, prep
+                    :force - prep regardless of whether already prepped
+                    :error (default) - don't prep, error
+      :classpath-args - map of args to make-classpath-map, with possible keys:
+        :extra-paths
+        :classpath-overrides
 
-   Argmaps supply args to any of the basis subprocesses (tool, resolve-deps, make-classpath-map).
-   Argmaps may be either a keyword (to refer to alias data in the merged dep sources) or a map.
-
-   The following subprocess argmap args can be provided:
-     Key                  Subproc             Description
-     :replace-deps        tool                Replace project deps
-     :replace-paths       tool                Replace project paths
-     :extra-deps          resolve-deps        Add additional deps
-     :override-deps       resolve-deps        Override coord of dep
-     :default-deps        resolve-deps        Provide coord if missing
-     :extra-paths         make-classpath-map  Add additional paths
-     :classpath-overrides make-classpath-map  Replace lib path in cp
-
-   Options:
-     :root    - dep source, default = :standard
-     :user    - dep source, default = :standard
-     :project - dep source, default = :standard (\"./deps.edn\")
-     :ext     - dep source, default = nil
-     :argmaps - coll of argmaps to apply to subprocesses during basis calculation"
+  Returns {:basis basis}, which basis is initial deps edn map plus these keys:
+    :resolve-args - the resolve args passed in, if any
+    :classpath-args - the classpath args passed in, if any
+    :libs - lib map, per resolve-deps
+    :classpath - classpath map per make-classpath-map
+    :classpath-roots - vector of paths in classpath order"
   [params]
-  {:basis (deps/configure-basis params)})
+  {:basis (deps/create-basis params)})
 
 (defn prep
-  "Prep the libs found in the basis.
+  "Prep the unprepped libs found in the transitive lib set of basis.
+  If no basis is provided, create and use the default project basis.
 
-  Each dep source value can be :standard, a string path, a deps edn map, or nil.
-  Sources are merged in the order - :root, :user, :project, :ext.
+  Options:
+    :basis - basis to prep. If not provided, use (create-basis nil).
+    :force - flag on whether to force prepped libs to re-prep (default = false)
 
-  Argmaps supply args to any of the basis subprocesses (tool, resolve-deps).
-  Argmaps may be either a keyword (to refer to alias data in the merged dep sources) or a map.
-
-  The following subprocess argmap args can be provided:
-     Key                 subproc         Description
-     :replace-deps       tool            Replace project deps
-     :replace-paths      tool            Replace project paths
-     :extra-deps         resolve-deps    Add additional deps
-     :override-deps      resolve-deps    Override coord of dep
-     :default-deps       resolve-deps    Provide coord if missing
-     :action             prep-libs!      :prep (default) - prep if needed, :force (always prep)
-
-   Basis options:
-     :root    - dep source, default = :standard
-     :user    - dep source, default = :standard
-     :project - dep source, default = :standard (\"./deps.edn\")
-     :ext     - dep source, default = nil
-     :argmaps - coll of argmaps to apply to subprocesses during prepping"
-  [params]
-  (deps/configure-basis
-    (assoc params :argmaps (cons {:action :prep, :log :info} (:argmaps params))))
-  nil)
+  Returns nil."
+  [{:keys [basis force]}]
+  (let [use-basis (or basis (deps/create-basis nil))
+        opts {:prep-action (if force :force :prep)}]
+    (deps/prep-libs! (:libs use-basis) opts basis)
+    nil))
 
 (comment
   (prep

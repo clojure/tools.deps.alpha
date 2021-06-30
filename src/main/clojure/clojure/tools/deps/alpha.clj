@@ -631,11 +631,6 @@
   returning an updated project edn."
   [project-edn tool-args]
   (let [{:keys [replace-deps replace-paths deps paths]} tool-args]
-    ;; FUTURE: stop supporting :deps + :paths in aliases
-    (when deps
-      (io/printerrln "WARNING: Use of :deps in aliases is deprecated - use :replace-deps instead"))
-    (when paths
-      (io/printerrln "WARNING: Use of :paths in aliases is deprecated - use :replace-paths instead"))
     (cond-> project-edn
       (or deps replace-deps) (merge {:deps (merge deps replace-deps)})
       (or paths replace-paths) (merge {:paths (vec (concat paths replace-paths))}))))
@@ -670,7 +665,7 @@
         proc (.start proc-builder)]
     (.waitFor proc)))
 
-(declare configure-basis)
+(declare create-basis)
 
 (defn prep-libs!
   "Takes a lib map and looks for unprepped libs, optionally prepping them.
@@ -695,7 +690,7 @@
                   (do
                     (when (= log :info) (println "Prepping" lib "in" root))
                     (let [root-dir (jio/file root)
-                          basis (configure-basis
+                          basis (create-basis
                                   {:project (.getAbsolutePath (jio/file root "deps.edn"))
                                    :ext {:aliases {:deps/TOOL {:replace-deps {} :replace-paths ["."]}}}
                                    :argmaps [:deps/TOOL alias]})
@@ -726,11 +721,6 @@
         :default-deps
         :threads - number of threads to use during deps resolution
         :trace - flag to record a trace log
-      :prep-args - map of args to prep-libs!
-        :action - what to do when an unprepped lib is found, one of:
-                    :prep - if unprepped, prep
-                    :force - prep regardless of whether already prepped
-                    :error (default) - don't prep, error
       :classpath-args - map of args to make-classpath-map, with possible keys:
         :extra-paths
         :classpath-overrides
@@ -743,10 +733,10 @@
     :classpath-roots - vector of paths in classpath order"
   ([master-edn]
    (calc-basis master-edn nil))
-  ([master-edn {:keys [resolve-args prep-args classpath-args]}]
+  ([master-edn {:keys [resolve-args classpath-args]}]
    (session/with-session
      (let [libs (resolve-deps master-edn resolve-args)]
-       (prep-libs! libs prep-args master-edn)
+       (prep-libs! libs {:action :error} master-edn)
        (let [cp (make-classpath-map master-edn libs classpath-args)]
          (cond->
            (merge master-edn {:libs libs} cp)
@@ -770,16 +760,16 @@
     :else (throw (ex-info (format "Unexpected dep source: %s" (pr-str requested))
                    {:requested requested}))))
 
-(defn configure-basis
-  "Configure a basis from a set of deps sources and a set of aliases. By default, use
+(defn create-basis
+  "Create a basis from a set of deps sources and a set of aliases. By default, use
    root, user, and project deps and no argmaps (essentially the same classpath you get by
    default from the Clojure CLI).
 
    Each dep source value can be :standard, a string path, a deps edn map, or nil.
-   Sources are merged in the order - :root, :user, :project, :ext.
+   Sources are merged in the order - :root, :user, :project, :extra.
 
-   Argmaps supply args to any of the basis subprocesses (tool, resolve-deps, make-classpath-map).
-   Argmaps may be either a keyword (to refer to alias data in the merged dep sources) or a map.
+   Aliases refer to argmaps in the merged deps that will be supplied to the basis
+   subprocesses (tool, resolve-deps, make-classpath-map).
 
    The following subprocess argmap args can be provided:
      Key                  Subproc             Description
@@ -795,30 +785,35 @@
      :root    - dep source, default = :standard
      :user    - dep source, default = :standard
      :project - dep source, default = :standard (\"./deps.edn\")
-     :ext     - dep source, default = nil
-     :argmaps - coll of argmaps to apply to subprocesses during basis calculation"
-  [{:keys [root user project ext argmaps] :as params
+     :extra   - dep source, default = nil
+     :aliases - coll of aliases of argmaps  to apply to subprocesses
+
+   Returns a runtime basis, which is the initial merged deps edn map plus these keys:
+    :resolve-args - the resolve args passed in, if any
+    :classpath-args - the classpath args passed in, if any
+    :libs - lib map, per resolve-deps
+    :classpath - classpath map per make-classpath-map
+    :classpath-roots - vector of paths in classpath order"
+  [{:keys [root user project extra aliases] :as params
     :or {root :standard, user :standard, project :standard}}]
   (let [root-edn (choose-deps root #(root-deps))
         user-edn (choose-deps user #(-> (user-deps-path) jio/file slurp-deps))
         project-edn (choose-deps project #(-> "deps.edn" jio/file slurp-deps))
-        ext-edn (choose-deps ext (constantly nil))
-        edn-maps [root-edn user-edn project-edn ext-edn]
+        extra-edn (choose-deps extra (constantly nil))
+        edn-maps [root-edn user-edn project-edn extra-edn]
 
         alias-data (->> edn-maps
                      (map :aliases)
                      (remove nil?)
                      (apply merge-with merge))
 
-        argmap-data (map #(cond
-                            (keyword? %) (get alias-data %)
-                            (or (nil? %) (map? %)) %
-                            :else (throw (ex-info (format "Invalid argmap source: %s" (pr-str %)) params)))
-                      argmaps)
+        argmap-data (->> aliases
+                      (remove nil?)
+                      (map #(get alias-data %)))
         argmap (apply merge-alias-maps argmap-data)
         project-tooled-edn (tool project-edn argmap)
-        master-edn (merge-edns [root-edn user-edn project-tooled-edn ext-edn])]
-    (calc-basis master-edn {:resolve-args argmap :prep-args argmap :classpath-args argmap})))
+        master-edn (merge-edns [root-edn user-edn project-tooled-edn extra-edn])]
+    (calc-basis master-edn {:resolve-args argmap :classpath-args argmap})))
 
 ;; Load extensions
 (load "/clojure/tools/deps/alpha/extensions/maven")
