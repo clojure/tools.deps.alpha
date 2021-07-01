@@ -735,13 +735,12 @@
    (calc-basis master-edn nil))
   ([master-edn {:keys [resolve-args classpath-args]}]
    (session/with-session
-     (let [libs (resolve-deps master-edn resolve-args)]
-       (prep-libs! libs {:action :error} master-edn)
-       (let [cp (make-classpath-map master-edn libs classpath-args)]
-         (cond->
-           (merge master-edn {:libs libs} cp)
-           resolve-args (assoc :resolve-args resolve-args)
-           classpath-args (assoc :classpath-args classpath-args)))))))
+     (let [libs (resolve-deps master-edn resolve-args)
+           cp (make-classpath-map master-edn libs classpath-args)]
+       (cond->
+         (merge master-edn {:libs libs} cp)
+         resolve-args (assoc :resolve-args resolve-args)
+         classpath-args (assoc :classpath-args classpath-args))))))
 
 ;(defn runtime-basis
 ;  "Load the runtime execution basis context and return it."
