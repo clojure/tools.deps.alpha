@@ -685,10 +685,10 @@
             (if-let [{f :fn, :keys [alias ensure]} (ext/prep-command lib coord manifest config)]
               (let [ensure-dir (when ensure (jio/file root ensure))
                     unprepped (and ensure (not (.exists ^File ensure-dir)))]
-                (when (= log :debug) (println lib "-" (if unprepped "unprepped" "prepped")))
+                (when (#{:debug} log) (println lib "-" (if unprepped "unprepped" "prepped")))
                 (if (or (= action :force) (and unprepped (= action :prep)))
                   (do
-                    (when (= log :info) (println "Prepping" lib "in" root))
+                    (when (#{:info :debug} log) (println "Prepping" lib "in" root))
                     (let [root-dir (jio/file root)
                           basis (create-basis
                                   {:project (.getAbsolutePath (jio/file root "deps.edn"))
@@ -702,7 +702,7 @@
                       ret))
                   (if unprepped (conj (or ret []) lib) ret)))
               (do
-                (when (= log :debug) (println lib "- no prep"))
+                (when (#{:debug} log) (println lib "- no prep"))
                 ret)))
           nil lib-map)]
     (when unprepped

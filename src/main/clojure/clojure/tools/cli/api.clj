@@ -71,11 +71,13 @@
   Options:
     :basis - basis to prep. If not provided, use (create-basis nil).
     :force - flag on whether to force prepped libs to re-prep (default = false)
+    :log - :none, :info (default), or :debug
 
   Returns nil."
-  [{:keys [basis force]}]
+  [{:keys [basis force log] :or {log :info}}]
   (let [use-basis (or basis (deps/create-basis nil))
-        opts {:action (if force :force :prep)}]
+        opts {:action (if force :force :prep)
+              :log log}]
     (deps/prep-libs! (:libs use-basis) opts basis)
     nil))
 
