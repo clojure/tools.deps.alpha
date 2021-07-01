@@ -692,8 +692,8 @@
                     (let [root-dir (jio/file root)
                           basis (create-basis
                                   {:project (.getAbsolutePath (jio/file root "deps.edn"))
-                                   :ext {:aliases {:deps/TOOL {:replace-deps {} :replace-paths ["."]}}}
-                                   :argmaps [:deps/TOOL alias]})
+                                   :extra {:aliases {:deps/TOOL {:replace-deps {} :replace-paths ["."]}}}
+                                   :aliases [:deps/TOOL alias]})
                           cp (join-classpath (:classpath-roots basis))
                           qual-f (qualify-fn f (get-in basis [:aliases alias]))
                           exit (exec-prep! root-dir cp qual-f)]
