@@ -75,7 +75,7 @@
   Returns nil."
   [{:keys [basis force]}]
   (let [use-basis (or basis (deps/create-basis nil))
-        opts {:prep-action (if force :force :prep)}]
+        opts {:action (if force :force :prep)}]
     (deps/prep-libs! (:libs use-basis) opts basis)
     nil))
 
