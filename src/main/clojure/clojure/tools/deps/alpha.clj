@@ -655,8 +655,8 @@
   "Exec the prep command in the command-args coll. Redirect stdout/stderr to this process,
   wait for the process to complete, and return the exit code"
   [^File dir classpath f]
-  ;; java -cp <classpath> clojure.main -e '((requiring-resolve f) nil)'
-  (let [command-args ["java" "-cp" classpath "clojure.main" "-e" (str "((requiring-resolve '" f ") nil)")]
+  ;; java -cp <classpath> clojure.main -e '(do ((requiring-resolve f) nil) nil)'
+  (let [command-args ["java" "-cp" classpath "clojure.main" "-e" (str "(do ((requiring-resolve '" f ") nil) nil)")]
         ;;_ (apply println (map #(if (str/includes? % " ") (str "\"" % "\"") %) command-args))
         proc-builder (doto (ProcessBuilder. ^List command-args)
                        (.directory dir)
