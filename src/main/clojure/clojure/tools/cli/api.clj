@@ -62,7 +62,8 @@
     :classpath - classpath map per make-classpath-map
     :classpath-roots - vector of paths in classpath order"
   [params]
-  {:basis (deps/create-basis params)})
+  (merge params
+    {:basis (deps/create-basis params)}))
 
 (defn prep
   "Prep the unprepped libs found in the transitive lib set of basis.
@@ -73,21 +74,24 @@
     :force - flag on whether to force prepped libs to re-prep (default = false)
     :log - :none, :info (default), or :debug
 
-  Returns nil."
-  [{:keys [basis force log] :or {log :info}}]
+  Returns params modified."
+  [{:keys [basis force log] :or {log :info} :as params}]
   (let [use-basis (or basis (deps/create-basis nil))
         opts {:action (if force :force :prep)
               :log log}]
     (deps/prep-libs! (:libs use-basis) opts basis)
-    nil))
+    params))
 
 (comment
-  (prep
-    {:root {:mvn/repos mvn/standard-repos, :deps nil}
-     :project {:deps '{org.clojure/clojure {:mvn/version "1.10.3"}
-                       io.github.puredanger/cool-lib
-                       {:git/sha "657d5ce88be340ab2a6c0befeae998366105be84"}}}
-     :argmaps [{:log :debug, :action :prep}]})
+  (do
+    (-> {:root {:mvn/repos mvn/standard-repos, :deps nil}
+         :project {:deps '{org.clojure/clojure {:mvn/version "1.10.3"}
+                           io.github.puredanger/cool-lib
+                           {:git/sha "657d5ce88be340ab2a6c0befeae998366105be84"}}}
+         :log :debug}
+      basis
+      prep)
+    nil)
   )
 
 (defn- make-trace
