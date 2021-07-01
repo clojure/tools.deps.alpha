@@ -175,8 +175,7 @@
                       :project-deps {:deps {'cheshire/cheshire {:mvn/version "5.10.0"}}}
                       :tool-aliases [:t]
                       :tool-mode true})
-        paths (filter #(get-in classpath [% :path-key]) classpath-roots)
-        _ (println "paths" paths)]
+        paths (filter #(get-in classpath [% :path-key]) classpath-roots)]
     ;; includes tool dep and not project deps
     (is (contains? libs 'org.clojure/data.json))
     (is (not (contains? libs 'cheshire/cheshire)))
