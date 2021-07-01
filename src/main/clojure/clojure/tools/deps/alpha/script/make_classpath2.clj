@@ -128,6 +128,9 @@
                                                             :classpath-args (deps/combine-aliases merge-edn
                                                                               (concat makecp-aliases combined-exec-aliases))}))
 
+        ;; check for unprepped libs
+        _ (deps/prep-libs! (:libs basis) {:action :error} basis)
+
         ;; handle jvm and main opts
         exec-argmap (deps/combine-aliases merge-edn combined-exec-aliases)
         jvm (seq (get exec-argmap :jvm-opts))
