@@ -754,7 +754,7 @@
   [requested standard-fn]
   (cond
     (= :standard requested) (standard-fn)
-    (string? requested) (-> requested jio/file slurp-deps)
+    (string? requested) (-> requested jio/file dir/canonicalize slurp-deps)
     (or (nil? requested) (map? requested)) requested
     :else (throw (ex-info (format "Unexpected dep source: %s" (pr-str requested))
                    {:requested requested}))))
@@ -796,8 +796,8 @@
   [{:keys [root user project extra aliases] :as params
     :or {root :standard, user :standard, project :standard}}]
   (let [root-edn (choose-deps root #(root-deps))
-        user-edn (choose-deps user #(-> (user-deps-path) jio/file slurp-deps))
-        project-edn (choose-deps project #(-> "deps.edn" jio/file slurp-deps))
+        user-edn (choose-deps user #(-> (user-deps-path) jio/file dir/canonicalize slurp-deps))
+        project-edn (choose-deps project #(-> "deps.edn" jio/file dir/canonicalize slurp-deps))
         extra-edn (choose-deps extra (constantly nil))
         edn-maps [root-edn user-edn project-edn extra-edn]
 
