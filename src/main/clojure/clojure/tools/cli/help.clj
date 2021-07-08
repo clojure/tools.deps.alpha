@@ -13,15 +13,15 @@
 
 (defn- garner-ns-defaults []
   (try
-    (let [nsd (-> "clojure.run.exec/*ns-default*" symbol resolve deref)
-          nsa (-> "clojure.run.exec/*ns-aliases*" symbol resolve deref)]
-      (require 'clojure.run.exec)
-      (require nsd)
+    (require 'clojure.run.exec)
+    (let [nsd (some-> "clojure.run.exec/*ns-default*" symbol resolve deref)
+          nsa (some-> "clojure.run.exec/*ns-aliases*" symbol resolve deref)]
+      (when nsd (require nsd))
       (cond-> {}
         nsd (assoc :ns-default nsd)
         nsa (assoc :ns-aliases nsa)))
-    (catch RuntimeException _
-      {})))
+    (catch Exception e
+      (throw (ex-info (.getMessage e) {} e)))))
 
 (defn- qualify-fn
   "Compute function symbol based on exec-fn, ns-aliases, and ns-default"
@@ -51,7 +51,8 @@
   (let [{:keys [ns-default ns-aliases]} (merge args (garner-ns-defaults))]
     (if fn
       (#'repl/print-doc (meta (resolve (qualify-fn fn ns-aliases ns-default))))
-      (let [ns (or ns ns-default)]
+      (let [ns-maybe (or ns ns-default)
+            ns (if ns-aliases (get ns-aliases ns-maybe ns-maybe) ns-maybe)]
         (when (nil? ns)
           (throw (ex-info "No namespace or function specified" {})))
         (require ns)
@@ -70,7 +71,8 @@
   specified :ns-default is used instead."
   [{:keys [ns] :as args}]
   (let [{:keys [ns-default ns-aliases]} (merge args (garner-ns-defaults))
-        ns (or ns ns-default)
+        ns-maybe (or ns ns-default)
+        ns (if ns-aliases (get ns-aliases ns-maybe ns-maybe) ns-maybe)
         my-ns (the-ns ns)]
     (doseq [v (->> my-ns ns-publics (sort-by key) (map first))]
       (println v))))
