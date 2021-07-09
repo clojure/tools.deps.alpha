@@ -3,7 +3,9 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.3/CHANGELOG.md)*
 
-* next
+* 0.11.935 on June 25, 2021
+  * Don't compute local repo path at load time
+* 0.11.931 on June 10, 2021
   * TDEPS-179 - Fix incorrect classpath when :classpath-overrides removes path
 * 0.11.926 on June 6, 2021
   * Fix reflection warning
