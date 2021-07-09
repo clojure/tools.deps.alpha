@@ -3,6 +3,17 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.3/CHANGELOG.md)*
 
+* 0.12.985 on July 9, 2021
+  * clojure.tools.cli.api
+    * NEW functions: find-versions, prep, basis
+  * clojure.tools.cli.help
+    * NEW functions: doc, dir
+  * clojure.tools.deps.alpha
+    * NEW create-basis
+  * git deps
+    * Infer :git/url from git lib name
+    * Support :git/tag + prefix :git/sha (must point to same commit)
+  * Support for -T and tools
 * 0.11.935 on June 25, 2021
   * Don't compute local repo path at load time
 * 0.11.931 on June 10, 2021
