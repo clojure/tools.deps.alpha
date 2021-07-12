@@ -3,6 +3,8 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.3/CHANGELOG.md)*
 
+* next
+  * For clj -X:deps pom, compute deps from basis :libs, not original :deps
 * 0.12.985 on July 9, 2021
   * clojure.tools.cli.api
     * NEW functions: find-versions, prep, basis
