@@ -176,6 +176,16 @@
                              (recur acc (conj res rpaths))))
         (coll? fpath) (recur acc (concat rpaths fpath))))))
 
+(defn- libs->deps
+  "Convert libmap to root deps"
+  [libs]
+  (reduce-kv
+    (fn [ret lib {:keys [dependents] :as coord}]
+      (if (seq dependents)
+        ret
+        (assoc ret lib coord)))
+    {} libs))
+
 (defn sync-pom
   "Creates or synchronizes a pom given a map of :basis and :params.
 
@@ -190,7 +200,8 @@
     :lib Symbol of groupId/artifactId (required for new, optional for existing)
     :version String of project version (optional)"
   ([{:keys [basis params]}]
-   (let [{:keys [deps paths :mvn/repos]} basis
+   (let [{:keys [libs paths :mvn/repos]} basis
+         root-deps (libs->deps libs)
          {:keys [target-dir src-pom lib version] :or {src-pom "pom.xml"}} params
          resolved-paths (resolve-path-ref paths basis)
          repos (remove #(= "https://repo1.maven.org/maven2/" (-> % val :url)) repos)
@@ -199,14 +210,14 @@
                (with-open [rdr (jio/reader pom-file)]
                  (-> rdr
                    parse-xml
-                   (replace-deps deps)
+                   (replace-deps root-deps)
                    (replace-paths resolved-paths)
                    (replace-repos repos)
                    (replace-lib lib)
                    (replace-version version)))
                (gen-pom
                  (cond->
-                   {:deps deps
+                   {:deps root-deps
                     :src-paths resolved-paths
                     :repos repos
                     :group (namespace lib)
@@ -221,6 +232,7 @@
          resolved-paths (resolve-path-ref paths deps-edn)
          src-pom (jio/file dir "pom.xml")]
      (sync-pom {:basis {:deps deps
+                        :libs deps
                         :paths resolved-paths
                         :mvn/repos repos}
                 :params (merge
