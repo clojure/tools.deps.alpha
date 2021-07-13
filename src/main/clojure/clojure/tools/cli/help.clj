@@ -74,8 +74,9 @@
         ns-maybe (or ns ns-default)
         ns (if ns-aliases (get ns-aliases ns-maybe ns-maybe) ns-maybe)
         my-ns (the-ns ns)]
-    (doseq [v (->> my-ns ns-publics (sort-by key) (map first))]
-      (println v))))
+    (doseq [[s v] (->> my-ns ns-publics (sort-by key))]
+      (when (instance? clojure.lang.Fn @v)
+        (println s)))))
 
 (comment
   (doc {:ns 'clojure.tools.cli.help})
