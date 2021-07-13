@@ -63,8 +63,9 @@
             (println ns-doc)
             (println))
           ;; Print function docs
-          (doseq [v (->> my-ns ns-publics (sort-by key) (map val))]
-            (#'repl/print-doc (meta v))))))))
+          (doseq [[k v] (->> my-ns ns-publics (sort-by key))]
+            (when (instance? clojure.lang.Fn @v)
+              (#'repl/print-doc (meta v)))))))))
 
 (defn dir
   "Prints a sorted directory of public vars in a namespace. If a namespace is not
