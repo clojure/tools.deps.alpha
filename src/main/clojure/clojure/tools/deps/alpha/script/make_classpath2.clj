@@ -63,25 +63,28 @@
 
 (defn resolve-tool-args
   "Resolves the tool by name to the coord + usage data.
-   Create the proper args to include the lib/coord for the tool
-   and the resolved f in terms of usage data."
-  [tool-data function config]
+   Returns the proper alias args as if the tool was specified as an alias."
+  [tool-data config]
   (let [{:keys [lib coord]} tool-data
         manifest-type (ext/manifest-type lib coord config)
         coord' (merge coord manifest-type)
-        {:keys [ns-default ns-aliases]} (ext/coord-usage lib coord' (:deps/manifest coord') config)
-        resolved-function (let [fns (when-let [nss (namespace function)] (symbol nss))
-                                fn (symbol (name function))]
-                            (if fns
-                              (if-let [aliased-ns (get ns-aliases fns)]
-                                (symbol (str aliased-ns) (str fn))
-                                function)
-                              (if ns-default
-                                (symbol (str ns-default) (str fn))
-                                function)))]
-    {:tool-args {:replace-deps {lib coord'}
-                 :replace-paths ["."]}
-     :resolved-function resolved-function}))
+        {:keys [ns-default ns-aliases]} (ext/coord-usage lib coord' (:deps/manifest coord') config)]
+    {:replace-deps {lib coord'}
+     :replace-paths ["."]
+     :ns-default ns-default
+     :ns-aliases ns-aliases}))
+
+(defn qualify-fn
+  [function {:keys [ns-default ns-aliases] :as _argmap}]
+  (let [fns (when-let [nss (namespace function)] (symbol nss))
+        fn (symbol (name function))]
+    (if fns
+      (if-let [aliased-ns (get ns-aliases fns)]
+        (symbol (str aliased-ns) (str fn))
+        function)
+      (if ns-default
+        (symbol (str ns-default) (str fn))
+        function))))
 
 (defn run-core
   "Run make-classpath script from/to data (no file stuff). Returns:
@@ -105,10 +108,9 @@
     (throw (ex-info "-M and -X cannot be used at the same time" {})))
   (let [pretool-edn (deps/merge-edns [install-deps user-deps project-deps config-data])
         ;; tool use - :deps/:paths/:replace-deps/:replace-paths in project if needed
-        {:keys [resolved-function tool-args]} (cond
-                                                tool-name (resolve-tool-args (tool-resolver tool-name) function pretool-edn)
-                                                tool-mode {:tool-args {:replace-deps {} :replace-paths ["."]}
-                                                           :resolved-function function})
+        tool-args (cond
+                    tool-name (resolve-tool-args (tool-resolver tool-name) pretool-edn)
+                    tool-mode {:replace-deps {} :replace-paths ["."]})
         ;; :deps/TOOL is used only here to inject the tool's alias config into the tool args
         combined-tool-args (deps/combine-aliases
                             (deps/merge-edns [pretool-edn (when tool-args {:aliases {:deps/TOOL tool-args}})])
@@ -141,7 +143,7 @@
       jvm (assoc :jvm jvm)
       ;; FUTURE: narrow this to (and main main-aliases)
       main (assoc :main main)
-      resolved-function (assoc :resolved-function resolved-function))))
+      function (assoc :resolved-function (qualify-fn function combined-tool-args)))))
 
 (defn read-deps
   [name]
