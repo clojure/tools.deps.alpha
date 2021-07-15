@@ -16,7 +16,6 @@
     (require 'clojure.run.exec)
     (let [nsd (some-> "clojure.run.exec/*ns-default*" symbol resolve deref)
           nsa (some-> "clojure.run.exec/*ns-aliases*" symbol resolve deref)]
-      (when nsd (require nsd))
       (cond-> {}
         nsd (assoc :ns-default nsd)
         nsa (assoc :ns-aliases nsa)))
@@ -50,7 +49,7 @@
   [{:keys [ns fn] :as args}]
   (let [{:keys [ns-default ns-aliases]} (merge args (garner-ns-defaults))]
     (if fn
-      (#'repl/print-doc (meta (resolve (qualify-fn fn ns-aliases ns-default))))
+      (#'repl/print-doc (meta (requiring-resolve (qualify-fn fn ns-aliases ns-default))))
       (let [ns-maybe (or ns ns-default)
             ns (if ns-aliases (get ns-aliases ns-maybe ns-maybe) ns-maybe)]
         (when (nil? ns)
@@ -74,6 +73,7 @@
   (let [{:keys [ns-default ns-aliases]} (merge args (garner-ns-defaults))
         ns-maybe (or ns ns-default)
         ns (if ns-aliases (get ns-aliases ns-maybe ns-maybe) ns-maybe)
+        _ (require ns)
         my-ns (the-ns ns)]
     (doseq [[s v] (->> my-ns ns-publics (sort-by key))]
       (when (instance? clojure.lang.Fn @v)

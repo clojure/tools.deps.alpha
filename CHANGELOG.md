@@ -5,6 +5,7 @@ Changelog
 
 * next
   * For clj -X:deps pom, compute deps from basis :libs, not original :deps
+  * Fix help/doc and help/dir to better handle requiring unloaded nses
 * 0.12.985 on July 9, 2021
   * clojure.tools.cli.api
     * NEW functions: find-versions, prep, basis
