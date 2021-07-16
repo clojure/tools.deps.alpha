@@ -92,7 +92,7 @@
 
 (defn slurp-deps
   "Read a single deps.edn file from disk and canonicalize symbols,
-  return a deps map."
+  return a deps map. If the file doesn't exist, returns nil."
   [^File dep-file]
   (when (.exists dep-file)
     (-> dep-file slurp-edn-map (canonicalize-all-syms (.getPath dep-file)))))

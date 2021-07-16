@@ -9,6 +9,9 @@
   (:import
     [java.io File]))
 
+(deftest test-slurp-deps-on-nonexistent-file
+  (is (nil? (deps/slurp-deps (File. "NONEXISTENT_FILE")))))
+
 (deftest test-merge-or-replace
   (are [vals ret]
     (= ret (apply #'deps/merge-or-replace vals))

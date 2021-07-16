@@ -3,6 +3,8 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.3/CHANGELOG.md)*
 
+* next
+  * slurp-deps returns nil on non-existent file
 * 0.12.994 on July 15, 2021
   * For clj -X:deps pom, compute deps from basis :libs, not original :deps
   * Fix help/doc and help/dir to better handle requiring unloaded nses
