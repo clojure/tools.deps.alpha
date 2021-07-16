@@ -94,7 +94,8 @@
   "Read a single deps.edn file from disk and canonicalize symbols,
   return a deps map."
   [^File dep-file]
-  (-> dep-file slurp-edn-map (canonicalize-all-syms (.getPath dep-file))))
+  (when (.exists dep-file)
+    (-> dep-file slurp-edn-map (canonicalize-all-syms (.getPath dep-file)))))
 
 (defn root-deps
   "Read the root deps.edn resource from the classpath at the path
