@@ -80,3 +80,13 @@
 (defmethod ext/coord-paths :jar
   [_lib coord _manifest _config]
   [(:local/root coord)])
+
+(defmethod ext/coord-usage :jar
+  [_lib _coord _manifest-type _config]
+  ;; TBD
+  nil)
+
+(defmethod ext/prep-command :jar
+  [_lib _coord _manifest-type _config]
+  ;; TBD - could look in jar
+  nil)
