@@ -6,6 +6,7 @@ Changelog
 * next
   * slurp-deps returns nil on non-existent file
   * Add missing multimethods for jar files libs
+  * TDEPS-187 Rework how tools and exec args are resolved
 * 0.12.994 on July 15, 2021
   * For clj -X:deps pom, compute deps from basis :libs, not original :deps
   * Fix help/doc and help/dir to better handle requiring unloaded nses
