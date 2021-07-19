@@ -734,14 +734,11 @@
     :classpath-roots - vector of paths in classpath order"
   ([master-edn]
    (calc-basis master-edn nil))
-  ([master-edn {:keys [resolve-args classpath-args]}]
+  ([master-edn {:keys [resolve-args classpath-args] :as argmaps}]
    (session/with-session
      (let [libs (resolve-deps master-edn resolve-args)
            cp (make-classpath-map master-edn libs classpath-args)]
-       (cond->
-         (merge master-edn {:libs libs} cp)
-         resolve-args (assoc :resolve-args resolve-args)
-         classpath-args (assoc :classpath-args classpath-args))))))
+       (merge master-edn {:libs libs} cp argmaps)))))
 
 ;(defn runtime-basis
 ;  "Load the runtime execution basis context and return it."

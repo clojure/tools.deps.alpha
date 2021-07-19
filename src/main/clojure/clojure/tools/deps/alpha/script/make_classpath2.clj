@@ -29,14 +29,12 @@
    ;; tool args to resolve
    [nil "--tool-mode" "Tool mode (-T), may optionally supply tool-name or tool-aliases"]
    [nil "--tool-name NAME" "Tool name"]
-   [nil "--function FUNCTION" "Tool function to resolve" :parse-fn symbol]
    ;; output files
    [nil "--libs-file PATH" "Libs cache file to write"]
    [nil "--cp-file PATH" "Classpatch cache file to write"]
    [nil "--jvm-file PATH" "JVM options file"]
    [nil "--main-file PATH" "Main options file"]
    [nil "--basis-file PATH" "Basis file"]
-   [nil "--function-file PATH" "Function file"]
    [nil "--skip-cp" "Skip writing .cp and .libs files"]
    ;; aliases
    ["-R" "--resolve-aliases ALIASES" "Concatenated resolve-deps alias names" :parse-fn parse/parse-kws]
@@ -64,8 +62,8 @@
 (defn resolve-tool-args
   "Resolves the tool by name to the coord + usage data.
    Returns the proper alias args as if the tool was specified as an alias."
-  [tool-data config]
-  (let [{:keys [lib coord]} tool-data
+  [tool-name config]
+  (let [{:keys [lib coord]} (tool/resolve-tool tool-name)
         manifest-type (ext/manifest-type lib coord config)
         coord' (merge coord manifest-type)
         {:keys [ns-default ns-aliases]} (ext/coord-usage lib coord' (:deps/manifest coord') config)]
@@ -73,18 +71,6 @@
      :replace-paths ["."]
      :ns-default ns-default
      :ns-aliases ns-aliases}))
-
-(defn qualify-fn
-  [function {:keys [ns-default ns-aliases] :as _argmap}]
-  (let [fns (when-let [nss (namespace function)] (symbol nss))
-        fn (symbol (name function))]
-    (if fns
-      (if-let [aliased-ns (get ns-aliases fns)]
-        (symbol (str aliased-ns) (str fn))
-        function)
-      (if ns-default
-        (symbol (str ns-default) (str fn))
-        function))))
 
 (defn run-core
   "Run make-classpath script from/to data (no file stuff). Returns:
@@ -101,7 +87,7 @@
      ;; and any other qualified keys from top level merged deps
     }"
   [{:keys [install-deps user-deps project-deps config-data ;; all deps.edn maps
-           tool-mode tool-name function tool-resolver ;; -T options
+           tool-mode tool-name tool-resolver ;; -T options
            resolve-aliases makecp-aliases main-aliases exec-aliases repl-aliases tool-aliases
            skip-cp threads trace tree] :as _opts}]
   (when (and main-aliases exec-aliases)
@@ -109,32 +95,43 @@
   (let [pretool-edn (deps/merge-edns [install-deps user-deps project-deps config-data])
         ;; tool use - :deps/:paths/:replace-deps/:replace-paths in project if needed
         tool-args (cond
-                    tool-name (resolve-tool-args (tool-resolver tool-name) pretool-edn)
+                    tool-name (tool-resolver tool-name pretool-edn)
                     tool-mode {:replace-deps {} :replace-paths ["."]})
-        ;; :deps/TOOL is used only here to inject the tool's alias config into the tool args
+        tool-edn (when tool-args {:aliases {:deps/TOOL tool-args}})
+        ;; :deps/TOOL is a synthetic deps.edn combining the tool definition and usage
+        ;; it is injected at the end of the deps chain and added as a pseudo alias
+        ;; the effects are seen in the basis but this pseduo alias should not escape
         combined-tool-args (deps/combine-aliases
-                            (deps/merge-edns [pretool-edn (when tool-args {:aliases {:deps/TOOL tool-args}})])
-                            (concat main-aliases exec-aliases repl-aliases tool-aliases (when tool-args [:deps/TOOL])))
+                            (deps/merge-edns [pretool-edn tool-edn])
+                            (concat main-aliases exec-aliases repl-aliases tool-aliases (when tool-edn [:deps/TOOL])))
         project-deps (deps/tool project-deps combined-tool-args)
 
         ;; calc basis
-        merge-edn (deps/merge-edns [install-deps user-deps project-deps config-data]) ;; recalc to get updated project-deps
-        combined-exec-aliases (concat main-aliases exec-aliases repl-aliases tool-aliases)
+        merge-edn (deps/merge-edns [install-deps user-deps project-deps config-data (when tool-edn tool-edn)]) ;; recalc to get updated project-deps
+        combined-exec-aliases (concat main-aliases exec-aliases repl-aliases tool-aliases (when tool-edn [:deps/TOOL]))
         _ (check-aliases merge-edn (concat resolve-aliases makecp-aliases combined-exec-aliases))
         resolve-argmap (deps/combine-aliases merge-edn (concat resolve-aliases combined-exec-aliases))
         resolve-args (cond-> resolve-argmap
                        threads (assoc :threads (Long/parseLong threads))
                        trace (assoc :trace trace)
                        tree (assoc :trace true))
-        basis (when-not skip-cp (deps/calc-basis merge-edn {:resolve-args resolve-args
-                                                            :classpath-args (deps/combine-aliases merge-edn
-                                                                              (concat makecp-aliases combined-exec-aliases))}))
+        cp-args (deps/combine-aliases merge-edn (concat makecp-aliases combined-exec-aliases))
+        exec-argmap (deps/combine-aliases merge-edn combined-exec-aliases)
+        execute-args (select-keys exec-argmap [:ns-default :ns-aliases :exec-fn :exec-args])
+        execute-args (let [arg-kw (:exec-args execute-args)]
+                       (if (keyword? arg-kw)
+                         (assoc execute-args :exec-args (get-in merge-edn [:aliases arg-kw]))
+                         execute-args))
+        basis (when-not skip-cp (deps/calc-basis merge-edn
+                                  (cond-> {}
+                                    resolve-args (assoc :resolve-args resolve-args)
+                                    cp-args (assoc :classpath-args cp-args)
+                                    execute-args (assoc :execute-args execute-args))))
 
         ;; check for unprepped libs
         _ (deps/prep-libs! (:libs basis) {:action :error} basis)
 
         ;; handle jvm and main opts
-        exec-argmap (deps/combine-aliases merge-edn combined-exec-aliases)
         jvm (seq (get exec-argmap :jvm-opts))
         main (seq (get exec-argmap :main-opts))]
     (when (and main repl-aliases)
@@ -142,8 +139,7 @@
     (cond-> basis
       jvm (assoc :jvm jvm)
       ;; FUTURE: narrow this to (and main main-aliases)
-      main (assoc :main main)
-      function (assoc :resolved-function (qualify-fn function combined-tool-args)))))
+      main (assoc :main main))))
 
 (defn read-deps
   [name]
@@ -154,12 +150,12 @@
 
 (defn run
   "Run make-classpath script. See -main for details."
-  [{:keys [config-user config-project libs-file cp-file jvm-file main-file basis-file function-file skip-cp trace tree] :as opts}]
+  [{:keys [config-user config-project libs-file cp-file jvm-file main-file basis-file skip-cp trace tree] :as opts}]
   (let [opts' (merge opts {:install-deps (deps/root-deps)
                            :user-deps (read-deps config-user)
                            :project-deps (read-deps config-project)
-                           :tool-resolver tool/resolve-tool})
-        {:keys [libs classpath-roots jvm main resolved-function] :as basis} (run-core opts')
+                           :tool-resolver resolve-tool-args})
+        {:keys [libs classpath-roots jvm main] :as basis} (run-core opts')
         trace-log (-> libs meta :trace)]
     (when trace
       (spit "trace.edn" (binding [*print-namespace-maps* false] (with-out-str (clojure.pprint/pprint trace-log)))))
@@ -178,9 +174,7 @@
       (io/write-file main-file (apply str (interleave main (repeat "\n"))))
       (let [mf (jio/file main-file)]
         (when (.exists mf)
-          (.delete mf))))
-    (if resolved-function
-      (io/write-file function-file (str resolved-function)))))
+          (.delete mf))))))
 
 (defn -main
   "Main entry point for make-classpath script.
@@ -189,8 +183,6 @@
     --config-user=path - user deps.edn file (usually ~/.clojure/deps.edn)
     --config-project=path - project deps.edn file (usually ./deps.edn)
     --config-data={...} - deps.edn as data (from -Sdeps)
-    --function=function - function symbol
-    --function-file=path - function cache file to write
     --tool-mode - flag for tool mode
     --tool-name - name of tool to run
     --libs-file=path - libs cache file to write
@@ -209,8 +201,7 @@
   The libs file is at <cachedir>/<hash>.libs
   The cp file is at <cachedir>/<hash>.cp
   The main opts file is at <cachedir>/<hash>.main (if needed)
-  The jvm opts file is at <cachedir>/<hash>.jvm (if needed)
-  The function file is at <cachedir>/<hash>.function (if needed)"
+  The jvm opts file is at <cachedir>/<hash>.jvm (if needed)"
   [& args]
   (try
     (let [{:keys [options errors]} (parse-opts args)]

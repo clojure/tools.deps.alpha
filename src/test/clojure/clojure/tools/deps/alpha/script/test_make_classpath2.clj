@@ -183,37 +183,54 @@
     (is (= 1 (count paths)))
     (is (= (.getCanonicalPath (jio/file (first paths))) (.getCanonicalPath (jio/file "."))))))
 
+;; clj -T a/fn
 (deftest tool-bare
   (let [{:keys [libs classpath-roots classpath resolved-function]}
         (mc/run-core {:install-deps install-data
                       :user-deps {}
                       :project-deps {:deps {'cheshire/cheshire {:mvn/version "5.10.0"}}}
-                      :tool-mode true
-                      :function 'a/b})
+                      :tool-mode true})
         paths (filter #(get-in classpath [% :path-key]) classpath-roots)]
     (is (not (contains? libs 'cheshire/cheshire)))
     (is (= 1 (count paths)))
-    (is (= (.getCanonicalPath (jio/file (first paths))) (.getCanonicalPath (jio/file "."))))
-    (is (= 'a/b resolved-function))))
+    (is (= (.getCanonicalPath (jio/file (first paths))) (.getCanonicalPath (jio/file "."))))))
 
+;; clj -Tfoo
 (deftest tool-by-name
-  (let [{:keys [libs classpath-roots classpath resolved-function]}
+  (let [{:keys [libs classpath-roots classpath execute-args]}
         (mc/run-core {:install-deps install-data
                       :user-deps {}
                       :project-deps {:deps {'cheshire/cheshire {:mvn/version "5.10.0"}}}
                       :tool-mode true
                       :tool-name "foo"
-                      :tool-resolver {"foo" {:lib 'org.clojure/data.json, :coord {:mvn/version "2.0.1"}}}
-                      :function 'my.ns/abc})
+                      :tool-resolver {"foo" {:replace-deps {'org.clojure/data.json {:mvn/version "2.0.1"}}
+                                             :replace-paths ["."]
+                                             :ns-default 'a.b}}})
         paths (filter #(get-in classpath [% :path-key]) classpath-roots)]
+    ;; execute-args in basis
+    (is (= {:ns-default 'a.b} execute-args))
     ;; tool deps, not project deps
     (is (not (contains? libs 'cheshire/cheshire)))
     (is (contains? libs 'org.clojure/data.json))
     ;; ., not project paths
-    (is (= 1 (count paths)))
-    (is (= (.getCanonicalPath (jio/file (first paths))) (.getCanonicalPath (jio/file "."))))
-    ;; fq function (not easy to fake reading :tools/usage from deps.edn of lib)
-    (is (= 'my.ns/abc resolved-function))))
+    (is (= (map #(.getCanonicalPath (jio/file %)) ["."])
+          (map #(.getCanonicalPath (jio/file %)) paths)))))
+
+;; clj -T:a:b
+(deftest tool-with-aliases
+  (let [{:keys [libs classpath-roots classpath]}
+        (mc/run-core {:install-deps install-data
+                      :user-deps {}
+                      :project-deps {:deps {'cheshire/cheshire {:mvn/version "5.10.0"}}
+                                     :aliases {:a {:replace-paths ["x"]}
+                                               :b {:replace-paths ["y"]}}}
+                      :tool-mode true
+                      :tool-aliases [:a :b]})
+        paths (filter #(get-in classpath [% :path-key]) classpath-roots)]
+    ;; tool deps, not project deps
+    (is (not (contains? libs 'cheshire/cheshire)))
+    (is (= (map #(.getCanonicalPath (jio/file %)) ["x" "y" "."])
+          (map #(.getCanonicalPath (jio/file %)) paths)))))
 
 (comment
   (clojure.test/run-tests)
