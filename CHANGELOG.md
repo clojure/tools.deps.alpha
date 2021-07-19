@@ -3,7 +3,7 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.3/CHANGELOG.md)*
 
-* next
+* 0.12.1003 on July 19, 2021
   * slurp-deps returns nil on non-existent file
   * Add missing multimethods for jar files libs
   * TDEPS-187 Rework how tools and exec args are resolved
