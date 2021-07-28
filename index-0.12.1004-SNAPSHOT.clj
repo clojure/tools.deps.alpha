@@ -7,6 +7,12 @@
    :source-url
    "https://github.com/clojure/tools.deps.alpha/blob/0ace0f82eef25bac47f81acdee48a993fbd5a624/src/main/clojure/clojure/tools/cli/api.clj"}
   {:doc nil,
+   :name "clojure.tools.cli.help",
+   :wiki-url
+   "https://clojure.github.io/tools.deps.alpha/clojure.tools.cli.help-api.html",
+   :source-url
+   "https://github.com/clojure/tools.deps.alpha/blob/bb7b22bdc8995baf3db7aa22a19c9952671dae41/src/main/clojure/clojure/tools/cli/help.clj"}
+  {:doc nil,
    :name "clojure.tools.deps.alpha",
    :wiki-url
    "https://clojure.github.io/tools.deps.alpha/clojure.tools.deps.alpha-api.html",
@@ -124,6 +130,34 @@
    :namespace "clojure.tools.cli.api",
    :wiki-url
    "https://clojure.github.io/tools.deps.alpha//clojure.tools.cli.api-api.html#clojure.tools.cli.api/tree"}
+  {:raw-source-url
+   "https://github.com/clojure/tools.deps.alpha/raw/bb7b22bdc8995baf3db7aa22a19c9952671dae41/src/main/clojure/clojure/tools/cli/help.clj",
+   :name "dir",
+   :file "src/main/clojure/clojure/tools/cli/help.clj",
+   :source-url
+   "https://github.com/clojure/tools.deps.alpha/blob/bb7b22bdc8995baf3db7aa22a19c9952671dae41/src/main/clojure/clojure/tools/cli/help.clj#L69",
+   :line 69,
+   :var-type "function",
+   :arglists ([{:keys [ns], :as args}]),
+   :doc
+   "Prints a sorted directory of public vars in a namespace. If a namespace is not\nspecified :ns-default is used instead.",
+   :namespace "clojure.tools.cli.help",
+   :wiki-url
+   "https://clojure.github.io/tools.deps.alpha//clojure.tools.cli.help-api.html#clojure.tools.cli.help/dir"}
+  {:raw-source-url
+   "https://github.com/clojure/tools.deps.alpha/raw/bb7b22bdc8995baf3db7aa22a19c9952671dae41/src/main/clojure/clojure/tools/cli/help.clj",
+   :name "doc",
+   :file "src/main/clojure/clojure/tools/cli/help.clj",
+   :source-url
+   "https://github.com/clojure/tools.deps.alpha/blob/bb7b22bdc8995baf3db7aa22a19c9952671dae41/src/main/clojure/clojure/tools/cli/help.clj#L42",
+   :line 42,
+   :var-type "function",
+   :arglists ([{:keys [ns fn], :as args}]),
+   :doc
+   "Print doc for the specified namespace or function. If neither is specified, print docs\nfor :ns-default.\n\nOptions:\n  :ns Print docs for namespace\n  :fn Print docs for function",
+   :namespace "clojure.tools.cli.help",
+   :wiki-url
+   "https://clojure.github.io/tools.deps.alpha//clojure.tools.cli.help-api.html#clojure.tools.cli.help/doc"}
   {:raw-source-url
    "https://github.com/clojure/tools.deps.alpha/raw/f6fd34bc0118fa09d85d17e69f2bd43c55443d05/src/main/clojure/clojure/tools/deps/alpha.clj",
    :name "calc-basis",
