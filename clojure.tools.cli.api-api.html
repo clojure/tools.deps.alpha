@@ -1,7 +1,7 @@
 <html>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>clojure.tools.cli.api - tools.deps.alpha 0.11.927-SNAPSHOT API documentation</title>
+    <title>clojure.tools.cli.api - tools.deps.alpha 0.12.1004-SNAPSHOT API documentation</title>
     <link rel="icon" href="static/favicon.png" />
     <link rel="shortcut icon" href="static/favicon.png" />
     <link rel="stylesheet" href="static/clojure.css" type="text/css" media="all" />
@@ -25,7 +25,7 @@ namespace.
       <div id="leftcolumn"><div style="text-align: center;"></div>
 <div class="menu">
   <div class="WikiCustomNav WikiElement wiki">
-    <span class="toc-header"><span id="project-name">tools.deps.alpha</span> <span id="version">0.11.927-SNAPSHOT</span> API</span><br />
+    <span class="toc-header"><span id="project-name">tools.deps.alpha</span> <span id="version">0.12.1004-SNAPSHOT</span> API</span><br />
     <ul>
       <li><a href="index.html" class="wiki_link">Overview</a></li>
       <li><a href="api-index.html" class="wiki_link">API Index</a></li>
@@ -59,6 +59,12 @@ namespace.
   </div><div class="toc-section" style="margin-left: 1em;">
     <a style="margin-top: 3px;" href="#var-section">Vars and Functions</a>
     <div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.tools.cli.api/basis" class="toc-entry-anchor">basis</a>
+      
+    </div><div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.tools.cli.api/find-versions" class="toc-entry-anchor">find-versions</a>
+      
+    </div><div class="toc-entry" style="margin-left: 1em;">
       <a href="#clojure.tools.cli.api/git-resolve-tags" class="toc-entry-anchor">git-resolve-tags</a>
       
     </div><div class="toc-entry" style="margin-left: 1em;">
@@ -66,6 +72,9 @@ namespace.
       
     </div><div class="toc-entry" style="margin-left: 1em;">
       <a href="#clojure.tools.cli.api/mvn-pom" class="toc-entry-anchor">mvn-pom</a>
+      
+    </div><div class="toc-entry" style="margin-left: 1em;">
+      <a href="#clojure.tools.cli.api/prep" class="toc-entry-anchor">prep</a>
       
     </div><div class="toc-entry" style="margin-left: 1em;">
       <a href="#clojure.tools.cli.api/tree" class="toc-entry-anchor">tree</a>
@@ -78,7 +87,7 @@ namespace.
 </div>
 </div>
                 <div id="content-tag"><h1 id="overview">API for <span id="clojure.tools.cli.api">clojure.tools.cli.api</span>
-  - <span id="header-project">tools.deps.alpha</span> <span id="header-version">0.11.927-SNAPSHOT</span><span id="header-status-block"> (<span id="header-status">in development</span>)</span>
+  - <span id="header-project">tools.deps.alpha</span> <span id="header-version">0.12.1004-SNAPSHOT</span><span id="header-status-block"> (<span id="header-status">in development</span>)</span>
   </h1>
 
 <br />Full namespace name: <span id="long-name">clojure.tools.cli.api</span>
@@ -98,6 +107,57 @@ namespace.
   <div id="var-entry">
     <br />
     <hr />
+    <h2 id="clojure.tools.cli.api/basis">basis</h2>
+    <span id="var-type">function</span><br />
+    <pre id="var-usage">Usage: (basis params)
+</pre>
+    <pre id="var-docstr">Calculates and returns the runtime basis from a master deps edn map, modifying
+ resolve-deps and make-classpath args as needed.
+
+  master-edn - a master deps edn map
+  args - an optional map of arguments to constituent steps, keys:
+    :resolve-args - map of args to resolve-deps, with possible keys:
+      :extra-deps
+      :override-deps
+      :default-deps
+      :threads - number of threads to use during deps resolution
+      :trace - flag to record a trace log
+    :prep-args - map of args to prep-libs!
+      :action - what to do when an unprepped lib is found, one of:
+                  :prep - if unprepped, prep
+                  :force - prep regardless of whether already prepped
+                  :error (default) - don't prep, error
+    :classpath-args - map of args to make-classpath-map, with possible keys:
+      :extra-paths
+      :classpath-overrides
+
+Returns {:basis basis}, which basis is initial deps edn map plus these keys:
+  :resolve-args - the resolve args passed in, if any
+  :classpath-args - the classpath args passed in, if any
+  :libs - lib map, per resolve-deps
+  :classpath - classpath map per make-classpath-map
+  :classpath-roots - vector of paths in classpath order</pre>
+    <pre id="var-specs"></pre>
+    
+    
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/0ace0f82eef25bac47f81acdee48a993fbd5a624/src/main/clojure/clojure/tools/cli/api.clj#L37">Source</a>
+  </div><div id="var-entry">
+    <br />
+    <hr />
+    <h2 id="clojure.tools.cli.api/find-versions">find-versions</h2>
+    <span id="var-type">function</span><br />
+    <pre id="var-usage">Usage: (find-versions {:keys [lib tool], :as args})
+</pre>
+    <pre id="var-docstr">Find available tool versions given either a lib (with :lib) or
+existing installed tool (with :tool). If lib, check all registered
+procurers and print one coordinate per line when found.</pre>
+    <pre id="var-specs"></pre>
+    
+    
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/0ace0f82eef25bac47f81acdee48a993fbd5a624/src/main/clojure/clojure/tools/cli/api.clj#L262">Source</a>
+  </div><div id="var-entry">
+    <br />
+    <hr />
     <h2 id="clojure.tools.cli.api/git-resolve-tags">git-resolve-tags</h2>
     <span id="var-type">function</span><br />
     <pre id="var-usage">Usage: (git-resolve-tags _)
@@ -106,7 +166,7 @@ namespace.
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/f3a2fbb426ae65d5a5c79a756f3b95b463f334a4/src/main/clojure/clojure/tools/cli/api.clj#L81">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/0ace0f82eef25bac47f81acdee48a993fbd5a624/src/main/clojure/clojure/tools/cli/api.clj#L142">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
@@ -139,7 +199,7 @@ Execute ad-hoc:
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/f3a2fbb426ae65d5a5c79a756f3b95b463f334a4/src/main/clojure/clojure/tools/cli/api.clj#L161">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/0ace0f82eef25bac47f81acdee48a993fbd5a624/src/main/clojure/clojure/tools/cli/api.clj#L222">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
@@ -154,7 +214,27 @@ Options:
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/f3a2fbb426ae65d5a5c79a756f3b95b463f334a4/src/main/clojure/clojure/tools/cli/api.clj#L88">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/0ace0f82eef25bac47f81acdee48a993fbd5a624/src/main/clojure/clojure/tools/cli/api.clj#L149">Source</a>
+  </div><div id="var-entry">
+    <br />
+    <hr />
+    <h2 id="clojure.tools.cli.api/prep">prep</h2>
+    <span id="var-type">function</span><br />
+    <pre id="var-usage">Usage: (prep {:keys [basis force log], :or {log :info}, :as params})
+</pre>
+    <pre id="var-docstr">Prep the unprepped libs found in the transitive lib set of basis.
+If no basis is provided, create and use the default project basis.
+
+Options:
+  :basis - basis to prep. If not provided, use (create-basis nil).
+  :force - flag on whether to force prepped libs to re-prep (default = false)
+  :log - :none, :info (default), or :debug
+
+Returns params modified.</pre>
+    <pre id="var-specs"></pre>
+    
+    
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/0ace0f82eef25bac47f81acdee48a993fbd5a624/src/main/clojure/clojure/tools/cli/api.clj#L68">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
@@ -183,7 +263,7 @@ Print output mode modifiers:
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/f3a2fbb426ae65d5a5c79a756f3b95b463f334a4/src/main/clojure/clojure/tools/cli/api.clj#L43">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/0ace0f82eef25bac47f81acdee48a993fbd5a624/src/main/clojure/clojure/tools/cli/api.clj#L104">Source</a>
   </div>
 </div>
 
