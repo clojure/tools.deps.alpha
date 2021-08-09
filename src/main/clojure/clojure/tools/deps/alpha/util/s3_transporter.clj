@@ -98,8 +98,8 @@
         on-close #(when auth-context (.close auth-context))
         {:keys [bucket region repo-path]} (parse-url repository)
 
-        http-client (aws/default-http-client)
-        config (cond-> {:api :s3, :http-client http-client}
+
+        config (cond-> {:api :s3}
                  cred-provider (assoc :credentials-provider cred-provider))
         use-region (or region (get-bucket-loc config bucket) "us-east-1")
         s3-client (aws/client (assoc config :region use-region))]

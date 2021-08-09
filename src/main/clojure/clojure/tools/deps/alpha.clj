@@ -854,6 +854,12 @@
   (expand-deps {'org.clojure/tools.deps.alpha {:mvn/version "0.4.277"}}
     nil nil {:mvn/repos mvn/standard-repos} ex-svc true)
 
+  (expand-deps '{org.clojure/clojure              {:mvn/version "1.10.3"}
+                 com.datomic/ion                  {:mvn/version "0.9.50"},
+                 software.amazon.awscdk/codebuild {:mvn/version "1.115.0"}}
+    nil nil {:mvn/repos (merge mvn/standard-repos {"datomic-cloud" {:url "s3://datomic-releases-1fc2183a/maven/releases"}})}
+    ex-svc true)
+
   (print-tree
     (resolve-deps {:deps {'org.clojure/clojure {:mvn/version "1.8.0"}
                           'org.clojure/core.memoize {:mvn/version "0.5.8"}}
