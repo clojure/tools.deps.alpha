@@ -3,6 +3,11 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.3/CHANGELOG.md)*
 
+* next
+  * TDEPS-199 Use default http-client in S3 transporter 
+  * Cache S3 transporter for a repo
+  * Fixed session cache to work properly across threads / binding stacks for better perf
+  * Replace specific maven version range requests with non-range request to reduce repo metadata lookups
 * 0.12.1003 on July 19, 2021
   * slurp-deps returns nil on non-existent file
   * Add missing multimethods for jar files libs
