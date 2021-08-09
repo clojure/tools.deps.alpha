@@ -3,7 +3,7 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.3/CHANGELOG.md)*
 
-* next
+* 0.12.1013 on Aug 9, 2021
   * TDEPS-199 Use default http-client in S3 transporter 
   * Cache S3 transporter for a repo
   * Fixed session cache to work properly across threads / binding stacks for better perf
