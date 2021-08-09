@@ -35,33 +35,42 @@
   [_type]
   #{:mvn/version})
 
+(defn- specific-version
+  [version]
+  (second (re-matches #"^\[([^,]*)]$" version)))
+
 (defmethod ext/canonicalize :mvn
   [lib {:keys [:mvn/version] :as coord} {:keys [mvn/repos mvn/local-repo]}]
-  (cond
-    (contains? #{"RELEASE" "LATEST"} version)
-    (let [local-repo (or local-repo @maven/cached-local-repo)
-          system ^RepositorySystem (session/retrieve :mvn/system #(maven/make-system))
-          session ^RepositorySystemSession (session/retrieve :mvn/session #(maven/make-session system local-repo))
-          artifact (maven/coord->artifact lib coord)
-          req (VersionRequest. artifact (maven/remote-repos repos) nil)
-          result (.resolveVersion system session req)]
-      (if result
-        [lib (assoc coord :mvn/version (.getVersion result))]
-        (throw (ex-info (str "Unable to resolve " lib " version: " version) {:lib lib :coord coord}))))
+  (let [specific (specific-version version)]
+    (cond
+      (contains? #{"RELEASE" "LATEST"} version)
+      (let [local-repo (or local-repo @maven/cached-local-repo)
+            system ^RepositorySystem (session/retrieve :mvn/system #(maven/make-system))
+            session ^RepositorySystemSession (session/retrieve :mvn/session #(maven/make-session system local-repo))
+            artifact (maven/coord->artifact lib coord)
+            req (VersionRequest. artifact (maven/remote-repos repos) nil)
+            result (.resolveVersion system session req)]
+        (if result
+          [lib (assoc coord :mvn/version (.getVersion result))]
+          (throw (ex-info (str "Unable to resolve " lib " version: " version) {:lib lib :coord coord}))))
 
-    (maven/version-range? version)
-    (let [local-repo (or local-repo @maven/cached-local-repo)
-          system ^RepositorySystem (session/retrieve :mvn/system #(maven/make-system))
-          session ^RepositorySystemSession (session/retrieve :mvn/session #(maven/make-session system local-repo))
-          artifact (maven/coord->artifact lib coord)
-          req (VersionRangeRequest. artifact (maven/remote-repos repos) nil)
-          result (.resolveVersionRange system session req)]
-      (if (and result (.getHighestVersion result))
-        [lib (assoc coord :mvn/version (.toString (.getHighestVersion result)))]
-        (throw (ex-info (str "Unable to resolve " lib " version: " version) {:lib lib :coord coord}))))
+      ;; cuts down on version range requests when we're not going to honor it anyways
+      specific
+      [lib (assoc coord :mvn/version specific)]
 
-    :else
-    [lib coord]))
+      (maven/version-range? version)
+      (let [local-repo (or local-repo @maven/cached-local-repo)
+            system ^RepositorySystem (session/retrieve :mvn/system #(maven/make-system))
+            session ^RepositorySystemSession (session/retrieve :mvn/session #(maven/make-session system local-repo))
+            artifact (maven/coord->artifact lib coord)
+            req (VersionRangeRequest. artifact (maven/remote-repos repos) nil)
+            result (.resolveVersionRange system session req)]
+        (if (and result (.getHighestVersion result))
+          [lib (assoc coord :mvn/version (.toString (.getHighestVersion result)))]
+          (throw (ex-info (str "Unable to resolve " lib " version: " version) {:lib lib :coord coord}))))
+
+      :else
+      [lib coord])))
 
 (defmethod ext/lib-location :mvn
   [lib {:keys [mvn/version]} {:keys [mvn/local-repo]}]
