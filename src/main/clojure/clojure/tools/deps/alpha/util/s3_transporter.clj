@@ -10,9 +10,10 @@
   clojure.tools.deps.alpha.util.s3-transporter
   (:refer-clojure :exclude [peek get])
   (:require
+    [clojure.string :as str]
+    [clojure.tools.deps.alpha.util.session :as session]
     [cognitect.aws.client.api :as aws]
-    [cognitect.aws.credentials :as creds]
-    [clojure.string :as str])
+    [cognitect.aws.credentials :as creds])
   (:import
     [java.io InputStream OutputStream IOException]
     [java.net URI]
@@ -86,45 +87,46 @@
 
 (defn new-transporter
   [^RepositorySystemSession session ^RemoteRepository repository]
-  (let [auth-context (AuthenticationContext/forRepository session repository)
-        user (when auth-context (.get auth-context AuthenticationContext/USERNAME))
-        pw (when auth-context (.get auth-context AuthenticationContext/PASSWORD))
+  (session/retrieve {:type :mvn/repo-transporter, :id (.getId repository)}
+    (fn []
+      (let [auth-context (AuthenticationContext/forRepository session repository)
+            user (when auth-context (.get auth-context AuthenticationContext/USERNAME))
+            pw (when auth-context (.get auth-context AuthenticationContext/PASSWORD))
 
-        cred-provider (when (and user pw)
-                        (reify creds/CredentialsProvider
-                          (fetch [_]
-                            {:aws/access-key-id user
-                             :aws/secret-access-key pw})))
-        on-close #(when auth-context (.close auth-context))
-        {:keys [bucket region repo-path]} (parse-url repository)
+            cred-provider (when (and user pw)
+                            (reify creds/CredentialsProvider
+                              (fetch [_]
+                                {:aws/access-key-id user
+                                 :aws/secret-access-key pw})))
+            on-close #(when auth-context (.close auth-context))
+            {:keys [bucket region repo-path]} (parse-url repository)
 
-
-        config (cond-> {:api :s3}
-                 cred-provider (assoc :credentials-provider cred-provider))
-        use-region (or region (get-bucket-loc config bucket) "us-east-1")
-        s3-client (aws/client (assoc config :region use-region))]
-    (reify Transporter
-      (^void peek [_ ^PeekTask peek-task]
-        (let [path (.. peek-task getLocation toString)
-              full-path (str repo-path "/" path)
-              res (s3-peek s3-client bucket full-path)]
-          (when res
-            (throw (ex-info "Artifact not found" {:bucket bucket, :path path, :reason res})))))
-      (^void get [_ ^GetTask get-task]
-        (let [path (.. get-task getLocation toString)
-              full-path (str repo-path "/" path)
-              offset (.getResumeOffset get-task)
-              os (.newOutputStream get-task (> offset 0))
-              listener (.getListener get-task)]
-          (.transportStarted listener offset -1)
-          (s3-get-object s3-client bucket full-path os offset #(.transportProgressed listener %))))
-      (classify [_ throwable]
-        (if (= (-> throwable ex-data :reason) :cognitect.anomalies/not-found)
-          Transporter/ERROR_NOT_FOUND
-          Transporter/ERROR_OTHER))
-      ;;(put [_ ^PutTask put-task])   ;; not supported
-      (close [_]
-        (when on-close (on-close))))))
+            config (cond-> {:api :s3}
+                     cred-provider (assoc :credentials-provider cred-provider))
+            use-region (or region (get-bucket-loc config bucket) "us-east-1")
+            s3-client (aws/client (assoc config :region use-region))]
+        (reify Transporter
+          (^void peek [_ ^PeekTask peek-task]
+            (let [path (.. peek-task getLocation toString)
+                  full-path (str repo-path "/" path)
+                  res (s3-peek s3-client bucket full-path)]
+              (when res
+                (throw (ex-info "Artifact not found" {:bucket bucket, :path path, :reason res})))))
+          (^void get [_ ^GetTask get-task]
+            (let [path (.. get-task getLocation toString)
+                  full-path (str repo-path "/" path)
+                  offset (.getResumeOffset get-task)
+                  os (.newOutputStream get-task (> offset 0))
+                  listener (.getListener get-task)]
+              (.transportStarted listener offset -1)
+              (s3-get-object s3-client bucket full-path os offset #(.transportProgressed listener %))))
+          (classify [_ throwable]
+            (if (= (-> throwable ex-data :reason) :cognitect.anomalies/not-found)
+              Transporter/ERROR_NOT_FOUND
+              Transporter/ERROR_OTHER))
+          ;;(put [_ ^PutTask put-task])   ;; not supported
+          (close [_]
+            (when on-close (on-close))))))))
 
 (comment
   (def s3-client (aws/client {:api :s3
