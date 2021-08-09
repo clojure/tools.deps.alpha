@@ -16,7 +16,7 @@
     ;; maven-resolver-api
     [org.eclipse.aether RepositorySystem RepositorySystemSession DefaultRepositoryCache DefaultRepositorySystemSession ConfigurationProperties]
     [org.eclipse.aether.artifact Artifact DefaultArtifact]
-    [org.eclipse.aether.repository LocalRepository Proxy RemoteRepository RemoteRepository$Builder RepositoryPolicy]
+    [org.eclipse.aether.repository LocalRepository Proxy RemoteRepository RemoteRepository$Builder]
     [org.eclipse.aether.graph Dependency Exclusion]
     [org.eclipse.aether.transfer TransferListener TransferEvent TransferResource]
 
@@ -103,22 +103,8 @@
                 (getProxy repo)))))
     first))
 
-(defn repo-policy
-  [repo-name {:keys [enabled updates checksums]
-    :or {enabled true, updates :daily, checksums :warn}}]
-  (let [update-policy (if (int? updates) (str "interval:" updates) (name updates))
-        checksum-policy (name checksums)]
-    (RepositoryPolicy. enabled update-policy checksum-policy)))
-
-;; name {:url "..."
-;;       :releases {:enabled true
-;;                  :updates :daily :always :never X (interval)
-;;                  :checksums :warn :ignore :fail}
-;;       :snapshots {:enabled true
-;;                   :updates ...
-;;                   :checksums ...}}
 (defn remote-repo
-  ^RemoteRepository [[^String name {:keys [url releases snapshots]}]]
+  ^RemoteRepository [[^String name {:keys [url]}]]
   (let [^Settings settings (get-settings)
         builder (RemoteRepository$Builder. name "default" url)
         maybe-repo (.build builder)
@@ -126,9 +112,7 @@
         ^RemoteRepository remote-repo (or mirror maybe-repo)
         proxy (select-proxy settings remote-repo)
         server-id (.getId remote-repo)
-        ^Server server-setting (->> (.getServers settings) (filter #(= server-id (.getId ^Server %))) first)
-        release-policy (when releases (repo-policy name releases))
-        snapshot-policy (when snapshots (repo-policy name snapshots))]
+        ^Server server-setting (->> (.getServers settings) (filter #(= server-id (.getId ^Server %))) first)]
     (->
       (cond-> builder
         mirror (.setUrl (.getUrl mirror))
@@ -138,8 +122,6 @@
                            (.addPassword (.getPassword server-setting))
                            (.addPrivateKey (.getPrivateKey server-setting) (.getPassphrase server-setting))
                            (.build)))
-        release-policy (.setReleasePolicy release-policy)
-        snapshot-policy (.setSnapshotPolicy snapshot-policy)
         proxy (.setProxy proxy))
       (.build))))
 
