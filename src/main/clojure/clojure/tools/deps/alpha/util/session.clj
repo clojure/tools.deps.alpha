@@ -8,25 +8,31 @@
 
 (ns ^{:skip-wiki true}
   clojure.tools.deps.alpha.util.session
-  "Maintains session resources during or across runs of the resolver")
+  "Maintains session resources during or across runs of the resolver"
+  (:import
+    [java.util.concurrent ConcurrentMap ConcurrentHashMap]
+    [java.util.function Function]))
 
-(def ^:dynamic *session* nil)
+(def session (ConcurrentHashMap.)) ;; should never be nil
 
 (defn retrieve
   "Read the current value of key from the session. If absent, and if-absent-fn
   is supplied, invoke the fn, set it in the session (if there is one),
   and return the value."
   ([key]
-   (get *session* key))
+   (.get ^ConcurrentMap session key))
   ([key if-absent-fn]
-   (or
-     (get *session* key)
-     (let [val (if-absent-fn)]
-       (when *session* (set! *session* (assoc *session* key val)))
-       val))))
+   (.computeIfAbsent ^ConcurrentMap session key
+     (reify Function
+       (apply [_f _k]
+         (if-absent-fn))))))
 
 (defmacro with-session
   "Create a new empty session and execute the body"
   [& body]
-  `(binding [*session* {}]
-     ~@body))
+  `(let [prior# session]
+     (alter-var-root #'session (constantly (ConcurrentHashMap.)))
+     (try
+       ~@body
+       (finally
+         (alter-var-root #'session (constantly prior#))))))
