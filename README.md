@@ -31,20 +31,20 @@ Also see:
 
 # Release Information
 
-Latest release: 0.11.905
+Latest release: 0.12.1019
 
 * [All released versions](https://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22org.clojure%22%20AND%20a%3A%22tools.deps.alpha%22)
 
 [deps.edn](https://clojure.org/guides/deps_and_cli) dependency information:
 
 ```
-org.clojure/tools.deps.alpha {:mvn/version "0.11.905"}
+org.clojure/tools.deps.alpha {:mvn/version "0.12.1019"}
 ```
 
 [Leiningen](https://github.com/technomancy/leiningen/) dependency information:
 
 ```
-[org.clojure/tools.deps.alpha "0.11.905"]
+[org.clojure/tools.deps.alpha "0.12.1019"]
 ```
 
 [Maven](https://maven.apache.org) dependency information:
@@ -53,7 +53,7 @@ org.clojure/tools.deps.alpha {:mvn/version "0.11.905"}
 <dependency>
   <groupId>org.clojure</groupId>
   <artifactId>tools.deps.alpha</artifactId>
-  <version>0.11.905</version>
+  <version>0.12.1019</version>
 </dependency>
 ```
 
@@ -61,7 +61,6 @@ org.clojure/tools.deps.alpha {:mvn/version "0.11.905"}
 
 For info on using tools.deps as a library, see:
 
-* [API Usage](API.md)
 * [API Docs](https://clojure.github.io/tools.deps.alpha)
 
 # Developer Information

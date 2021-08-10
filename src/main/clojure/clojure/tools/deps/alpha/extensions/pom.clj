@@ -17,18 +17,13 @@
     [clojure.tools.deps.alpha.util.session :as session])
   (:import
     [java.io File]
-    [java.util List]
+    [java.util Properties]
     ;; maven-model
     [org.apache.maven.model Model Dependency Exclusion]
     ;; maven-model-builder
     [org.apache.maven.model.building DefaultModelBuildingRequest DefaultModelBuilderFactory ModelSource FileModelSource]
     [org.apache.maven.model.resolution ModelResolver]
-    ;; maven-resolver-provider
-    [org.apache.maven.repository.internal DefaultVersionRangeResolver]
-    ;; maven-resolver-api
-    [org.eclipse.aether RepositorySystemSession RequestTrace]
     ;; maven-resolver-impl
-    [org.eclipse.aether.impl ArtifactResolver VersionRangeResolver RemoteRepositoryManager]
     [org.eclipse.aether.internal.impl DefaultRemoteRepositoryManager]
     ;; maven-resolver-spi
     [org.eclipse.aether.spi.locator ServiceLocator]
@@ -42,19 +37,18 @@
 
 (defn- model-resolver
   ^ModelResolver [{:keys [mvn/repos mvn/local-repo]}]
-  (let [local-repo (or local-repo maven/default-local-repo)
+  (let [local-repo (or local-repo @maven/cached-local-repo)
         locator ^ServiceLocator @maven/the-locator
         system (maven/make-system)
-        session (maven/make-session system local-repo)
-        artifact-resolver (.getService locator ArtifactResolver)
-        version-range-resolver (doto (DefaultVersionRangeResolver.) (.initService locator))
+        settings ^Settings (session/retrieve :mvn/settings #(maven/get-settings))
+        session (maven/make-session system settings local-repo)
         repo-mgr (doto (DefaultRemoteRepositoryManager.) (.initService locator))
-        repos (mapv maven/remote-repo repos)]
+        repos (maven/remote-repos repos settings)]
     (ProjectModelResolver. session nil system repo-mgr repos ProjectBuildingRequest$RepositoryMerging/REQUEST_DOMINANT nil)))
 
 (defn read-model
   ^Model [^ModelSource source config]
-  (let [props (java.util.Properties.)
+  (let [props (Properties.)
         _ (.putAll props (System/getProperties))
         _ (.setProperty props "project.basedir" ".")
         req (doto (DefaultModelBuildingRequest.)
@@ -121,6 +115,16 @@
                            (io/printerrln "Skipping absolute resource directory of" lib ":" dir)
                            (.getCanonicalPath (jio/file root dir)))))))]
     (->> srcs (remove nil?) distinct)))
+
+(defmethod ext/coord-usage :pom
+  [lib {:keys [deps/root]} manifest-type config]
+  ;; TBD
+  nil)
+
+(defmethod ext/prep-command :pom
+  [lib {:keys [deps/root]} manifest-type config]
+  ;; TBD
+  nil)
 
 (comment
   (ext/coord-deps 'org.clojure/core.async {:deps/root "../core.async" :deps/manifest :pom}

@@ -13,8 +13,9 @@
     [clojure.string :as str]
     [clojure.tools.cli :as cli]
     [clojure.tools.deps.alpha :as deps]
+    [clojure.tools.deps.alpha.extensions :as ext]
+    [clojure.tools.deps.alpha.tool :as tool]
     [clojure.tools.deps.alpha.util.io :as io :refer [printerrln]]
-    [clojure.tools.deps.alpha.util.session :as session]
     [clojure.tools.deps.alpha.script.parse :as parse]
     [clojure.tools.deps.alpha.tree :as tree])
   (:import
@@ -25,6 +26,9 @@
    [nil "--config-user PATH" "User deps.edn location"]
    [nil "--config-project PATH" "Project deps.edn location"]
    [nil "--config-data EDN" "Final deps.edn data to treat as the last deps.edn file" :parse-fn parse/parse-config]
+   ;; tool args to resolve
+   [nil "--tool-mode" "Tool mode (-T), may optionally supply tool-name or tool-aliases"]
+   [nil "--tool-name NAME" "Tool name"]
    ;; output files
    [nil "--libs-file PATH" "Libs cache file to write"]
    [nil "--cp-file PATH" "Classpatch cache file to write"]
@@ -38,6 +42,7 @@
    ["-A" "--repl-aliases ALIASES" "Concatenated repl alias names" :parse-fn parse/parse-kws]
    ["-M" "--main-aliases ALIASES" "Concatenated main option alias names" :parse-fn parse/parse-kws]
    ["-X" "--exec-aliases ALIASES" "Concatenated exec alias names" :parse-fn parse/parse-kws]
+   ["-T" "--tool-aliases ALIASES" "Concatenated tool alias names" :parse-fn parse/parse-kws]
    ;; options
    [nil "--trace" "Emit trace log to trace.edn"]
    [nil "--threads THREADS" "Threads for concurrent downloads"]
@@ -52,7 +57,20 @@
   "Check that all aliases are known and warn if aliases are undeclared"
   [deps aliases]
   (when-let [unknown (seq (remove #(contains? (:aliases deps) %) (distinct aliases)))]
-    (printerrln "WARNING: Specified aliases are undeclared:" (vec unknown))))
+    (printerrln "WARNING: Specified aliases are undeclared and are not being used:" (vec unknown))))
+
+(defn resolve-tool-args
+  "Resolves the tool by name to the coord + usage data.
+   Returns the proper alias args as if the tool was specified as an alias."
+  [tool-name config]
+  (let [{:keys [lib coord]} (tool/resolve-tool tool-name)
+        manifest-type (ext/manifest-type lib coord config)
+        coord' (merge coord manifest-type)
+        {:keys [ns-default ns-aliases]} (ext/coord-usage lib coord' (:deps/manifest coord') config)]
+    {:replace-deps {lib coord'}
+     :replace-paths ["."]
+     :ns-default ns-default
+     :ns-aliases ns-aliases}))
 
 (defn run-core
   "Run make-classpath script from/to data (no file stuff). Returns:
@@ -69,31 +87,51 @@
      ;; and any other qualified keys from top level merged deps
     }"
   [{:keys [install-deps user-deps project-deps config-data ;; all deps.edn maps
-           resolve-aliases makecp-aliases main-aliases exec-aliases repl-aliases
-           skip-cp threads trace tree] :as opts}]
+           tool-mode tool-name tool-resolver ;; -T options
+           resolve-aliases makecp-aliases main-aliases exec-aliases repl-aliases tool-aliases
+           skip-cp threads trace tree] :as _opts}]
   (when (and main-aliases exec-aliases)
     (throw (ex-info "-M and -X cannot be used at the same time" {})))
-  (let [;; tool use - :deps/:paths/:replace-deps/:replace-paths in project if needed
-        tool-args (deps/combine-aliases
-                    (deps/merge-edns [install-deps user-deps project-deps config-data]) ;; merge just to get all aliases
-                    (concat main-aliases exec-aliases repl-aliases))
-        project-deps (deps/tool project-deps tool-args)
+  (let [pretool-edn (deps/merge-edns [install-deps user-deps project-deps config-data])
+        ;; tool use - :deps/:paths/:replace-deps/:replace-paths in project if needed
+        tool-args (cond
+                    tool-name (tool-resolver tool-name pretool-edn)
+                    tool-mode {:replace-deps {} :replace-paths ["."]})
+        tool-edn (when tool-args {:aliases {:deps/TOOL tool-args}})
+        ;; :deps/TOOL is a synthetic deps.edn combining the tool definition and usage
+        ;; it is injected at the end of the deps chain and added as a pseudo alias
+        ;; the effects are seen in the basis but this pseduo alias should not escape
+        combined-tool-args (deps/combine-aliases
+                            (deps/merge-edns [pretool-edn tool-edn])
+                            (concat main-aliases exec-aliases repl-aliases tool-aliases (when tool-edn [:deps/TOOL])))
+        project-deps (deps/tool project-deps combined-tool-args)
 
         ;; calc basis
-        merge-edn (deps/merge-edns [install-deps user-deps project-deps config-data])
-        combined-exec-aliases (concat main-aliases exec-aliases repl-aliases)
+        merge-edn (deps/merge-edns [install-deps user-deps project-deps config-data (when tool-edn tool-edn)]) ;; recalc to get updated project-deps
+        combined-exec-aliases (concat main-aliases exec-aliases repl-aliases tool-aliases (when tool-edn [:deps/TOOL]))
         _ (check-aliases merge-edn (concat resolve-aliases makecp-aliases combined-exec-aliases))
         resolve-argmap (deps/combine-aliases merge-edn (concat resolve-aliases combined-exec-aliases))
         resolve-args (cond-> resolve-argmap
                        threads (assoc :threads (Long/parseLong threads))
                        trace (assoc :trace trace)
                        tree (assoc :trace true))
-        basis (when-not skip-cp (deps/calc-basis merge-edn {:resolve-args resolve-args
-                                                            :classpath-args (deps/combine-aliases merge-edn
-                                                                              (concat makecp-aliases combined-exec-aliases))}))
+        cp-args (deps/combine-aliases merge-edn (concat makecp-aliases combined-exec-aliases))
+        exec-argmap (deps/combine-aliases merge-edn combined-exec-aliases)
+        execute-args (select-keys exec-argmap [:ns-default :ns-aliases :exec-fn :exec-args])
+        execute-args (let [arg-kw (:exec-args execute-args)]
+                       (if (keyword? arg-kw)
+                         (assoc execute-args :exec-args (get-in merge-edn [:aliases arg-kw]))
+                         execute-args))
+        basis (when-not skip-cp (deps/calc-basis merge-edn
+                                  (cond-> {}
+                                    resolve-args (assoc :resolve-args resolve-args)
+                                    cp-args (assoc :classpath-args cp-args)
+                                    execute-args (assoc :execute-args execute-args))))
+
+        ;; check for unprepped libs
+        _ (deps/prep-libs! (:libs basis) {:action :error} basis)
 
         ;; handle jvm and main opts
-        exec-argmap (deps/combine-aliases merge-edn combined-exec-aliases)
         jvm (seq (get exec-argmap :jvm-opts))
         main (seq (get exec-argmap :main-opts))]
     (when (and main repl-aliases)
@@ -115,7 +153,8 @@
   [{:keys [config-user config-project libs-file cp-file jvm-file main-file basis-file skip-cp trace tree] :as opts}]
   (let [opts' (merge opts {:install-deps (deps/root-deps)
                            :user-deps (read-deps config-user)
-                           :project-deps (read-deps config-project)})
+                           :project-deps (read-deps config-project)
+                           :tool-resolver resolve-tool-args})
         {:keys [libs classpath-roots jvm main] :as basis} (run-core opts')
         trace-log (-> libs meta :trace)]
     (when trace
@@ -144,6 +183,8 @@
     --config-user=path - user deps.edn file (usually ~/.clojure/deps.edn)
     --config-project=path - project deps.edn file (usually ./deps.edn)
     --config-data={...} - deps.edn as data (from -Sdeps)
+    --tool-mode - flag for tool mode
+    --tool-name - name of tool to run
     --libs-file=path - libs cache file to write
     --cp-file=path - cp cache file to write
     --jvm-file=path - jvm opts file to write
@@ -154,6 +195,7 @@
     -Mmain-aliases - concatenated main-opt alias names
     -Aaliases - concatenated repl alias names
     -Xaliases - concatenated exec alias names
+    -Taliases - concatenated tool alias names
 
   Resolves the dependencies and updates the lib, classpath, etc files.
   The libs file is at <cachedir>/<hash>.libs

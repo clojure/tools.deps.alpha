@@ -26,6 +26,8 @@
   `(binding [repo ~libs]
      ~@body))
 
+(defmethod ext/coord-type-keys :fkn [_type] #{:fkn/version})
+
 (defmethod ext/dep-id :fkn
   [_lib coord _config]
   (select-keys coord [:fkn/version]))

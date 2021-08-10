@@ -3,6 +3,46 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.3/CHANGELOG.md)*
 
+* 0.12.1019 on Aug 10, 2021
+  * Load and cache Maven settings once for perf
+  * Cache version range resolution results for perf
+* 0.12.1013 on Aug 9, 2021
+  * TDEPS-199 Use default http-client in S3 transporter 
+  * Cache S3 transporter for a repo
+  * Fixed session cache to work properly across threads / binding stacks for better perf
+  * Replace specific maven version range requests with non-range request to reduce repo metadata lookups
+* 0.12.1003 on July 19, 2021
+  * slurp-deps returns nil on non-existent file
+  * Add missing multimethods for jar files libs
+  * TDEPS-187 Rework how tools and exec args are resolved
+* 0.12.994 on July 15, 2021
+  * For clj -X:deps pom, compute deps from basis :libs, not original :deps
+  * Fix help/doc and help/dir to better handle requiring unloaded nses
+* 0.12.985 on July 9, 2021
+  * clojure.tools.cli.api
+    * NEW functions: find-versions, prep, basis
+  * clojure.tools.cli.help
+    * NEW functions: doc, dir
+  * clojure.tools.deps.alpha
+    * NEW create-basis
+  * git deps
+    * Infer :git/url from git lib name
+    * Support :git/tag + prefix :git/sha (must point to same commit)
+  * Support for -T and tools
+* 0.11.935 on June 25, 2021
+  * Don't compute local repo path at load time
+* 0.11.931 on June 10, 2021
+  * TDEPS-179 - Fix incorrect classpath when :classpath-overrides removes path
+* 0.11.926 on June 6, 2021
+  * Fix reflection warning
+* 0.11.922 on May 20, 2021
+  * TDEPS-178 - Update to latest Maven deps (resolver 1.7.0, core 1.8.3)
+    * See https://maven.apache.org/docs/3.8.1/release-notes.html for CVE details
+* 0.11.918 on May 11, 2021
+  * TDEPS-177 - Use server id, not server name to select Maven mirror
+  * Update to latest tools.gitlibs to 2.3.167
+* 0.11.910 on Apr 3, 2021
+  * Bump dep version for tools.gitlibs to 2.2.152
 * 0.11.905 on Mar 12, 2021
   * Bump dep version for tools.gitlibs to 2.1.144
 * 0.11.901 on Mar 10, 2021 

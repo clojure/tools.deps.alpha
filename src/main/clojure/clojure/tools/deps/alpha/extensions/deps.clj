@@ -13,14 +13,21 @@
     [clojure.tools.deps.alpha :as deps]
     [clojure.tools.deps.alpha.extensions :as ext]
     [clojure.tools.deps.alpha.util.dir :as dir]
-    [clojure.tools.deps.alpha.util.io :as io]))
+    [clojure.tools.deps.alpha.util.io :as io]
+    [clojure.tools.deps.alpha.util.session :as session])
+  (:import
+    [java.io File]))
+
+(set! *warn-on-reflection* true)
 
 (defn- deps-map
   [config dir]
   (let [f (jio/file dir "deps.edn")]
-    (if (.exists f)
-      (deps/merge-edns [(deps/root-deps) (deps/slurp-deps f)])
-      (deps/root-deps))))
+    (session/retrieve
+      {:deps :map :file (.getAbsolutePath f)} ;; session key
+      #(if (.exists f)
+         (deps/merge-edns [(deps/root-deps) (deps/slurp-deps f)])
+         (deps/root-deps)))))
 
 (defmethod ext/coord-deps :deps
   [_lib {:keys [deps/root] :as _coord} _mf config]
@@ -34,8 +41,15 @@
       (map #(dir/canonicalize (jio/file %)))
       (map #(do
               (when (not (dir/sub-path? %))
-                (io/printerrln "WARNING: Specified path" % "is external to project" root))
+                (io/printerrln "WARNING: Deprecated use of path" % "external to project" root))
               %))
-      (map #(.getCanonicalPath %))
+      (map #(.getCanonicalPath ^File %))
       vec)))
 
+(defmethod ext/coord-usage :deps [lib {:keys [deps/root] :as _coord} manifest-type config]
+  (dir/with-dir (jio/file root)
+    (:tools/usage (deps-map config root))))
+
+(defmethod ext/prep-command :deps [lib {:keys [deps/root] :as _coord} manifest-type config]
+  (dir/with-dir (jio/file root)
+    (:deps/prep-lib (deps-map config root))))

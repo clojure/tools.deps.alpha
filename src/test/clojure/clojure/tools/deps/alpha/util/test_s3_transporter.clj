@@ -20,7 +20,8 @@
 (defn downloader
   [repo url path]
   (let [system (mvn/make-system)
-        session (mvn/make-session system "/Users/alex/.m2/repository")
+        settings (mvn/get-settings)
+        session (mvn/make-session system settings "/Users/alex/.m2/repository")
         remote-repo (mvn/remote-repo [repo {:url url}])
         transporter (s3t/new-transporter session remote-repo)
         task (GetTask. (URI/create path))

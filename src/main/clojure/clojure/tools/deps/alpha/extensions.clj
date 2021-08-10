@@ -8,7 +8,9 @@
 
 (ns ^{:skip-wiki true}
   clojure.tools.deps.alpha.extensions
-  (:require [clojure.java.io :as jio]))
+  (:require
+    [clojure.java.io :as jio]
+    [clojure.set :as set]))
 
 ;; Helper for autodetect of manifest type
 
@@ -30,12 +32,34 @@
           (recur others))))))
 
 ;; Methods switching on coordinate type
+
+(defmulti coord-type-keys
+  "Takes a coordinate type and returns valid set of keys indicating that coord type"
+  (fn [type] type))
+
+(defmethod coord-type-keys :default [type] #{})
+
+(defn procurer-types
+  "Returns set of registerd procurer types (results may change if procurer methods are registered)."
+  []
+  (disj (-> (.getMethodTable ^clojure.lang.MultiFn coord-type-keys) keys set) :default))
+
 (defn coord-type
-  "The namespace (as a keyword) of the only qualified key in the coordinate,
-   excluding the reserved deps namespace."
+  "Determine the coordinate type of the coordinate, based on the self-published procurer
+  keys from coord-type-keys."
   [coord]
   (when (map? coord)
-    (->> coord keys (keep namespace) (remove #(= "deps" %)) first keyword)))
+    (let [exts (procurer-types)
+          coord-keys (-> coord keys set)
+          matches (reduce (fn [ms type]
+                            (cond-> ms
+                              (not (empty? (set/intersection (coord-type-keys type) coord-keys)))
+                              (conj type)))
+                    [] exts)]
+      (case (count matches)
+        0 (throw (ex-info (format "Coord of unknown type: %s" (pr-str coord)) {:coord coord}))
+        1 (first matches)
+        (throw (ex-info (format "Coord type is ambiguous: %s" (pr-str coord)) {:coord coord}))))))
 
 (defmulti lib-location
   "Takes a coordinate and returns the location where the lib would be
@@ -103,6 +127,21 @@
   (throw (ex-info (str "Unable to compare versions for " lib ": " (pr-str coord-x) " and " (pr-str coord-y))
            {:lib lib :coord-x coord-x :coord-y coord-y})))
 
+;; Find coords
+
+(defmulti find-versions
+  "Return a coll of coords based on a lib and a partial coord"
+  (fn [lib coord coord-type config] coord-type))
+
+(defmethod find-versions :default [lib coord coord-type config]
+  (throw-bad-coord lib coord))
+
+(defn find-all-versions
+  "Find versions across all registered procurer types and return first that finds some.
+  Returns coll of coordinates for this lib (based on lib and partial coordinate)."
+  [lib coord config]
+  (some #(find-versions lib coord % config) (procurer-types)))
+
 ;; Methods switching on manifest type
 
 (defn- throw-bad-manifest
@@ -127,3 +166,34 @@
 (defmethod coord-paths :default [lib coord manifest-type config]
   (throw-bad-manifest lib coord manifest-type))
 
+(defmulti coord-usage
+  "Return usage info map for this library with the following optional keys:
+    :ns-default - default namespace symbol
+    :ns-aliases - map of alias to namespace symbol"
+  (fn [lib coord manifest-type config] manifest-type))
+
+(defmethod coord-usage :default [lib coord manifest-type config]
+  (throw-bad-manifest lib coord manifest-type))
+
+(defmulti prep-command
+  "Return prep command for this library with the following keys:
+    :alias - alias to use when invoking (keyword)
+    :fn - function to invoke in alias (symbol)
+    :ensure - relative path in repo to ensure exists after prep"
+  (fn [lib coord manifest-type config] manifest-type))
+
+(defmethod prep-command :default [lib coord manifest-type config]
+  (throw-bad-manifest lib coord manifest-type))
+
+(comment
+  (require '[clojure.tools.deps.alpha.util.maven :as maven])
+
+  (binding [*print-namespace-maps* false]
+    (run! prn
+      (find-all-versions 'io.github.clojure/tools.deps.alpha nil {:mvn/repos maven/standard-repos})))
+
+  (binding [*print-namespace-maps* false]
+    (run! prn
+      (find-all-versions 'org.clojure/tools.deps.alpha nil {:mvn/repos maven/standard-repos})))
+
+  )

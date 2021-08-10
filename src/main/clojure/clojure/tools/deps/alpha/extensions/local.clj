@@ -21,6 +21,10 @@
     ;; maven-builder-support
     [org.apache.maven.model.building UrlModelSource]))
 
+(defmethod ext/coord-type-keys :local
+  [_type]
+  #{:local/root})
+
 (defmethod ext/dep-id :local
   [lib {:keys [local/root] :as _coord} _config]
   {:lib lib
@@ -35,6 +39,10 @@
   {:base root
    :path ""
    :type :local})
+
+(defmethod ext/find-versions :local
+  [_lib _coord _type _config]
+  nil)
 
 (defmethod ext/manifest-type :local
   [_lib {:keys [local/root deps/manifest] :as _coord} _config]
@@ -72,3 +80,13 @@
 (defmethod ext/coord-paths :jar
   [_lib coord _manifest _config]
   [(:local/root coord)])
+
+(defmethod ext/coord-usage :jar
+  [_lib _coord _manifest-type _config]
+  ;; TBD
+  nil)
+
+(defmethod ext/prep-command :jar
+  [_lib _coord _manifest-type _config]
+  ;; TBD - could look in jar
+  nil)

@@ -10,12 +10,13 @@
   "This api provides functions that can be executed from the Clojure tools using -X:deps."
   (:require
     [clojure.java.io :as jio]
-    [clojure.edn :as edn]
     [clojure.pprint :as pprint]
     [clojure.string :as str]
     [clojure.tools.deps.alpha :as deps]
+    [clojure.tools.deps.alpha.tool :as tool]
     [clojure.tools.deps.alpha.tree :as tree]
     [clojure.tools.deps.alpha.script.resolve-tags :as resolve-tags]
+    [clojure.tools.deps.alpha.extensions :as ext]
     [clojure.tools.deps.alpha.extensions.pom :as pom]
     [clojure.tools.deps.alpha.extensions.local :as local]
     [clojure.tools.deps.alpha.gen.pom :as gen-pom]
@@ -32,6 +33,66 @@
     [clojure.lang IExceptionInfo]))
 
 (set! *warn-on-reflection* true)
+
+(defn basis
+  "Calculates and returns the runtime basis from a master deps edn map, modifying
+   resolve-deps and make-classpath args as needed.
+
+    master-edn - a master deps edn map
+    args - an optional map of arguments to constituent steps, keys:
+      :resolve-args - map of args to resolve-deps, with possible keys:
+        :extra-deps
+        :override-deps
+        :default-deps
+        :threads - number of threads to use during deps resolution
+        :trace - flag to record a trace log
+      :prep-args - map of args to prep-libs!
+        :action - what to do when an unprepped lib is found, one of:
+                    :prep - if unprepped, prep
+                    :force - prep regardless of whether already prepped
+                    :error (default) - don't prep, error
+      :classpath-args - map of args to make-classpath-map, with possible keys:
+        :extra-paths
+        :classpath-overrides
+
+  Returns {:basis basis}, which basis is initial deps edn map plus these keys:
+    :resolve-args - the resolve args passed in, if any
+    :classpath-args - the classpath args passed in, if any
+    :libs - lib map, per resolve-deps
+    :classpath - classpath map per make-classpath-map
+    :classpath-roots - vector of paths in classpath order"
+  [params]
+  (merge params
+    {:basis (deps/create-basis params)}))
+
+(defn prep
+  "Prep the unprepped libs found in the transitive lib set of basis.
+  If no basis is provided, create and use the default project basis.
+
+  Options:
+    :basis - basis to prep. If not provided, use (create-basis nil).
+    :force - flag on whether to force prepped libs to re-prep (default = false)
+    :log - :none, :info (default), or :debug
+
+  Returns params modified."
+  [{:keys [basis force log] :or {log :info} :as params}]
+  (let [use-basis (or basis (deps/create-basis nil))
+        opts {:action (if force :force :prep)
+              :log log}]
+    (deps/prep-libs! (:libs use-basis) opts basis)
+    params))
+
+(comment
+  (do
+    (-> {:root {:mvn/repos mvn/standard-repos, :deps nil}
+         :project {:deps '{org.clojure/clojure {:mvn/version "1.10.3"}
+                           io.github.puredanger/cool-lib
+                           {:git/sha "657d5ce88be340ab2a6c0befeae998366105be84"}}}
+         :log :debug}
+      basis
+      prep)
+    nil)
+  )
 
 (defn- make-trace
   []
@@ -153,7 +214,7 @@
 (defn- output-path
   [local-repo group-id artifact-id version]
   (let [path-parts (concat
-                     [(or local-repo mvn/default-local-repo)]
+                     [(or local-repo @mvn/cached-local-repo)]
                      (str/split group-id #"\.")
                      [artifact-id version])]
     (.getAbsolutePath ^File (apply jio/file path-parts))))
@@ -191,9 +252,38 @@
         jar-file (jio/file jar)
         pom-file (jio/file pom-file)
         system (mvn/make-system)
-        session (mvn/make-session system (or local-repo mvn/default-local-repo))
+        settings (mvn/get-settings)
+        session (mvn/make-session system settings (or local-repo @mvn/cached-local-repo))
         artifacts [(.setFile (DefaultArtifact. group-id artifact-id classifier "jar" version) jar-file)
                    (.setFile (DefaultArtifact. group-id artifact-id classifier "pom" version) pom-file)]
         install-request (.setArtifacts (InstallRequest.) artifacts)]
     (.install system session install-request)
     (println "Installed to" (output-path local-repo group-id artifact-id version))))
+
+(defn find-versions
+  "Find available tool versions given either a lib (with :lib) or
+  existing installed tool (with :tool). If lib, check all registered
+  procurers and print one coordinate per line when found."
+  [{:keys [lib tool] :as args}]
+  (let [{:keys [root-edn user-edn]} (deps/find-edn-maps)
+        master-edn (deps/merge-edns [root-edn user-edn])]
+    (cond
+      tool
+      (let [{:keys [lib coord]} (tool/resolve-tool (name tool))
+            coord-type (ext/coord-type coord)
+            coords (ext/find-versions lib coord coord-type master-edn)]
+        (run! #(binding [*print-namespace-maps* false] (prn %)) coords))
+
+      lib
+      (let [coords (ext/find-all-versions lib {} master-edn)]
+        (run! #(binding [*print-namespace-maps* false] (prn %)) coords))
+
+      :else
+      (throw (ex-info "Either :lib or :tool must be provided to find versions" (or args {}))))))
+
+(comment
+  (find-versions '{:lib org.clojure/tools.gitlibs})
+  (find-versions '{:lib io.github.clojure/tools.gitlibs})
+  (find-versions '{:tool tools})
+  (find-versions nil)
+  )

@@ -66,7 +66,7 @@
     (.setAccessible true)
     (.set default-builder settings-builder)))
 
-(defn- get-settings
+(defn get-settings
   ^Settings []
   (.buildSettings
     (doto (DefaultMavenSettingsBuilder.)
@@ -77,7 +77,7 @@
   (let [mirrors (.getMirrors settings)
         selector (DefaultMirrorSelector.)]
     (run! (fn [^Mirror mirror] (.add selector
-                                 (.getName mirror)
+                                 (.getId mirror)
                                  (.getUrl mirror)
                                  (.getLayout mirror)
                                  false
@@ -104,36 +104,53 @@
     first))
 
 (defn remote-repo
-  ^RemoteRepository [[^String name {:keys [url]}]]
-  (let [^Settings settings (get-settings)
-        builder (RemoteRepository$Builder. name "default" url)
-        maybe-repo (.build builder)
-        mirror (select-mirror settings maybe-repo)
-        proxy (select-proxy settings (or mirror maybe-repo))
-        ^Server server-setting (->> (.getServers settings) (filter #(= name (.getId ^Server %))) first)]
-    (->
-      (cond-> builder
-        mirror (.setUrl (.getUrl mirror))
-        server-setting (.setAuthentication
-                         (-> (AuthenticationBuilder.)
-                           (.addUsername (.getUsername server-setting))
-                           (.addPassword (.getPassword server-setting))
-                           (.addPrivateKey (.getPrivateKey server-setting) (.getPassphrase server-setting))
-                           (.build)))
-        proxy (.setProxy proxy))
-      (.build))))
+  (^RemoteRepository [repo-entry]
+   (remote-repo repo-entry (get-settings)))
+  (^RemoteRepository [[^String name {:keys [url]}] ^Settings settings]
+   (let [builder (RemoteRepository$Builder. name "default" url)
+         maybe-repo (.build builder)
+         mirror (select-mirror settings maybe-repo)
+         ^RemoteRepository remote-repo (or mirror maybe-repo)
+         proxy (select-proxy settings remote-repo)
+         server-id (.getId remote-repo)
+         ^Server server-setting (->> (.getServers settings) (filter #(= server-id (.getId ^Server %))) first)]
+     (->
+       (cond-> builder
+         mirror (.setUrl (.getUrl mirror))
+         server-setting (.setAuthentication
+                          (-> (AuthenticationBuilder.)
+                            (.addUsername (.getUsername server-setting))
+                            (.addPassword (.getPassword server-setting))
+                            (.addPrivateKey (.getPrivateKey server-setting) (.getPassphrase server-setting))
+                            (.build)))
+         proxy (.setProxy proxy))
+       (.build))))
+  )
 
 (defn remote-repos
-  [{:strs [central clojars] :as repos}]
-  ;; always return central, then clojars, then other repos
-  (->> (concat [["central" central] ["clojars" clojars]] (dissoc repos "central" "clojars"))
-    (remove (fn [[_name config]] (nil? config)))
-    (mapv remote-repo)))
+  ([repos]
+   (remote-repos repos (get-settings)))
+  ([{:strs [central clojars] :as repos} ^Settings settings]
+   ;; always return central, then clojars, then other repos
+   (->> (concat [["central" central] ["clojars" clojars]] (dissoc repos "central" "clojars"))
+     (remove (fn [[_name config]] (nil? config)))
+     (mapv #(remote-repo % settings)))))
 
 ;; Local repository
 
-(def ^:private home (System/getProperty "user.home"))
-(def default-local-repo (.getAbsolutePath (jio/file home ".m2" "repository")))
+(defn ^:private local-repo-path
+  "Helper to form the path to the default local repo - use `@cached-local-repo` for
+  caching delayed value"
+  []
+  (.getAbsolutePath (jio/file (System/getProperty "user.home") ".m2" "repository")))
+
+(def default-local-repo
+  "DEPRECATED - use `@cached-local-repo`"
+  (local-repo-path))
+
+(def cached-local-repo
+  "Delayed default local repo lookup for ~/.m2/repository, access with `@cached-local-repo`"
+  (delay (local-repo-path)))
 
 (defn make-local-repo
   ^LocalRepository [^String dir]
@@ -192,15 +209,17 @@
           (.getChildren headers "property"))))))
 
 (defn make-session
-  ^RepositorySystemSession [^RepositorySystem system local-repo]
-  (let [session (MavenRepositorySystemUtils/newSession)
-        local-repo-mgr (.newLocalRepositoryManager system session (make-local-repo local-repo))]
-    (.setLocalRepositoryManager session local-repo-mgr)
-    (.setTransferListener session console-listener)
-    (.setCache session (DefaultRepositoryCache.))
-    (doseq [^Server server (.getServers (get-settings))]
-      (add-server-config session server))
-    session))
+  (^RepositorySystemSession [^RepositorySystem system local-repo] ;; DEPRECATED
+   (make-session system (get-settings) local-repo))
+  (^RepositorySystemSession [^RepositorySystem system ^Settings settings local-repo]
+   (let [session (MavenRepositorySystemUtils/newSession)
+         local-repo-mgr (.newLocalRepositoryManager system session (make-local-repo local-repo))]
+     (.setLocalRepositoryManager session local-repo-mgr)
+     (.setTransferListener session console-listener)
+     (.setCache session (DefaultRepositoryCache.))
+     (doseq [^Server server (.getServers settings)]
+       (add-server-config session server))
+     session)))
 
 (defn exclusions->data
   [exclusions]
