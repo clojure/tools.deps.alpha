@@ -40,9 +40,10 @@
   (let [local-repo (or local-repo @maven/cached-local-repo)
         locator ^ServiceLocator @maven/the-locator
         system (maven/make-system)
-        session (maven/make-session system local-repo)
+        settings ^Settings (session/retrieve :mvn/settings #(maven/get-settings))
+        session (maven/make-session system settings local-repo)
         repo-mgr (doto (DefaultRemoteRepositoryManager.) (.initService locator))
-        repos (mapv maven/remote-repo repos)]
+        repos (maven/remote-repos repos settings)]
     (ProjectModelResolver. session nil system repo-mgr repos ProjectBuildingRequest$RepositoryMerging/REQUEST_DOMINANT nil)))
 
 (defn read-model

@@ -252,7 +252,8 @@
         jar-file (jio/file jar)
         pom-file (jio/file pom-file)
         system (mvn/make-system)
-        session (mvn/make-session system (or local-repo @mvn/cached-local-repo))
+        settings (mvn/get-settings)
+        session (mvn/make-session system settings (or local-repo @mvn/cached-local-repo))
         artifacts [(.setFile (DefaultArtifact. group-id artifact-id classifier "jar" version) jar-file)
                    (.setFile (DefaultArtifact. group-id artifact-id classifier "pom" version) pom-file)]
         install-request (.setArtifacts (InstallRequest.) artifacts)]
