@@ -90,7 +90,7 @@
       nil ;; already loaded
       (let [updated-deps (reduce-kv (fn [m k v] (assoc m k (dissoc v :dependents :paths))) lib-coords libs)
             updated-edn (merge (dissoc initial-basis :libs :classpath :deps) {:deps updated-deps})
-            {updated-libs :libs :as updated-basis} (deps/calc-basis updated-edn initial-basis)
+            {updated-libs :libs :as updated-basis} (deps/calc-basis updated-edn (select-keys initial-basis [:resolve-args :cp-args]))
             new-libs (select-keys updated-libs (set/difference (set (keys updated-libs)) (set (keys libs))))
             paths (mapcat :paths (vals new-libs))
             urls (->> paths (map jio/file) (map #(.toURL ^File %)))]
