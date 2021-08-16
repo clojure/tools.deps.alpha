@@ -21,7 +21,7 @@
     <!-- used for build -->
     <clojure.warnOnReflection>true</clojure.warnOnReflection>
     <clojure.version>1.10.3</clojure.version>
-    <resolverVersion>1.7.0</resolverVersion>
+    <resolverVersion>1.7.1</resolverVersion>
     <mavenVersion>3.8.1</mavenVersion>
 
     <!-- default published in install deps.edn -->
