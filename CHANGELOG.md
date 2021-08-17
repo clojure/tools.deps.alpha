@@ -3,6 +3,8 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.3/CHANGELOG.md)*
 
+* 0.12.1026 on Aug 17, 2021
+  * Update all deps
 * 0.12.1019 on Aug 10, 2021
   * Load and cache Maven settings once for perf
   * Cache version range resolution results for perf
