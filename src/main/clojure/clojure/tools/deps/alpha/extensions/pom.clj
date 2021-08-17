@@ -106,13 +106,23 @@
   [lib {:keys [deps/root] :as _coord} _mf config]
   (let [pom (jio/file root "pom.xml")
         model (read-model-file pom config)
-        srcs (into [(.getCanonicalPath (jio/file root (.. model getBuild getSourceDirectory)))
+
+        ;; Maven core 3.8.2 returns an absolute directory here, which is a breaking regression
+        ;; from previous versions (see https://issues.apache.org/jira/browse/MNG-7218).
+        ;; Working around this with conditional code that deals with either absolute or relative.
+        ;; When MNG-7218 is fixed and deps bumped, might be able to revert the absolute path here.
+        src-dir (jio/file (.. model getBuild getSourceDirectory))
+        src-path (if (.isAbsolute src-dir)
+                   (.getCanonicalPath src-dir)
+                   (.getCanonicalPath (jio/file root src-dir)))
+
+        srcs (into [src-path
                     (.getCanonicalPath (jio/file root "src/main/clojure"))]
                    (for [^Resource resource (.. model getBuild getResources)]
                      (let [dir (jio/file (.getDirectory resource))]
                        (when dir
                          (if (.isAbsolute dir)
-                           (io/printerrln "Skipping absolute resource directory of" lib ":" dir)
+                           (.getCanonicalPath dir)
                            (.getCanonicalPath (jio/file root dir)))))))]
     (->> srcs (remove nil?) distinct)))
 
