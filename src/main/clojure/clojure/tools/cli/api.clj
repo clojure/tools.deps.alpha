@@ -35,25 +35,32 @@
 (set! *warn-on-reflection* true)
 
 (defn basis
-  "Calculates and returns the runtime basis from a master deps edn map, modifying
-   resolve-deps and make-classpath args as needed.
+  "Create a basis from a set of deps sources and a set of aliases. By default, use
+   root, user, and project deps and no argmaps (essentially the same classpath you get by
+   default from the Clojure CLI).
 
-    master-edn - a master deps edn map
-    args - an optional map of arguments to constituent steps, keys:
-      :resolve-args - map of args to resolve-deps, with possible keys:
-        :extra-deps
-        :override-deps
-        :default-deps
-        :threads - number of threads to use during deps resolution
-        :trace - flag to record a trace log
-      :prep-args - map of args to prep-libs!
-        :action - what to do when an unprepped lib is found, one of:
-                    :prep - if unprepped, prep
-                    :force - prep regardless of whether already prepped
-                    :error (default) - don't prep, error
-      :classpath-args - map of args to make-classpath-map, with possible keys:
-        :extra-paths
-        :classpath-overrides
+   Each dep source value can be :standard, a string path, a deps edn map, or nil.
+   Sources are merged in the order - :root, :user, :project, :extra.
+
+   Aliases refer to argmaps in the merged deps that will be supplied to the basis
+   subprocesses (tool, resolve-deps, make-classpath-map).
+
+   The following subprocess argmap args can be provided:
+     Key                  Subproc             Description
+     :replace-deps        tool                Replace project deps
+     :replace-paths       tool                Replace project paths
+     :extra-deps          resolve-deps        Add additional deps
+     :override-deps       resolve-deps        Override coord of dep
+     :default-deps        resolve-deps        Provide coord if missing
+     :extra-paths         make-classpath-map  Add additional paths
+     :classpath-overrides make-classpath-map  Replace lib path in cp
+
+   Options:
+     :root    - dep source, default = :standard
+     :user    - dep source, default = :standard
+     :project - dep source, default = :standard (\"./deps.edn\")
+     :extra   - dep source, default = nil
+     :aliases - coll of aliases of argmaps  to apply to subprocesses
 
   Returns {:basis basis}, which basis is initial deps edn map plus these keys:
     :resolve-args - the resolve args passed in, if any
