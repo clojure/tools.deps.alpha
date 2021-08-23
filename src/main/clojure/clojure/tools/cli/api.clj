@@ -60,7 +60,7 @@
     :user    - dep source, default = :standard
     :project - dep source, default = :standard (\"./deps.edn\")
     :extra   - dep source, default = nil
-    :aliases - coll of aliases of argmaps  to apply to subprocesses
+    :aliases - coll of aliases of argmaps to apply to subprocesses
 
   Returns {:basis basis}, which basis is initial deps edn map plus these keys:
     :resolve-args - the resolve args passed in, if any
