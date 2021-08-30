@@ -40,7 +40,7 @@
   (let [local-repo (or local-repo @maven/cached-local-repo)
         locator ^ServiceLocator @maven/the-locator
         system (maven/make-system)
-        settings ^Settings (session/retrieve :mvn/settings #(maven/get-settings))
+        settings (session/retrieve :mvn/settings #(maven/get-settings))
         session (maven/make-session system settings local-repo)
         repo-mgr (doto (DefaultRemoteRepositoryManager.) (.initService locator))
         repos (maven/remote-repos repos settings)]
