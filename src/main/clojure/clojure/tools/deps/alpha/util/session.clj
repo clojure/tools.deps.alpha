@@ -22,6 +22,7 @@
   ([key]
    (.get ^ConcurrentMap session key))
   ([key if-absent-fn]
+   (println (str "session\t" (.getName (Thread/currentThread)) "\t" key))
    (.computeIfAbsent ^ConcurrentMap session key
      (reify Function
        (apply [_f _k]
