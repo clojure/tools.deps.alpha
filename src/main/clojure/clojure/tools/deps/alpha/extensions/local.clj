@@ -13,7 +13,9 @@
     [clojure.string :as str]
     [clojure.tools.deps.alpha.extensions :as ext]
     [clojure.tools.deps.alpha.extensions.pom :as pom]
-    [clojure.tools.deps.alpha.util.dir :as dir])
+    [clojure.tools.deps.alpha.util.dir :as dir]
+    [clojure.tools.deps.alpha.util.maven :as maven]
+    [clojure.tools.deps.alpha.util.session :as session])
   (:import
     [java.io File IOException]
     [java.net URL]
@@ -73,7 +75,8 @@
     (if-let [path (find-pom jar)]
       (let [url (URL. (str "jar:file:" root "!/" path))
             src (UrlModelSource. url)
-            model (pom/read-model src config)]
+            settings (session/retrieve :mvn/settings #(maven/get-settings))
+            model (pom/read-model src config settings)]
         (pom/model-deps model))
       [])))
 

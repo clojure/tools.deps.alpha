@@ -13,7 +13,6 @@
     [clojure.string :as str]
     [clojure.tools.deps.alpha.extensions :as ext]
     [clojure.tools.deps.alpha.util.maven :as maven]
-    [clojure.tools.deps.alpha.util.io :as io]
     [clojure.tools.deps.alpha.util.session :as session])
   (:import
     [java.io File]
@@ -36,24 +35,23 @@
 (set! *warn-on-reflection* true)
 
 (defn- model-resolver
-  ^ModelResolver [{:keys [mvn/repos mvn/local-repo]}]
+  ^ModelResolver [{:keys [mvn/repos mvn/local-repo]} settings]
   (let [local-repo (or local-repo @maven/cached-local-repo)
         locator ^ServiceLocator @maven/the-locator
         system (maven/make-system)
-        settings (session/retrieve :mvn/settings #(maven/get-settings))
         session (maven/make-session system settings local-repo)
         repo-mgr (doto (DefaultRemoteRepositoryManager.) (.initService locator))
         repos (maven/remote-repos repos settings)]
     (ProjectModelResolver. session nil system repo-mgr repos ProjectBuildingRequest$RepositoryMerging/REQUEST_DOMINANT nil)))
 
 (defn read-model
-  ^Model [^ModelSource source config]
+  ^Model [^ModelSource source config settings]
   (let [props (Properties.)
         _ (.putAll props (System/getProperties))
         _ (.setProperty props "project.basedir" ".")
         req (doto (DefaultModelBuildingRequest.)
               (.setModelSource source)
-              (.setModelResolver (model-resolver config))
+              (.setModelResolver (model-resolver config settings))
               (.setSystemProperties props))
         builder (.newInstance (DefaultModelBuilderFactory.))
         result (.build builder req)]
@@ -61,9 +59,10 @@
 
 (defn read-model-file
   ^Model [^File file config]
-  (session/retrieve
-    {:pom :model :file (.getAbsolutePath file)} ;; session key
-    #(read-model (FileModelSource. file) config)))
+  (let [settings (session/retrieve :mvn/settings #(maven/get-settings))]
+    (session/retrieve
+      {:pom :model :file (.getAbsolutePath file)} ;; session key
+      #(read-model (FileModelSource. file) config settings))))
 
 (defn- model-exclusions->data
   [exclusions]
