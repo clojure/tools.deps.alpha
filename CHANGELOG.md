@@ -3,6 +3,9 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.3/CHANGELOG.md)*
 
+* 0.12.1041 on Sep 17, 2021
+  * Move back to older version of Maven resolver 1.6.3 to match Maven core 3.8.2
+  * Move to latest version of aws api libs
 * 0.12.1036 on Aug 30, 2021
   * Fix bad type hint
 * 0.12.1030 on Aug 23, 2021
