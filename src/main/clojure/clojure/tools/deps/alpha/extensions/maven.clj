@@ -153,14 +153,15 @@
       (throw (ex-info (.getMessage e) {:lib lib, :coord coord})))))
 
 (defmethod ext/coord-paths :mvn
-  [lib coord _manifest {:keys [mvn/repos mvn/local-repo]}]
+  [lib {:keys [extension] :or {extension "jar"} :as coord} _manifest {:keys [mvn/repos mvn/local-repo]}]
   (check-version lib coord)
-  (let [local-repo (or local-repo @maven/cached-local-repo)
-        system ^RepositorySystem (session/retrieve :mvn/system #(maven/make-system))
-        settings ^Settings (session/retrieve :mvn/settings #(maven/get-settings))
-        session ^RepositorySystemSession (session/retrieve :mvn/session #(maven/make-session system settings local-repo))
-        mvn-repos (maven/remote-repos repos settings)]
-    [(get-artifact lib coord system session mvn-repos)]))
+  (when (contains? #{"jar"} extension)
+    (let [local-repo (or local-repo @maven/cached-local-repo)
+          system ^RepositorySystem (session/retrieve :mvn/system #(maven/make-system))
+          settings ^Settings (session/retrieve :mvn/settings #(maven/get-settings))
+          session ^RepositorySystemSession (session/retrieve :mvn/session #(maven/make-session system settings local-repo))
+          mvn-repos (maven/remote-repos repos settings)]
+      [(get-artifact lib coord system session mvn-repos)])))
 
 (defmethod ext/find-versions :mvn
   [lib _coord _coord-type {:keys [mvn/repos mvn/local-repo]}]
