@@ -57,7 +57,7 @@
     (throw (ex-info (str "Unable to resolve " lib " version: " version) {:lib lib :coord coord}))))
 
 (defmethod ext/canonicalize :mvn
-  [lib {:keys [:mvn/version] :as coord} {:keys [mvn/repos mvn/local-repo] :as config}]
+  [lib {:keys [mvn/version] :as coord} {:keys [mvn/repos mvn/local-repo] :as config}]
   (let [specific (specific-version version)]
     (cond
       (contains? #{"RELEASE" "LATEST"} version)
