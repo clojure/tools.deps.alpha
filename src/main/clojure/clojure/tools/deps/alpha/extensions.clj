@@ -166,6 +166,14 @@
 (defmethod coord-paths :default [lib coord manifest-type config]
   (throw-bad-manifest lib coord manifest-type))
 
+(defmulti manifest-file
+  "Return path to manifest file (if any). If this file is updated,
+  causes the cache to be recomputed."
+  (fn [lib coord manifest-type config] manifest-type))
+
+(defmethod manifest-file :default [lib coord manifest-type config]
+  (throw-bad-manifest lib coord manifest-type))
+
 (defmulti coord-usage
   "Return usage info map for this library with the following optional keys:
     :ns-default - default namespace symbol

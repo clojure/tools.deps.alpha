@@ -46,6 +46,10 @@
       (map #(.getCanonicalPath ^File %))
       vec)))
 
+(defmethod ext/manifest-file :deps
+  [_lib {:keys [deps/root] :as _coord} _mf _config]
+  (.getAbsolutePath (jio/file root "deps.edn")))
+
 (defmethod ext/coord-usage :deps [lib {:keys [deps/root] :as _coord} manifest-type config]
   (dir/with-dir (jio/file root)
     (:tools/usage (deps-map config root))))

@@ -125,6 +125,10 @@
                            (.getCanonicalPath (jio/file root dir)))))))]
     (->> srcs (remove nil?) distinct)))
 
+(defmethod ext/manifest-file :pom
+  [_lib {:keys [deps/root] :as _coord} _mf _config]
+  (.getAbsolutePath (jio/file root "pom.xml")))
+
 (defmethod ext/coord-usage :pom
   [lib {:keys [deps/root]} manifest-type config]
   ;; TBD

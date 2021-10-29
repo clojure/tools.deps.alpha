@@ -143,6 +143,14 @@
                              :repl-aliases [:m1 :m2]})]
     (is (= ["c"] (:main basis)))))
 
+;; local manifests returned
+(deftest manifest-local
+  (let [basis (mc/run-core {:install-deps install-data
+                            :project-deps {:deps {'io.github.clojure/data.json {:git/sha "f367490" :git/tag "v2.4.0"}
+                                                  'io.github.clojure/data.codec {:git/sha "8ef09db", :git/tag "data.codec-0.1.1", :deps/manifest :pom}}}})]
+    ;; returns a manifest for both projects (deps.edn and pom.xml respectively)
+    (is (= 2 (count (:manifests basis))))))
+
 ;; repositories should be retained for generate-manifest2's use
 (deftest repo-config-retained
   (let [basis (mc/run-core {:install-deps install-data})] ;; install-data has central and clojars

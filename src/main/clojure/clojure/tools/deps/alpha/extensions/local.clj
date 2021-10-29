@@ -84,6 +84,10 @@
   [_lib coord _manifest _config]
   [(:local/root coord)])
 
+(defmethod ext/manifest-file :jar
+  [_lib {:keys [deps/root] :as _coord} _mf _config]
+  nil)
+
 (defmethod ext/coord-usage :jar
   [_lib _coord _manifest-type _config]
   ;; TBD

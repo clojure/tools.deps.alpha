@@ -163,6 +163,10 @@
           mvn-repos (maven/remote-repos repos settings)]
       [(get-artifact lib coord system session mvn-repos)])))
 
+(defmethod ext/manifest-file :mvn
+  [_lib {:keys [deps/root] :as _coord} _mf _config]
+  nil)
+
 (defmethod ext/find-versions :mvn
   [lib _coord _coord-type {:keys [mvn/repos mvn/local-repo]}]
   (let [local-repo (or local-repo maven/default-local-repo)
