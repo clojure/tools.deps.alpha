@@ -3,6 +3,8 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.3/CHANGELOG.md)*
 
+* next
+  * TDEPS-83 Add support for finding manifests of libs
 * 0.12.1058 on Oct 22, 2021
   * TDEPS-210 Update specs
 * 0.12.1053 on Oct 12, 2021
