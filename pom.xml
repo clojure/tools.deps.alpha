@@ -22,7 +22,7 @@
     <clojure.warnOnReflection>true</clojure.warnOnReflection>
     <clojure.version>1.10.3</clojure.version>
     <resolverVersion>1.6.3</resolverVersion>
-    <mavenVersion>3.8.2</mavenVersion>
+    <mavenVersion>3.8.3</mavenVersion>
 
     <!-- default published in install deps.edn -->
     <clojure.default>1.10.3</clojure.default>
@@ -83,7 +83,7 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-nop</artifactId>
-      <version>1.7.30</version>
+      <version>1.7.32</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -109,7 +109,7 @@
     <dependency>
       <groupId>com.cognitect.aws</groupId>
       <artifactId>endpoints</artifactId>
-      <version>1.1.12.69</version>
+      <version>1.1.12.93</version>
     </dependency>
     <dependency>
       <groupId>com.cognitect.aws</groupId>
@@ -120,6 +120,23 @@
       <groupId>javax.inject</groupId>
       <artifactId>javax.inject</artifactId>
       <version>1</version>
+    </dependency>
+
+    <!-- overrides under com.cognitect.aws/api -->
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-client</artifactId>
+      <version>9.4.44.v20210927</version>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-http</artifactId>
+      <version>9.4.44.v20210927</version>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-util</artifactId>
+      <version>9.4.44.v20210927</version>
     </dependency>
   </dependencies>
 
