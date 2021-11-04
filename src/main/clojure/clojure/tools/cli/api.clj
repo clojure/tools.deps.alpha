@@ -8,6 +8,7 @@
 
 (ns clojure.tools.cli.api
   "This api provides functions that can be executed from the Clojure tools using -X:deps."
+  (:refer-clojure :exclude [list])
   (:require
     [clojure.java.io :as jio]
     [clojure.pprint :as pprint]
@@ -143,6 +144,29 @@
       (when-not (instance? IExceptionInfo t)
         (.printStackTrace t))
       (System/exit 1))))
+
+(defn list
+  "List all deps on the classpath, optimized for knowing the final set of included
+  libs. The `tree` program can provide more info on why or why not a particular
+  lib is included.
+
+  This program accepts the same basis-modifying arguments from the `basis` program.
+  Each dep source value can be :standard, a string path, a deps edn map, or nil.
+  Sources are merged in the order - :root, :user, :project, :extra.
+
+  Options:
+    :root    - dep source, default = :standard
+    :user    - dep source, default = :standard
+    :project - dep source, default = :standard (\"./deps.edn\")
+    :extra   - dep source, default = nil
+    :aliases - coll of kw aliases of argmaps to apply to subprocesses
+
+  The libs are printed to the console."
+  [params]
+  (let [basis (deps/create-basis params)
+        libs (:libs basis)]
+    (doseq [lib (-> libs keys sort)]
+      (println (ext/coord-summary lib (get libs lib))))))
 
 ;;;; git resolve-tags
 
