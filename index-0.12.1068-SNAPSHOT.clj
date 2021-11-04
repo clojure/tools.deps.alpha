@@ -5,7 +5,7 @@
    :wiki-url
    "https://clojure.github.io/tools.deps.alpha/clojure.tools.cli.api-api.html",
    :source-url
-   "https://github.com/clojure/tools.deps.alpha/blob/d3129d59168e56a6b96e5a72044c1a5622e9bef5/src/main/clojure/clojure/tools/cli/api.clj"}
+   "https://github.com/clojure/tools.deps.alpha/blob/b8d2a10f36a2282482e04a4131b646f3400728f0/src/main/clojure/clojure/tools/cli/api.clj"}
   {:doc nil,
    :name "clojure.tools.cli.help",
    :wiki-url
@@ -17,7 +17,7 @@
    :wiki-url
    "https://clojure.github.io/tools.deps.alpha/clojure.tools.deps.alpha-api.html",
    :source-url
-   "https://github.com/clojure/tools.deps.alpha/blob/0221dfa5248a45d97938a17cbce0356f470e2812/src/main/clojure/clojure/tools/deps/alpha.clj"}
+   "https://github.com/clojure/tools.deps.alpha/blob/72480763a98dc764b6942c5ce59de8a85ae121d2/src/main/clojure/clojure/tools/deps/alpha.clj"}
   {:doc nil,
    :name "clojure.tools.deps.alpha.tool",
    :wiki-url
@@ -32,26 +32,26 @@
    "https://github.com/clojure/tools.deps.alpha/blob/271dbc26e4150ec97710c9eb123ed95d240ff8e2/src/main/clojure/clojure/tools/deps/alpha/tree.clj"}),
  :vars
  ({:raw-source-url
-   "https://github.com/clojure/tools.deps.alpha/raw/d3129d59168e56a6b96e5a72044c1a5622e9bef5/src/main/clojure/clojure/tools/cli/api.clj",
+   "https://github.com/clojure/tools.deps.alpha/raw/b8d2a10f36a2282482e04a4131b646f3400728f0/src/main/clojure/clojure/tools/cli/api.clj",
    :name "basis",
    :file "src/main/clojure/clojure/tools/cli/api.clj",
    :source-url
-   "https://github.com/clojure/tools.deps.alpha/blob/d3129d59168e56a6b96e5a72044c1a5622e9bef5/src/main/clojure/clojure/tools/cli/api.clj#L37",
-   :line 37,
+   "https://github.com/clojure/tools.deps.alpha/blob/b8d2a10f36a2282482e04a4131b646f3400728f0/src/main/clojure/clojure/tools/cli/api.clj#L38",
+   :line 38,
    :var-type "function",
    :arglists ([params]),
    :doc
-   "Create a basis from a set of deps sources and a set of aliases. By default, use\n root, user, and project deps and no argmaps (essentially the same classpath you get by\n default from the Clojure CLI).\n\n Each dep source value can be :standard, a string path, a deps edn map, or nil.\n Sources are merged in the order - :root, :user, :project, :extra.\n\n Aliases refer to argmaps in the merged deps that will be supplied to the basis\n subprocesses (tool, resolve-deps, make-classpath-map).\n\n The following subprocess argmap args can be provided:\n   Key                  Subproc             Description\n   :replace-deps        tool                Replace project deps\n   :replace-paths       tool                Replace project paths\n   :extra-deps          resolve-deps        Add additional deps\n   :override-deps       resolve-deps        Override coord of dep\n   :default-deps        resolve-deps        Provide coord if missing\n   :extra-paths         make-classpath-map  Add additional paths\n   :classpath-overrides make-classpath-map  Replace lib path in cp\n\n Options:\n   :root    - dep source, default = :standard\n   :user    - dep source, default = :standard\n   :project - dep source, default = :standard (\"./deps.edn\")\n   :extra   - dep source, default = nil\n   :aliases - coll of aliases of argmaps  to apply to subprocesses\n\nReturns {:basis basis}, which basis is initial deps edn map plus these keys:\n  :resolve-args - the resolve args passed in, if any\n  :classpath-args - the classpath args passed in, if any\n  :libs - lib map, per resolve-deps\n  :classpath - classpath map per make-classpath-map\n  :classpath-roots - vector of paths in classpath order",
+   "Create a basis from a set of deps sources and a set of aliases. By default, use\nroot, user, and project deps and no argmaps (essentially the same classpath you get by\ndefault from the Clojure CLI).\n\nEach dep source value can be :standard, a string path, a deps edn map, or nil.\nSources are merged in the order - :root, :user, :project, :extra.\n\nAliases refer to argmaps in the merged deps that will be supplied to the basis\nsubprocesses (tool, resolve-deps, make-classpath-map).\n\nThe following subprocess argmap args can be provided:\n  Key                  Subproc             Description\n  :replace-deps        tool                Replace project deps\n  :replace-paths       tool                Replace project paths\n  :extra-deps          resolve-deps        Add additional deps\n  :override-deps       resolve-deps        Override coord of dep\n  :default-deps        resolve-deps        Provide coord if missing\n  :extra-paths         make-classpath-map  Add additional paths\n  :classpath-overrides make-classpath-map  Replace lib path in cp\n\nOptions:\n  :root    - dep source, default = :standard\n  :user    - dep source, default = :standard\n  :project - dep source, default = :standard (\"./deps.edn\")\n  :extra   - dep source, default = nil\n  :aliases - coll of aliases of argmaps to apply to subprocesses\n\nReturns {:basis basis}, which basis is initial deps edn map plus these keys:\n  :resolve-args - the resolve args passed in, if any\n  :classpath-args - the classpath args passed in, if any\n  :libs - lib map, per resolve-deps\n  :classpath - classpath map per make-classpath-map\n  :classpath-roots - vector of paths in classpath order",
    :namespace "clojure.tools.cli.api",
    :wiki-url
    "https://clojure.github.io/tools.deps.alpha//clojure.tools.cli.api-api.html#clojure.tools.cli.api/basis"}
   {:raw-source-url
-   "https://github.com/clojure/tools.deps.alpha/raw/d3129d59168e56a6b96e5a72044c1a5622e9bef5/src/main/clojure/clojure/tools/cli/api.clj",
+   "https://github.com/clojure/tools.deps.alpha/raw/b8d2a10f36a2282482e04a4131b646f3400728f0/src/main/clojure/clojure/tools/cli/api.clj",
    :name "find-versions",
    :file "src/main/clojure/clojure/tools/cli/api.clj",
    :source-url
-   "https://github.com/clojure/tools.deps.alpha/blob/d3129d59168e56a6b96e5a72044c1a5622e9bef5/src/main/clojure/clojure/tools/cli/api.clj#L270",
-   :line 270,
+   "https://github.com/clojure/tools.deps.alpha/blob/b8d2a10f36a2282482e04a4131b646f3400728f0/src/main/clojure/clojure/tools/cli/api.clj#L294",
+   :line 294,
    :var-type "function",
    :arglists ([{:keys [lib tool], :as args}]),
    :doc
@@ -60,12 +60,12 @@
    :wiki-url
    "https://clojure.github.io/tools.deps.alpha//clojure.tools.cli.api-api.html#clojure.tools.cli.api/find-versions"}
   {:raw-source-url
-   "https://github.com/clojure/tools.deps.alpha/raw/d3129d59168e56a6b96e5a72044c1a5622e9bef5/src/main/clojure/clojure/tools/cli/api.clj",
+   "https://github.com/clojure/tools.deps.alpha/raw/b8d2a10f36a2282482e04a4131b646f3400728f0/src/main/clojure/clojure/tools/cli/api.clj",
    :name "git-resolve-tags",
    :file "src/main/clojure/clojure/tools/cli/api.clj",
    :source-url
-   "https://github.com/clojure/tools.deps.alpha/blob/d3129d59168e56a6b96e5a72044c1a5622e9bef5/src/main/clojure/clojure/tools/cli/api.clj#L149",
-   :line 149,
+   "https://github.com/clojure/tools.deps.alpha/blob/b8d2a10f36a2282482e04a4131b646f3400728f0/src/main/clojure/clojure/tools/cli/api.clj#L173",
+   :line 173,
    :var-type "function",
    :arglists ([_]),
    :doc "Resolve git tags in deps.edn git deps to full shas.",
@@ -73,12 +73,26 @@
    :wiki-url
    "https://clojure.github.io/tools.deps.alpha//clojure.tools.cli.api-api.html#clojure.tools.cli.api/git-resolve-tags"}
   {:raw-source-url
-   "https://github.com/clojure/tools.deps.alpha/raw/d3129d59168e56a6b96e5a72044c1a5622e9bef5/src/main/clojure/clojure/tools/cli/api.clj",
+   "https://github.com/clojure/tools.deps.alpha/raw/b8d2a10f36a2282482e04a4131b646f3400728f0/src/main/clojure/clojure/tools/cli/api.clj",
+   :name "list",
+   :file "src/main/clojure/clojure/tools/cli/api.clj",
+   :source-url
+   "https://github.com/clojure/tools.deps.alpha/blob/b8d2a10f36a2282482e04a4131b646f3400728f0/src/main/clojure/clojure/tools/cli/api.clj#L148",
+   :line 148,
+   :var-type "function",
+   :arglists ([params]),
+   :doc
+   "List all deps on the classpath, optimized for knowing the final set of included\nlibs. The `tree` program can provide more info on why or why not a particular\nlib is included.\n\nThis program accepts the same basis-modifying arguments from the `basis` program.\nEach dep source value can be :standard, a string path, a deps edn map, or nil.\nSources are merged in the order - :root, :user, :project, :extra.\n\nOptions:\n  :root    - dep source, default = :standard\n  :user    - dep source, default = :standard\n  :project - dep source, default = :standard (\"./deps.edn\")\n  :extra   - dep source, default = nil\n  :aliases - coll of kw aliases of argmaps to apply to subprocesses\n\nThe libs are printed to the console.",
+   :namespace "clojure.tools.cli.api",
+   :wiki-url
+   "https://clojure.github.io/tools.deps.alpha//clojure.tools.cli.api-api.html#clojure.tools.cli.api/list"}
+  {:raw-source-url
+   "https://github.com/clojure/tools.deps.alpha/raw/b8d2a10f36a2282482e04a4131b646f3400728f0/src/main/clojure/clojure/tools/cli/api.clj",
    :name "mvn-install",
    :file "src/main/clojure/clojure/tools/cli/api.clj",
    :source-url
-   "https://github.com/clojure/tools.deps.alpha/blob/d3129d59168e56a6b96e5a72044c1a5622e9bef5/src/main/clojure/clojure/tools/cli/api.clj#L229",
-   :line 229,
+   "https://github.com/clojure/tools.deps.alpha/blob/b8d2a10f36a2282482e04a4131b646f3400728f0/src/main/clojure/clojure/tools/cli/api.clj#L253",
+   :line 253,
    :var-type "function",
    :arglists
    ([{:keys [jar pom lib version classifier local-repo], :as opts}]),
@@ -88,12 +102,12 @@
    :wiki-url
    "https://clojure.github.io/tools.deps.alpha//clojure.tools.cli.api-api.html#clojure.tools.cli.api/mvn-install"}
   {:raw-source-url
-   "https://github.com/clojure/tools.deps.alpha/raw/d3129d59168e56a6b96e5a72044c1a5622e9bef5/src/main/clojure/clojure/tools/cli/api.clj",
+   "https://github.com/clojure/tools.deps.alpha/raw/b8d2a10f36a2282482e04a4131b646f3400728f0/src/main/clojure/clojure/tools/cli/api.clj",
    :name "mvn-pom",
    :file "src/main/clojure/clojure/tools/cli/api.clj",
    :source-url
-   "https://github.com/clojure/tools.deps.alpha/blob/d3129d59168e56a6b96e5a72044c1a5622e9bef5/src/main/clojure/clojure/tools/cli/api.clj#L156",
-   :line 156,
+   "https://github.com/clojure/tools.deps.alpha/blob/b8d2a10f36a2282482e04a4131b646f3400728f0/src/main/clojure/clojure/tools/cli/api.clj#L180",
+   :line 180,
    :var-type "function",
    :arglists ([{:keys [argmaps]}]),
    :doc
@@ -102,12 +116,12 @@
    :wiki-url
    "https://clojure.github.io/tools.deps.alpha//clojure.tools.cli.api-api.html#clojure.tools.cli.api/mvn-pom"}
   {:raw-source-url
-   "https://github.com/clojure/tools.deps.alpha/raw/d3129d59168e56a6b96e5a72044c1a5622e9bef5/src/main/clojure/clojure/tools/cli/api.clj",
+   "https://github.com/clojure/tools.deps.alpha/raw/b8d2a10f36a2282482e04a4131b646f3400728f0/src/main/clojure/clojure/tools/cli/api.clj",
    :name "prep",
    :file "src/main/clojure/clojure/tools/cli/api.clj",
    :source-url
-   "https://github.com/clojure/tools.deps.alpha/blob/d3129d59168e56a6b96e5a72044c1a5622e9bef5/src/main/clojure/clojure/tools/cli/api.clj#L75",
-   :line 75,
+   "https://github.com/clojure/tools.deps.alpha/blob/b8d2a10f36a2282482e04a4131b646f3400728f0/src/main/clojure/clojure/tools/cli/api.clj#L76",
+   :line 76,
    :var-type "function",
    :arglists
    ([{:keys [basis force log], :or {log :info}, :as params}]),
@@ -117,12 +131,12 @@
    :wiki-url
    "https://clojure.github.io/tools.deps.alpha//clojure.tools.cli.api-api.html#clojure.tools.cli.api/prep"}
   {:raw-source-url
-   "https://github.com/clojure/tools.deps.alpha/raw/d3129d59168e56a6b96e5a72044c1a5622e9bef5/src/main/clojure/clojure/tools/cli/api.clj",
+   "https://github.com/clojure/tools.deps.alpha/raw/b8d2a10f36a2282482e04a4131b646f3400728f0/src/main/clojure/clojure/tools/cli/api.clj",
    :name "tree",
    :file "src/main/clojure/clojure/tools/cli/api.clj",
    :source-url
-   "https://github.com/clojure/tools.deps.alpha/blob/d3129d59168e56a6b96e5a72044c1a5622e9bef5/src/main/clojure/clojure/tools/cli/api.clj#L111",
-   :line 111,
+   "https://github.com/clojure/tools.deps.alpha/blob/b8d2a10f36a2282482e04a4131b646f3400728f0/src/main/clojure/clojure/tools/cli/api.clj#L112",
+   :line 112,
    :var-type "function",
    :arglists ([opts]),
    :doc
@@ -159,11 +173,11 @@
    :wiki-url
    "https://clojure.github.io/tools.deps.alpha//clojure.tools.cli.help-api.html#clojure.tools.cli.help/doc"}
   {:raw-source-url
-   "https://github.com/clojure/tools.deps.alpha/raw/0221dfa5248a45d97938a17cbce0356f470e2812/src/main/clojure/clojure/tools/deps/alpha.clj",
+   "https://github.com/clojure/tools.deps.alpha/raw/72480763a98dc764b6942c5ce59de8a85ae121d2/src/main/clojure/clojure/tools/deps/alpha.clj",
    :name "calc-basis",
    :file "src/main/clojure/clojure/tools/deps/alpha.clj",
    :source-url
-   "https://github.com/clojure/tools.deps.alpha/blob/0221dfa5248a45d97938a17cbce0356f470e2812/src/main/clojure/clojure/tools/deps/alpha.clj#L713",
+   "https://github.com/clojure/tools.deps.alpha/blob/72480763a98dc764b6942c5ce59de8a85ae121d2/src/main/clojure/clojure/tools/deps/alpha.clj#L713",
    :line 713,
    :var-type "function",
    :arglists
@@ -175,11 +189,11 @@
    :wiki-url
    "https://clojure.github.io/tools.deps.alpha//clojure.tools.deps.alpha-api.html#clojure.tools.deps.alpha/calc-basis"}
   {:raw-source-url
-   "https://github.com/clojure/tools.deps.alpha/raw/0221dfa5248a45d97938a17cbce0356f470e2812/src/main/clojure/clojure/tools/deps/alpha.clj",
+   "https://github.com/clojure/tools.deps.alpha/raw/72480763a98dc764b6942c5ce59de8a85ae121d2/src/main/clojure/clojure/tools/deps/alpha.clj",
    :name "combine-aliases",
    :file "src/main/clojure/clojure/tools/deps/alpha.clj",
    :source-url
-   "https://github.com/clojure/tools.deps.alpha/blob/0221dfa5248a45d97938a17cbce0356f470e2812/src/main/clojure/clojure/tools/deps/alpha.clj#L187",
+   "https://github.com/clojure/tools.deps.alpha/blob/72480763a98dc764b6942c5ce59de8a85ae121d2/src/main/clojure/clojure/tools/deps/alpha.clj#L187",
    :line 187,
    :var-type "function",
    :arglists ([edn-map alias-kws]),
@@ -189,11 +203,11 @@
    :wiki-url
    "https://clojure.github.io/tools.deps.alpha//clojure.tools.deps.alpha-api.html#clojure.tools.deps.alpha/combine-aliases"}
   {:raw-source-url
-   "https://github.com/clojure/tools.deps.alpha/raw/0221dfa5248a45d97938a17cbce0356f470e2812/src/main/clojure/clojure/tools/deps/alpha.clj",
+   "https://github.com/clojure/tools.deps.alpha/raw/72480763a98dc764b6942c5ce59de8a85ae121d2/src/main/clojure/clojure/tools/deps/alpha.clj",
    :name "create-basis",
    :file "src/main/clojure/clojure/tools/deps/alpha.clj",
    :source-url
-   "https://github.com/clojure/tools.deps.alpha/blob/0221dfa5248a45d97938a17cbce0356f470e2812/src/main/clojure/clojure/tools/deps/alpha.clj#L760",
+   "https://github.com/clojure/tools.deps.alpha/blob/72480763a98dc764b6942c5ce59de8a85ae121d2/src/main/clojure/clojure/tools/deps/alpha.clj#L760",
    :line 760,
    :var-type "function",
    :arglists
@@ -206,11 +220,11 @@
    :wiki-url
    "https://clojure.github.io/tools.deps.alpha//clojure.tools.deps.alpha-api.html#clojure.tools.deps.alpha/create-basis"}
   {:raw-source-url
-   "https://github.com/clojure/tools.deps.alpha/raw/0221dfa5248a45d97938a17cbce0356f470e2812/src/main/clojure/clojure/tools/deps/alpha.clj",
+   "https://github.com/clojure/tools.deps.alpha/raw/72480763a98dc764b6942c5ce59de8a85ae121d2/src/main/clojure/clojure/tools/deps/alpha.clj",
    :name "find-edn-maps",
    :file "src/main/clojure/clojure/tools/deps/alpha.clj",
    :source-url
-   "https://github.com/clojure/tools.deps.alpha/blob/0221dfa5248a45d97938a17cbce0356f470e2812/src/main/clojure/clojure/tools/deps/alpha.clj#L119",
+   "https://github.com/clojure/tools.deps.alpha/blob/72480763a98dc764b6942c5ce59de8a85ae121d2/src/main/clojure/clojure/tools/deps/alpha.clj#L119",
    :line 119,
    :var-type "function",
    :arglists ([] [project-edn-file]),
@@ -220,11 +234,11 @@
    :wiki-url
    "https://clojure.github.io/tools.deps.alpha//clojure.tools.deps.alpha-api.html#clojure.tools.deps.alpha/find-edn-maps"}
   {:raw-source-url
-   "https://github.com/clojure/tools.deps.alpha/raw/0221dfa5248a45d97938a17cbce0356f470e2812/src/main/clojure/clojure/tools/deps/alpha.clj",
+   "https://github.com/clojure/tools.deps.alpha/raw/72480763a98dc764b6942c5ce59de8a85ae121d2/src/main/clojure/clojure/tools/deps/alpha.clj",
    :name "join-classpath",
    :file "src/main/clojure/clojure/tools/deps/alpha.clj",
    :source-url
-   "https://github.com/clojure/tools.deps.alpha/blob/0221dfa5248a45d97938a17cbce0356f470e2812/src/main/clojure/clojure/tools/deps/alpha.clj#L611",
+   "https://github.com/clojure/tools.deps.alpha/blob/72480763a98dc764b6942c5ce59de8a85ae121d2/src/main/clojure/clojure/tools/deps/alpha.clj#L611",
    :line 611,
    :var-type "function",
    :arglists ([roots]),
@@ -234,11 +248,11 @@
    :wiki-url
    "https://clojure.github.io/tools.deps.alpha//clojure.tools.deps.alpha-api.html#clojure.tools.deps.alpha/join-classpath"}
   {:raw-source-url
-   "https://github.com/clojure/tools.deps.alpha/raw/0221dfa5248a45d97938a17cbce0356f470e2812/src/main/clojure/clojure/tools/deps/alpha.clj",
+   "https://github.com/clojure/tools.deps.alpha/raw/72480763a98dc764b6942c5ce59de8a85ae121d2/src/main/clojure/clojure/tools/deps/alpha.clj",
    :name "lib-location",
    :file "src/main/clojure/clojure/tools/deps/alpha.clj",
    :source-url
-   "https://github.com/clojure/tools.deps.alpha/blob/0221dfa5248a45d97938a17cbce0356f470e2812/src/main/clojure/clojure/tools/deps/alpha.clj#L195",
+   "https://github.com/clojure/tools.deps.alpha/blob/72480763a98dc764b6942c5ce59de8a85ae121d2/src/main/clojure/clojure/tools/deps/alpha.clj#L195",
    :line 195,
    :var-type "function",
    :arglists ([lib coord deps-config]),
@@ -248,11 +262,11 @@
    :wiki-url
    "https://clojure.github.io/tools.deps.alpha//clojure.tools.deps.alpha-api.html#clojure.tools.deps.alpha/lib-location"}
   {:raw-source-url
-   "https://github.com/clojure/tools.deps.alpha/raw/0221dfa5248a45d97938a17cbce0356f470e2812/src/main/clojure/clojure/tools/deps/alpha.clj",
+   "https://github.com/clojure/tools.deps.alpha/raw/72480763a98dc764b6942c5ce59de8a85ae121d2/src/main/clojure/clojure/tools/deps/alpha.clj",
    :name "make-classpath",
    :file "src/main/clojure/clojure/tools/deps/alpha.clj",
    :source-url
-   "https://github.com/clojure/tools.deps.alpha/blob/0221dfa5248a45d97938a17cbce0356f470e2812/src/main/clojure/clojure/tools/deps/alpha.clj#L616",
+   "https://github.com/clojure/tools.deps.alpha/blob/72480763a98dc764b6942c5ce59de8a85ae121d2/src/main/clojure/clojure/tools/deps/alpha.clj#L616",
    :line 616,
    :deprecated "0.9.745",
    :var-type "function",
@@ -263,11 +277,11 @@
    :wiki-url
    "https://clojure.github.io/tools.deps.alpha//clojure.tools.deps.alpha-api.html#clojure.tools.deps.alpha/make-classpath"}
   {:raw-source-url
-   "https://github.com/clojure/tools.deps.alpha/raw/0221dfa5248a45d97938a17cbce0356f470e2812/src/main/clojure/clojure/tools/deps/alpha.clj",
+   "https://github.com/clojure/tools.deps.alpha/raw/72480763a98dc764b6942c5ce59de8a85ae121d2/src/main/clojure/clojure/tools/deps/alpha.clj",
    :name "make-classpath-map",
    :file "src/main/clojure/clojure/tools/deps/alpha.clj",
    :source-url
-   "https://github.com/clojure/tools.deps.alpha/blob/0221dfa5248a45d97938a17cbce0356f470e2812/src/main/clojure/clojure/tools/deps/alpha.clj#L592",
+   "https://github.com/clojure/tools.deps.alpha/blob/72480763a98dc764b6942c5ce59de8a85ae121d2/src/main/clojure/clojure/tools/deps/alpha.clj#L592",
    :line 592,
    :var-type "function",
    :arglists ([deps-edn-map lib-map classpath-args]),
@@ -277,11 +291,11 @@
    :wiki-url
    "https://clojure.github.io/tools.deps.alpha//clojure.tools.deps.alpha-api.html#clojure.tools.deps.alpha/make-classpath-map"}
   {:raw-source-url
-   "https://github.com/clojure/tools.deps.alpha/raw/0221dfa5248a45d97938a17cbce0356f470e2812/src/main/clojure/clojure/tools/deps/alpha.clj",
+   "https://github.com/clojure/tools.deps.alpha/raw/72480763a98dc764b6942c5ce59de8a85ae121d2/src/main/clojure/clojure/tools/deps/alpha.clj",
    :name "merge-edns",
    :file "src/main/clojure/clojure/tools/deps/alpha.clj",
    :source-url
-   "https://github.com/clojure/tools.deps.alpha/blob/0221dfa5248a45d97938a17cbce0356f470e2812/src/main/clojure/clojure/tools/deps/alpha.clj#L142",
+   "https://github.com/clojure/tools.deps.alpha/blob/72480763a98dc764b6942c5ce59de8a85ae121d2/src/main/clojure/clojure/tools/deps/alpha.clj#L142",
    :line 142,
    :var-type "function",
    :arglists ([deps-edn-maps]),
@@ -291,11 +305,11 @@
    :wiki-url
    "https://clojure.github.io/tools.deps.alpha//clojure.tools.deps.alpha-api.html#clojure.tools.deps.alpha/merge-edns"}
   {:raw-source-url
-   "https://github.com/clojure/tools.deps.alpha/raw/0221dfa5248a45d97938a17cbce0356f470e2812/src/main/clojure/clojure/tools/deps/alpha.clj",
+   "https://github.com/clojure/tools.deps.alpha/raw/72480763a98dc764b6942c5ce59de8a85ae121d2/src/main/clojure/clojure/tools/deps/alpha.clj",
    :name "prep-libs!",
    :file "src/main/clojure/clojure/tools/deps/alpha.clj",
    :source-url
-   "https://github.com/clojure/tools.deps.alpha/blob/0221dfa5248a45d97938a17cbce0356f470e2812/src/main/clojure/clojure/tools/deps/alpha.clj#L671",
+   "https://github.com/clojure/tools.deps.alpha/blob/72480763a98dc764b6942c5ce59de8a85ae121d2/src/main/clojure/clojure/tools/deps/alpha.clj#L671",
    :line 671,
    :var-type "function",
    :arglists ([lib-map {:keys [action log]} config]),
@@ -305,11 +319,11 @@
    :wiki-url
    "https://clojure.github.io/tools.deps.alpha//clojure.tools.deps.alpha-api.html#clojure.tools.deps.alpha/prep-libs!"}
   {:raw-source-url
-   "https://github.com/clojure/tools.deps.alpha/raw/0221dfa5248a45d97938a17cbce0356f470e2812/src/main/clojure/clojure/tools/deps/alpha.clj",
+   "https://github.com/clojure/tools.deps.alpha/raw/72480763a98dc764b6942c5ce59de8a85ae121d2/src/main/clojure/clojure/tools/deps/alpha.clj",
    :name "print-tree",
    :file "src/main/clojure/clojure/tools/deps/alpha.clj",
    :source-url
-   "https://github.com/clojure/tools.deps.alpha/blob/0221dfa5248a45d97938a17cbce0356f470e2812/src/main/clojure/clojure/tools/deps/alpha.clj#L520",
+   "https://github.com/clojure/tools.deps.alpha/blob/72480763a98dc764b6942c5ce59de8a85ae121d2/src/main/clojure/clojure/tools/deps/alpha.clj#L520",
    :line 520,
    :var-type "function",
    :arglists ([lib-map]),
@@ -318,11 +332,11 @@
    :wiki-url
    "https://clojure.github.io/tools.deps.alpha//clojure.tools.deps.alpha-api.html#clojure.tools.deps.alpha/print-tree"}
   {:raw-source-url
-   "https://github.com/clojure/tools.deps.alpha/raw/0221dfa5248a45d97938a17cbce0356f470e2812/src/main/clojure/clojure/tools/deps/alpha.clj",
+   "https://github.com/clojure/tools.deps.alpha/raw/72480763a98dc764b6942c5ce59de8a85ae121d2/src/main/clojure/clojure/tools/deps/alpha.clj",
    :name "resolve-deps",
    :file "src/main/clojure/clojure/tools/deps/alpha.clj",
    :source-url
-   "https://github.com/clojure/tools.deps.alpha/blob/0221dfa5248a45d97938a17cbce0356f470e2812/src/main/clojure/clojure/tools/deps/alpha.clj#L478",
+   "https://github.com/clojure/tools.deps.alpha/blob/72480763a98dc764b6942c5ce59de8a85ae121d2/src/main/clojure/clojure/tools/deps/alpha.clj#L478",
    :line 478,
    :var-type "function",
    :arglists ([deps-map args-map]),
@@ -332,11 +346,11 @@
    :wiki-url
    "https://clojure.github.io/tools.deps.alpha//clojure.tools.deps.alpha-api.html#clojure.tools.deps.alpha/resolve-deps"}
   {:raw-source-url
-   "https://github.com/clojure/tools.deps.alpha/raw/0221dfa5248a45d97938a17cbce0356f470e2812/src/main/clojure/clojure/tools/deps/alpha.clj",
+   "https://github.com/clojure/tools.deps.alpha/raw/72480763a98dc764b6942c5ce59de8a85ae121d2/src/main/clojure/clojure/tools/deps/alpha.clj",
    :name "root-deps",
    :file "src/main/clojure/clojure/tools/deps/alpha.clj",
    :source-url
-   "https://github.com/clojure/tools.deps.alpha/blob/0221dfa5248a45d97938a17cbce0356f470e2812/src/main/clojure/clojure/tools/deps/alpha.clj#L100",
+   "https://github.com/clojure/tools.deps.alpha/blob/72480763a98dc764b6942c5ce59de8a85ae121d2/src/main/clojure/clojure/tools/deps/alpha.clj#L100",
    :line 100,
    :var-type "function",
    :arglists ([]),
@@ -346,11 +360,11 @@
    :wiki-url
    "https://clojure.github.io/tools.deps.alpha//clojure.tools.deps.alpha-api.html#clojure.tools.deps.alpha/root-deps"}
   {:raw-source-url
-   "https://github.com/clojure/tools.deps.alpha/raw/0221dfa5248a45d97938a17cbce0356f470e2812/src/main/clojure/clojure/tools/deps/alpha.clj",
+   "https://github.com/clojure/tools.deps.alpha/raw/72480763a98dc764b6942c5ce59de8a85ae121d2/src/main/clojure/clojure/tools/deps/alpha.clj",
    :name "slurp-deps",
    :file "src/main/clojure/clojure/tools/deps/alpha.clj",
    :source-url
-   "https://github.com/clojure/tools.deps.alpha/blob/0221dfa5248a45d97938a17cbce0356f470e2812/src/main/clojure/clojure/tools/deps/alpha.clj#L93",
+   "https://github.com/clojure/tools.deps.alpha/blob/72480763a98dc764b6942c5ce59de8a85ae121d2/src/main/clojure/clojure/tools/deps/alpha.clj#L93",
    :line 93,
    :var-type "function",
    :arglists ([dep-file]),
@@ -360,11 +374,11 @@
    :wiki-url
    "https://clojure.github.io/tools.deps.alpha//clojure.tools.deps.alpha-api.html#clojure.tools.deps.alpha/slurp-deps"}
   {:raw-source-url
-   "https://github.com/clojure/tools.deps.alpha/raw/0221dfa5248a45d97938a17cbce0356f470e2812/src/main/clojure/clojure/tools/deps/alpha.clj",
+   "https://github.com/clojure/tools.deps.alpha/raw/72480763a98dc764b6942c5ce59de8a85ae121d2/src/main/clojure/clojure/tools/deps/alpha.clj",
    :name "tool",
    :file "src/main/clojure/clojure/tools/deps/alpha.clj",
    :source-url
-   "https://github.com/clojure/tools.deps.alpha/blob/0221dfa5248a45d97938a17cbce0356f470e2812/src/main/clojure/clojure/tools/deps/alpha.clj#L630",
+   "https://github.com/clojure/tools.deps.alpha/blob/72480763a98dc764b6942c5ce59de8a85ae121d2/src/main/clojure/clojure/tools/deps/alpha.clj#L630",
    :line 630,
    :var-type "function",
    :arglists ([project-edn tool-args]),
@@ -374,11 +388,11 @@
    :wiki-url
    "https://clojure.github.io/tools.deps.alpha//clojure.tools.deps.alpha-api.html#clojure.tools.deps.alpha/tool"}
   {:raw-source-url
-   "https://github.com/clojure/tools.deps.alpha/raw/0221dfa5248a45d97938a17cbce0356f470e2812/src/main/clojure/clojure/tools/deps/alpha.clj",
+   "https://github.com/clojure/tools.deps.alpha/raw/72480763a98dc764b6942c5ce59de8a85ae121d2/src/main/clojure/clojure/tools/deps/alpha.clj",
    :name "user-deps-path",
    :file "src/main/clojure/clojure/tools/deps/alpha.clj",
    :source-url
-   "https://github.com/clojure/tools.deps.alpha/blob/0221dfa5248a45d97938a17cbce0356f470e2812/src/main/clojure/clojure/tools/deps/alpha.clj#L107",
+   "https://github.com/clojure/tools.deps.alpha/blob/72480763a98dc764b6942c5ce59de8a85ae121d2/src/main/clojure/clojure/tools/deps/alpha.clj#L107",
    :line 107,
    :var-type "function",
    :arglists ([]),
