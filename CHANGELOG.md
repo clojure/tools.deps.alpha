@@ -3,8 +3,10 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.3/CHANGELOG.md)*
 
+* next
+  * Update to tools.gitlibs 2.4.172
 * 0.12.1067 on Nov 4, 2021
-  * update deps to latest
+  * Update deps to latest
   * Add -X:deps list
 * 0.12.1063 on Oct 29, 2021
   * TDEPS-83 Add support for finding manifests of libs
