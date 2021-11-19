@@ -300,10 +300,11 @@
         master-edn (deps/merge-edns [root-edn user-edn])]
     (cond
       tool
-      (let [{:keys [lib coord]} (tool/resolve-tool (name tool))
-            coord-type (ext/coord-type coord)
-            coords (ext/find-versions lib coord coord-type master-edn)]
-        (run! #(binding [*print-namespace-maps* false] (prn %)) coords))
+      (if-let [{:keys [lib coord]} (tool/resolve-tool (name tool))]
+        (let [coord-type (ext/coord-type coord)
+              coords (ext/find-versions lib coord coord-type master-edn)]
+          (run! #(binding [*print-namespace-maps* false] (prn %)) coords))
+        (throw (ex-info (str "Unknown tool: " tool) {:tool tool})))
 
       lib
       (let [coords (ext/find-all-versions lib {} master-edn)]

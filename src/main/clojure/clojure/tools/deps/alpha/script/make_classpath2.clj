@@ -64,14 +64,15 @@
   "Resolves the tool by name to the coord + usage data.
    Returns the proper alias args as if the tool was specified as an alias."
   [tool-name config]
-  (let [{:keys [lib coord]} (tool/resolve-tool tool-name)
-        manifest-type (ext/manifest-type lib coord config)
-        coord' (merge coord manifest-type)
-        {:keys [ns-default ns-aliases]} (ext/coord-usage lib coord' (:deps/manifest coord') config)]
-    {:replace-deps {lib coord'}
-     :replace-paths ["."]
-     :ns-default ns-default
-     :ns-aliases ns-aliases}))
+  (if-let [{:keys [lib coord]} (tool/resolve-tool tool-name)]
+    (let [manifest-type (ext/manifest-type lib coord config)
+          coord' (merge coord manifest-type)
+          {:keys [ns-default ns-aliases]} (ext/coord-usage lib coord' (:deps/manifest coord') config)]
+      {:replace-deps {lib coord'}
+       :replace-paths ["."]
+       :ns-default ns-default
+       :ns-aliases ns-aliases})
+    (throw (ex-info (str "Unknown tool: " tool-name) {:tool tool-name}))))
 
 (defn run-core
   "Run make-classpath script from/to data (no file stuff). Returns:
