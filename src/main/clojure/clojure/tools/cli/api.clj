@@ -145,16 +145,55 @@
         (.printStackTrace t))
       (System/exit 1))))
 
+(def ^:private license-abbrev
+  {"3-Clause BSD License" "BSD-3-Clause-Attribution"
+   "Apache 2.0" "Apache-2.0"
+   "Apache License 2.0" "Apache-2.0"
+   "Apache License Version 2.0" "Apache-2.0"
+   "Apache License, Version 2.0" "Apache-2.0"
+   "Apache Software License - Version 2.0" "Apache-2.0"
+   "BSD 3-Clause License" "BSD-3-Clause-Attribution"
+   "Eclipse Public License" "EPL"
+   "Eclipse Public License (EPL)" "EPL"
+   "Eclipse Public License 1.0" "EPL-1.0"
+   "Eclipse Public License, Version 1.0" "EPL-1.0"
+   "Eclipse Public License 2.0" "EPL-2.0"
+   "Eclipse Public License version 2" "EPL-2.0"
+   "GNU Affero General Public License (AGPL) version 3.0" "AGPL-3.0"
+   "GNU General Public License, version 2 (GPL2), with the classpath exception" "GPL-2.0-with-classpath-exception"
+   "GNU General Public License, version 2 with the GNU Classpath Exception" "GPL-2.0-with-classpath-exception"
+   "GNU General Public License, version 2" "GPL-2.0"
+   "GNU Lesser General Public License (LGPL)" "LGPL"
+   "JSON License" "JSON"
+   "MIT License" "MIT"
+   "Mozilla Public License" "MPL"
+   "The Apache Software License, Version 2.0" "Apache-2.0"
+   "The MIT License" "MIT"})
+
+(defn- license-string
+  [license-mode lib coord basis]
+  (let [info (ext/license-info lib coord basis)
+        license-name (when (#{:full :short} license-mode) (:name info))]
+    (if (and license-name (= license-mode :short))
+      (get license-abbrev license-name license-name)
+      license-name)))
+
 (defn list
   "List all deps on the classpath, optimized for knowing the final set of included
   libs. The `tree` program can provide more info on why or why not a particular
   lib is included.
+
+  Licenses will be printed in short form by default but can also be listed as
+  in :full or :none for none at all using the :license key.
 
   This program accepts the same basis-modifying arguments from the `basis` program.
   Each dep source value can be :standard, a string path, a deps edn map, or nil.
   Sources are merged in the order - :root, :user, :project, :extra.
 
   Options:
+    :license - :full, :short (default), :none
+
+  Basis options:
     :root    - dep source, default = :standard
     :user    - dep source, default = :standard
     :project - dep source, default = :standard (\"./deps.edn\")
@@ -163,10 +202,14 @@
 
   The libs are printed to the console."
   [params]
-  (let [basis (deps/create-basis params)
+  (let [{license-mode :license :or {license-mode :short}} params
+        basis (deps/create-basis params)
         libs (:libs basis)]
     (doseq [lib (-> libs keys sort)]
-      (println (ext/coord-summary lib (get libs lib))))))
+      (let [coord (get libs lib)
+            summary (ext/coord-summary lib coord)
+            license (license-string license-mode lib coord basis)]
+        (println summary (if license (str " (" license ")") ""))))))
 
 ;;;; git resolve-tags
 

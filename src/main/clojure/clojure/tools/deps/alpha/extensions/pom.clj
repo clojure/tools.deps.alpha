@@ -27,7 +27,7 @@
     ;; maven-resolver-spi
     [org.eclipse.aether.spi.locator ServiceLocator]
     ;; maven-model
-    [org.apache.maven.model Resource]
+    [org.apache.maven.model Resource License]
     ;; maven-core
     [org.apache.maven.project ProjectModelResolver ProjectBuildingRequest$RepositoryMerging]
     ))
@@ -128,6 +128,20 @@
 (defmethod ext/manifest-file :pom
   [_lib {:keys [deps/root] :as _coord} _mf _config]
   (.getAbsolutePath (jio/file root "pom.xml")))
+
+(defmethod ext/license-info-mf :pom
+  [lib {:keys [deps/root] :as _coord} _mf config]
+  (let [pom (jio/file root "pom.xml")
+        model (read-model-file pom config)
+        licenses (.getLicenses model)
+        ^License license (when (and licenses (pos? (count licenses))) (first licenses))]
+    (when license
+      (let [name (.getName license)
+            url (.getUrl license)]
+        (when (or name url)
+          (cond-> {}
+            name (assoc :name name)
+            url (assoc :url url)))))))
 
 (defmethod ext/coord-usage :pom
   [lib {:keys [deps/root]} manifest-type config]

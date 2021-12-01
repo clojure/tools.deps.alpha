@@ -21,7 +21,8 @@
     [java.net URL]
     [java.util.jar JarFile JarEntry]
     ;; maven-builder-support
-    [org.apache.maven.model.building UrlModelSource]))
+    [org.apache.maven.model.building UrlModelSource]
+    [org.apache.maven.model License]))
 
 (defmethod ext/coord-type-keys :local
   [_type]
@@ -56,6 +57,11 @@
 (defmethod ext/coord-summary :local [lib {:keys [local/root]}]
   (str lib " " root))
 
+(defmethod ext/license-info :local
+  [lib coord config]
+  (let [coord (merge coord (ext/manifest-type lib coord config))]
+    (ext/license-info-mf lib coord (:deps/manifest coord) config)))
+
 (defn find-pom
   "Find path of pom file in jar file, or nil if it doesn't exist"
   [^JarFile jar-file]
@@ -87,6 +93,24 @@
 (defmethod ext/manifest-file :jar
   [_lib {:keys [deps/root] :as _coord} _mf _config]
   nil)
+
+(defmethod ext/license-info-mf :jar
+  [lib {:keys [local/root] :as _coord} _mf config]
+  (let [jar (JarFile. (jio/file root))]
+    (when-let [path (find-pom jar)]
+      (let [url (URL. (str "jar:file:" root "!/" path))
+            src (UrlModelSource. url)
+            settings (session/retrieve :mvn/settings #(maven/get-settings))
+            model (pom/read-model src config settings)
+            licenses (.getLicenses model)
+            ^License license (when (and licenses (pos? (count licenses))) (first licenses))]
+        (when license
+          (let [name (.getName license)
+                url (.getUrl license)]
+            (when (or name url)
+              (cond-> {}
+                name (assoc :name name)
+                url (assoc :url url)))))))))
 
 (defmethod ext/coord-usage :jar
   [_lib _coord _manifest-type _config]

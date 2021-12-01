@@ -20,7 +20,7 @@
     ;; maven-resolver-api
     [org.eclipse.aether RepositorySystem RepositorySystemSession]
     [org.eclipse.aether.resolution ArtifactRequest ArtifactDescriptorRequest VersionRangeRequest
-                                   VersionRequest ArtifactResolutionException]
+                                   VersionRequest ArtifactResolutionException ArtifactDescriptorResult]
     [org.eclipse.aether.version Version]
 
     ;; maven-resolver-util
@@ -103,10 +103,31 @@
 (defmethod ext/coord-summary :mvn [lib {:keys [mvn/version]}]
   (str lib " " version))
 
+(defn- read-descriptor
+  ^ArtifactDescriptorResult [lib coord {:keys [mvn/repos mvn/local-repo]}]
+  (let [local-repo (or local-repo @maven/cached-local-repo)
+        system ^RepositorySystem (session/retrieve :mvn/system #(maven/make-system))
+        settings ^Settings (session/retrieve :mvn/settings #(maven/get-settings))
+        session ^RepositorySystemSession (session/retrieve :mvn/session #(maven/make-session system settings local-repo))
+        artifact (maven/coord->artifact lib coord)
+        repos (maven/remote-repos repos settings)
+        req (ArtifactDescriptorRequest. artifact repos nil)]
+    (.readArtifactDescriptor system session req)))
+
 (defn- check-version
   [lib {:keys [mvn/version]}]
   (when (nil? version)
     (throw (ex-info (str "No :mvn/version specified for " lib) {}))))
+
+(defmethod ext/license-info :mvn
+  [lib coord config]
+  (check-version lib coord)
+  (let [descriptor (read-descriptor lib coord config)
+        props (.getProperties descriptor)
+        name (some-> props (.get "license.0.name"))
+        url (some-> props (.get "license.0.url"))]
+    (when (or name url)
+      (cond-> {} name (assoc :name name) url (assoc :url url)))))
 
 (defonce ^:private version-scheme (GenericVersionScheme.))
 
@@ -120,23 +141,16 @@
   (apply compare (map parse-version [coord-x coord-y])))
 
 (defmethod ext/coord-deps :mvn
-  [lib coord _manifest {:keys [mvn/repos mvn/local-repo]}]
+  [lib coord _manifest config]
   (check-version lib coord)
-  (let [local-repo (or local-repo @maven/cached-local-repo)
-        system ^RepositorySystem (session/retrieve :mvn/system #(maven/make-system))
-        settings ^Settings (session/retrieve :mvn/settings #(maven/get-settings))
-        session ^RepositorySystemSession (session/retrieve :mvn/session #(maven/make-session system settings local-repo))
-        artifact (maven/coord->artifact lib coord)
-        repos (maven/remote-repos repos settings)
-        req (ArtifactDescriptorRequest. artifact repos nil)
-        result (.readArtifactDescriptor system session req)]
+  (let [descriptor (read-descriptor lib coord config)]
     (into []
       (comp
         (map maven/dep->data)
         (filter #(contains? #{"compile" "runtime"} (:scope (second %))))
         (remove (comp :optional second))
         (map #(update-in % [1] dissoc :scope :optional)))
-      (.getDependencies result))))
+      (.getDependencies descriptor))))
 
 (defn- get-artifact
   [lib coord ^RepositorySystem system ^RepositorySystemSession session mvn-repos]
