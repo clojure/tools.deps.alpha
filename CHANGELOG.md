@@ -3,6 +3,8 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.3/CHANGELOG.md)*
 
+* next
+  * Add license :format :edn option to clj -X:deps list
 * 0.12.1080 on Nov 30, 2021
   * Add license info to clj -X:deps list
 * 0.12.1076 on Nov 18, 2021

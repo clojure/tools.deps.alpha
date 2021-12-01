@@ -145,6 +145,7 @@
         (.printStackTrace t))
       (System/exit 1))))
 
+;; useful resource: https://github.com/spdx/license-list-data
 (def ^:private license-abbrev
   {"3-Clause BSD License" "BSD-3-Clause-Attribution"
    "Apache 2.0" "Apache-2.0"
@@ -152,9 +153,11 @@
    "Apache License Version 2.0" "Apache-2.0"
    "Apache License, Version 2.0" "Apache-2.0"
    "Apache Software License - Version 2.0" "Apache-2.0"
+   "Apache v2" "Apache-2.0"
    "BSD 3-Clause License" "BSD-3-Clause-Attribution"
-   "Eclipse Public License" "EPL"
-   "Eclipse Public License (EPL)" "EPL"
+   "Eclipse Public License" "EPL-1.0"
+   "Eclipse Public License (EPL)" "EPL-1.0"
+   "Eclipse Public License - v 1.0" "EPL-1.0"
    "Eclipse Public License 1.0" "EPL-1.0"
    "Eclipse Public License, Version 1.0" "EPL-1.0"
    "Eclipse Public License 2.0" "EPL-2.0"
@@ -166,14 +169,15 @@
    "GNU Lesser General Public License (LGPL)" "LGPL"
    "JSON License" "JSON"
    "MIT License" "MIT"
+   "MIT license" "MIT"
    "Mozilla Public License" "MPL"
    "The Apache Software License, Version 2.0" "Apache-2.0"
+   "The BSD 3-Clause License (BSD3)" "BSD-3-Clause-Attribution"
    "The MIT License" "MIT"})
 
 (defn- license-string
-  [license-mode lib coord basis]
-  (let [info (ext/license-info lib coord basis)
-        license-name (when (#{:full :short} license-mode) (:name info))]
+  [info license-mode]
+  (let [license-name (when (#{:full :short} license-mode) (:name info))]
     (if (and license-name (= license-mode :short))
       (get license-abbrev license-name license-name)
       license-name)))
@@ -186,12 +190,18 @@
   Licenses will be printed in short form by default but can also be listed as
   in :full or :none for none at all using the :license key.
 
+  By default, :format will :print to the console in a human friendly tree. Use
+  :edn mode to print the tree to edn.
+
   This program accepts the same basis-modifying arguments from the `basis` program.
   Each dep source value can be :standard, a string path, a deps edn map, or nil.
   Sources are merged in the order - :root, :user, :project, :extra.
 
   Options:
     :license - :full, :short (default), :none
+
+  Output mode options:
+    :format    :print (default) or :edn
 
   Basis options:
     :root    - dep source, default = :standard
@@ -202,14 +212,24 @@
 
   The libs are printed to the console."
   [params]
-  (let [{license-mode :license :or {license-mode :short}} params
+  (let [{license-mode :license, format :format
+         :or {license-mode :short, format :print}} params
         basis (deps/create-basis params)
-        libs (:libs basis)]
-    (doseq [lib (-> libs keys sort)]
-      (let [coord (get libs lib)
-            summary (ext/coord-summary lib coord)
-            license (license-string license-mode lib coord basis)]
-        (println summary (if license (str " (" license ")") ""))))))
+        libs (:libs basis)
+        data (into (sorted-map)
+               (map (fn [lib]
+                      (let [coord (get libs lib)
+                            info (ext/license-info lib coord basis)]
+                        [lib (cond-> coord info (assoc :license info))]))
+                 (-> libs keys sort)))]
+    (if (= format :edn)
+      (binding [*print-namespace-maps* false]
+        (pprint/pprint data))
+      (doseq [[lib coord] data]
+        (let [summary (ext/coord-summary lib coord)
+              info (:license coord)
+              license-string (license-string info license-mode)]
+          (println summary (if license-string (str " (" license-string ")") "")))))))
 
 ;;;; git resolve-tags
 
