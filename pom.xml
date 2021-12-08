@@ -104,7 +104,7 @@
     <dependency>
       <groupId>com.cognitect.aws</groupId>
       <artifactId>api</artifactId>
-      <version>0.8.532</version>
+      <version>0.8.536</version>
     </dependency>
     <dependency>
       <groupId>com.cognitect.aws</groupId>
@@ -120,23 +120,6 @@
       <groupId>javax.inject</groupId>
       <artifactId>javax.inject</artifactId>
       <version>1</version>
-    </dependency>
-
-    <!-- overrides under com.cognitect.aws/api -->
-    <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-client</artifactId>
-      <version>9.4.44.v20210927</version>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-http</artifactId>
-      <version>9.4.44.v20210927</version>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-util</artifactId>
-      <version>9.4.44.v20210927</version>
     </dependency>
   </dependencies>
 
