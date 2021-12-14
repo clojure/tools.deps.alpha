@@ -3,6 +3,8 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.3/CHANGELOG.md)*
 
+* next
+  * Update aws deps
 * 0.12.1090 on Dec 8, 2021
   * Don't track non-existent deps.edn manifest files of deps proejcts
   * Update to aws-api 0.8.536

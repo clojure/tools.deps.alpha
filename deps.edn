@@ -13,8 +13,8 @@
    org.clojure/data.xml {:mvn/version "0.2.0-alpha6"}
    org.clojure/tools.gitlibs {:mvn/version "2.4.172"}
    org.clojure/tools.cli {:mvn/version "1.0.206"}
-   com.cognitect.aws/api {:mvn/version "0.8.536"}
-   com.cognitect.aws/endpoints {:mvn/version "1.1.12.93"}
+   com.cognitect.aws/api {:mvn/version "0.8.539"}
+   com.cognitect.aws/endpoints {:mvn/version "1.1.12.129"}
    com.cognitect.aws/s3 {:mvn/version "814.2.991.0"}
    javax.inject/javax.inject {:mvn/version "1"}
  }
