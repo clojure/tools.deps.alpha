@@ -22,7 +22,7 @@
     <clojure.warnOnReflection>true</clojure.warnOnReflection>
     <clojure.version>1.10.3</clojure.version>
     <resolverVersion>1.6.3</resolverVersion>
-    <mavenVersion>3.8.3</mavenVersion>
+    <mavenVersion>3.8.4</mavenVersion>
 
     <!-- default published in install deps.edn -->
     <clojure.default>1.10.3</clojure.default>
