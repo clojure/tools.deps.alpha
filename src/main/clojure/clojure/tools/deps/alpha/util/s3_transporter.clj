@@ -11,9 +11,7 @@
   (:refer-clojure :exclude [peek get])
   (:require
     [clojure.string :as str]
-    [clojure.tools.deps.alpha.util.session :as session]
-    [cognitect.aws.client.api :as aws]
-    [cognitect.aws.credentials :as creds])
+    [clojure.tools.deps.alpha.util.session :as session])
   (:import
     [java.io InputStream OutputStream IOException]
     [java.net URI]
@@ -27,7 +25,7 @@
 (defn s3-peek
   "Returns nil if path exists, anomaly category otherwise"
   [s3-client bucket path]
-  (let [s3-response (aws/invoke s3-client
+  (let [s3-response ((requiring-resolve 'cognitect.aws.client.api/invoke) s3-client
                       {:op :HeadObject,
                        :request {:Bucket bucket, :Key path}})]
     (:cognitect.anomalies/category s3-response)))
@@ -55,7 +53,7 @@
 
 (defn s3-get-object
   [s3-client bucket path ^OutputStream output-stream offset on-read]
-  (let [s3-response (aws/invoke s3-client {:op :GetObject, :request {:Bucket bucket, :Key path}})
+  (let [s3-response ((requiring-resolve 'cognitect.aws.client.api/invoke) s3-client {:op :GetObject, :request {:Bucket bucket, :Key path}})
         is ^InputStream (:Body s3-response)]
     (if is
       (stream-copy output-stream is offset on-read)
@@ -72,18 +70,12 @@
         {:strs [region]} (reduce (fn [m kv] (let [[k v] (str/split kv #"=")] (assoc m k v))) {} kvs)]
     {:bucket host, :region region, :repo-path path}))
 
-(defn get-bucket-loc
-  [config bucket]
-  (let [s3-client (aws/client (merge {:region "us-east-1"} config))
-        resp (try
-               (aws/invoke s3-client {:op :GetBucketLocation
-                                      :request {:Bucket bucket}})
-               (catch Throwable _ nil))
-        region (:LocationConstraint resp)]
-    (cond
-      (nil? region) nil
-      (= region "") "us-east-1"
-      :else region)))
+(defn- dynaload-s3-client
+  [client-atom user pw region bucket]
+  (require 'clojure.tools.deps.alpha.util.s3-aws-client)
+  (let [f (ns-resolve (find-ns 'clojure.tools.deps.alpha.util.s3-aws-client) 'new-s3-client)]
+    (swap! client-atom #(if % % (f user pw region bucket)))
+    @client-atom))
 
 (defn new-transporter
   [^RepositorySystemSession session ^RemoteRepository repository]
@@ -92,23 +84,14 @@
       (let [auth-context (AuthenticationContext/forRepository session repository)
             user (when auth-context (.get auth-context AuthenticationContext/USERNAME))
             pw (when auth-context (.get auth-context AuthenticationContext/PASSWORD))
-
-            cred-provider (when (and user pw)
-                            (reify creds/CredentialsProvider
-                              (fetch [_]
-                                {:aws/access-key-id user
-                                 :aws/secret-access-key pw})))
             on-close #(when auth-context (.close auth-context))
             {:keys [bucket region repo-path]} (parse-url repository)
-
-            config (cond-> {:api :s3}
-                     cred-provider (assoc :credentials-provider cred-provider))
-            use-region (or region (get-bucket-loc config bucket) "us-east-1")
-            s3-client (aws/client (assoc config :region use-region))]
+            s3-client-holder (atom nil)] ;; defer creation till needed
         (reify Transporter
           (^void peek [_ ^PeekTask peek-task]
             (let [path (.. peek-task getLocation toString)
                   full-path (str repo-path "/" path)
+                  s3-client (dynaload-s3-client s3-client-holder user pw region bucket)
                   res (s3-peek s3-client bucket full-path)]
               (when res
                 (throw (ex-info "Artifact not found" {:bucket bucket, :path path, :reason res})))))
@@ -117,7 +100,8 @@
                   full-path (str repo-path "/" path)
                   offset (.getResumeOffset get-task)
                   os (.newOutputStream get-task (> offset 0))
-                  listener (.getListener get-task)]
+                  listener (.getListener get-task)
+                  s3-client (dynaload-s3-client s3-client-holder user pw region bucket)]
               (.transportStarted listener offset -1)
               (s3-get-object s3-client bucket full-path os offset #(.transportProgressed listener %))))
           (classify [_ throwable]
@@ -129,6 +113,7 @@
             (when on-close (on-close))))))))
 
 (comment
+  (require '[cognitect.aws.client.api :as aws] '[cognitect.aws.credentials :as creds])
   (def s3-client (aws/client {:api :s3
                               :region :us-east-1})) ;; use ambient creds
 
