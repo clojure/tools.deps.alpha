@@ -5,7 +5,8 @@ Changelog
 
 * next
   * TDEPS-215 Fix race condition during parallel loading of S3TransporterFactory
-  * Update aws deps
+  * Update maven-core to 3.8.4
+  * Update aws deps to latest
 * 0.12.1090 on Dec 8, 2021
   * Don't track non-existent deps.edn manifest files of deps proejcts
   * Update to aws-api 0.8.536
