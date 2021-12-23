@@ -42,19 +42,19 @@
 (defn- resolve-version-range
   ;; only call when version is a range
   [lib {:keys [mvn/version] :as coord} {:keys [mvn/local-repo mvn/repos] :as config}]
-  (or
-    (session/retrieve {:type :mvn/highest-version lib version}
-      (fn []
-        (let [local-repo (or local-repo @maven/cached-local-repo)
-              system ^RepositorySystem (session/retrieve :mvn/system #(maven/make-system))
-              settings ^Settings (session/retrieve :mvn/settings #(maven/get-settings))
-              session ^RepositorySystemSession (session/retrieve :mvn/session #(maven/make-session system settings local-repo))
-              artifact (maven/coord->artifact lib coord)
-              req (VersionRangeRequest. artifact (maven/remote-repos repos settings) nil)
-              result (.resolveVersionRange system session req)
-              high-version (and result (.getHighestVersion result))]
-          (when high-version (.toString ^Version high-version)))))
-    (throw (ex-info (str "Unable to resolve " lib " version: " version) {:lib lib :coord coord}))))
+  (let [local-repo (or local-repo @maven/cached-local-repo)
+        system ^RepositorySystem (session/retrieve :mvn/system #(maven/make-system))
+        settings ^Settings (session/retrieve :mvn/settings #(maven/get-settings))
+        session ^RepositorySystemSession (session/retrieve :mvn/session #(maven/make-session system settings local-repo))]
+    (or
+      (session/retrieve {:type :mvn/highest-version lib version}
+        (fn []
+          (let [artifact (maven/coord->artifact lib coord)
+                req (VersionRangeRequest. artifact (maven/remote-repos repos settings) nil)
+                result (.resolveVersionRange system session req)
+                high-version (and result (.getHighestVersion result))]
+            (when high-version (.toString ^Version high-version)))))
+      (throw (ex-info (str "Unable to resolve " lib " version: " version) {:lib lib :coord coord})))))
 
 (defmethod ext/canonicalize :mvn
   [lib {:keys [mvn/version] :as coord} {:keys [mvn/repos mvn/local-repo] :as config}]
