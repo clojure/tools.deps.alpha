@@ -70,12 +70,13 @@
         {:strs [region]} (reduce (fn [m kv] (let [[k v] (str/split kv #"=")] (assoc m k v))) {} kvs)]
     {:bucket host, :region region, :repo-path path}))
 
-(defn- dynaload-s3-client
-  [client-atom user pw region bucket]
-  (require 'clojure.tools.deps.alpha.util.s3-aws-client)
-  (let [f (ns-resolve (find-ns 'clojure.tools.deps.alpha.util.s3-aws-client) 'new-s3-client)]
-    (swap! client-atom #(if % % (f user pw region bucket)))
-    @client-atom))
+(let [lock (Object.)]
+  (defn- dynaload-s3-client
+    [client-atom user pw region bucket]
+    (locking lock (require 'clojure.tools.deps.alpha.util.s3-aws-client))
+    (let [f (requiring-resolve 'clojure.tools.deps.alpha.util.s3-aws-client/new-s3-client)]
+      (swap! client-atom #(if % % (f user pw region bucket)))
+      @client-atom)))
 
 (defn new-transporter
   [^RepositorySystemSession session ^RemoteRepository repository]
