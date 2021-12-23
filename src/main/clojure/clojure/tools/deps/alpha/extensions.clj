@@ -114,6 +114,12 @@
 (defmethod coord-summary :default [lib coord]
   (str lib " " (coord-type coord)))
 
+(defmulti license-info
+  "Return map of license info (:name and :url) or nil if unknown"
+  (fn [lib coord config] (coord-type coord)))
+
+(defmethod license-info :default [lib coord config] nil)
+
 ;; Version comparison, either within or across coordinate types
 
 (defmulti compare-versions
@@ -165,6 +171,21 @@
 
 (defmethod coord-paths :default [lib coord manifest-type config]
   (throw-bad-manifest lib coord manifest-type))
+
+(defmulti manifest-file
+  "Return path to manifest file (if any). If this file is updated,
+  causes the cache to be recomputed."
+  (fn [lib coord manifest-type config] manifest-type))
+
+(defmethod manifest-file :default [lib coord manifest-type config]
+  (throw-bad-manifest lib coord manifest-type))
+
+(defmulti license-info-mf
+  "Return map of license info (:name and :url) or nil if unknown
+  based on the manifest."
+  (fn [lib coord manifest-type config] manifest-type))
+
+(defmethod license-info-mf :default [lib coord manifest-type config] nil)
 
 (defmulti coord-usage
   "Return usage info map for this library with the following optional keys:

@@ -111,6 +111,11 @@
   (let [[lib {:git/keys [url sha]}] (to-canonical lib coord nil)]
     (str lib " " url " " (subs sha 0 7))))
 
+(defmethod ext/license-info :git
+  [lib coord config]
+  (let [coord (merge coord (ext/manifest-type lib coord config))]
+    (ext/license-info-mf lib coord (:deps/manifest coord) config)))
+
 ;; 0 if x and y are the same commit
 ;; negative if x is parent of y (y derives from x)
 ;; positive if y is parent of x (x derives from y)

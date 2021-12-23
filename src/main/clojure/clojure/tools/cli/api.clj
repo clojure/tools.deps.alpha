@@ -8,6 +8,7 @@
 
 (ns clojure.tools.cli.api
   "This api provides functions that can be executed from the Clojure tools using -X:deps."
+  (:refer-clojure :exclude [list])
   (:require
     [clojure.java.io :as jio]
     [clojure.pprint :as pprint]
@@ -35,25 +36,32 @@
 (set! *warn-on-reflection* true)
 
 (defn basis
-  "Calculates and returns the runtime basis from a master deps edn map, modifying
-   resolve-deps and make-classpath args as needed.
+  "Create a basis from a set of deps sources and a set of aliases. By default, use
+  root, user, and project deps and no argmaps (essentially the same classpath you get by
+  default from the Clojure CLI).
 
-    master-edn - a master deps edn map
-    args - an optional map of arguments to constituent steps, keys:
-      :resolve-args - map of args to resolve-deps, with possible keys:
-        :extra-deps
-        :override-deps
-        :default-deps
-        :threads - number of threads to use during deps resolution
-        :trace - flag to record a trace log
-      :prep-args - map of args to prep-libs!
-        :action - what to do when an unprepped lib is found, one of:
-                    :prep - if unprepped, prep
-                    :force - prep regardless of whether already prepped
-                    :error (default) - don't prep, error
-      :classpath-args - map of args to make-classpath-map, with possible keys:
-        :extra-paths
-        :classpath-overrides
+  Each dep source value can be :standard, a string path, a deps edn map, or nil.
+  Sources are merged in the order - :root, :user, :project, :extra.
+
+  Aliases refer to argmaps in the merged deps that will be supplied to the basis
+  subprocesses (tool, resolve-deps, make-classpath-map).
+
+  The following subprocess argmap args can be provided:
+    Key                  Subproc             Description
+    :replace-deps        tool                Replace project deps
+    :replace-paths       tool                Replace project paths
+    :extra-deps          resolve-deps        Add additional deps
+    :override-deps       resolve-deps        Override coord of dep
+    :default-deps        resolve-deps        Provide coord if missing
+    :extra-paths         make-classpath-map  Add additional paths
+    :classpath-overrides make-classpath-map  Replace lib path in cp
+
+  Options:
+    :root    - dep source, default = :standard
+    :user    - dep source, default = :standard
+    :project - dep source, default = :standard (\"./deps.edn\")
+    :extra   - dep source, default = nil
+    :aliases - coll of aliases of argmaps to apply to subprocesses
 
   Returns {:basis basis}, which basis is initial deps edn map plus these keys:
     :resolve-args - the resolve args passed in, if any
@@ -136,6 +144,92 @@
       (when-not (instance? IExceptionInfo t)
         (.printStackTrace t))
       (System/exit 1))))
+
+;; useful resource: https://github.com/spdx/license-list-data
+(def ^:private license-abbrev
+  {"3-Clause BSD License" "BSD-3-Clause-Attribution"
+   "Apache 2.0" "Apache-2.0"
+   "Apache License 2.0" "Apache-2.0"
+   "Apache License Version 2.0" "Apache-2.0"
+   "Apache License, Version 2.0" "Apache-2.0"
+   "Apache Software License - Version 2.0" "Apache-2.0"
+   "Apache v2" "Apache-2.0"
+   "BSD 3-Clause License" "BSD-3-Clause-Attribution"
+   "Eclipse Public License" "EPL-1.0"
+   "Eclipse Public License (EPL)" "EPL-1.0"
+   "Eclipse Public License - v 1.0" "EPL-1.0"
+   "Eclipse Public License 1.0" "EPL-1.0"
+   "Eclipse Public License, Version 1.0" "EPL-1.0"
+   "Eclipse Public License 2.0" "EPL-2.0"
+   "Eclipse Public License version 2" "EPL-2.0"
+   "GNU Affero General Public License (AGPL) version 3.0" "AGPL-3.0"
+   "GNU General Public License, version 2 (GPL2), with the classpath exception" "GPL-2.0-with-classpath-exception"
+   "GNU General Public License, version 2 with the GNU Classpath Exception" "GPL-2.0-with-classpath-exception"
+   "GNU General Public License, version 2" "GPL-2.0"
+   "GNU Lesser General Public License (LGPL)" "LGPL"
+   "JSON License" "JSON"
+   "MIT License" "MIT"
+   "MIT license" "MIT"
+   "Mozilla Public License" "MPL"
+   "The Apache Software License, Version 2.0" "Apache-2.0"
+   "The BSD 3-Clause License (BSD3)" "BSD-3-Clause-Attribution"
+   "The MIT License" "MIT"})
+
+(defn- license-string
+  [info license-mode]
+  (let [license-name (when (#{:full :short} license-mode) (:name info))]
+    (if (and license-name (= license-mode :short))
+      (get license-abbrev license-name license-name)
+      license-name)))
+
+(defn list
+  "List all deps on the classpath, optimized for knowing the final set of included
+  libs. The `tree` program can provide more info on why or why not a particular
+  lib is included.
+
+  Licenses will be printed in short form by default but can also be listed as
+  in :full or :none for none at all using the :license key.
+
+  By default, :format will :print to the console in a human friendly tree. Use
+  :edn mode to print the tree to edn.
+
+  This program accepts the same basis-modifying arguments from the `basis` program.
+  Each dep source value can be :standard, a string path, a deps edn map, or nil.
+  Sources are merged in the order - :root, :user, :project, :extra.
+
+  Options:
+    :license - :full, :short (default), :none
+
+  Output mode options:
+    :format    :print (default) or :edn
+
+  Basis options:
+    :root    - dep source, default = :standard
+    :user    - dep source, default = :standard
+    :project - dep source, default = :standard (\"./deps.edn\")
+    :extra   - dep source, default = nil
+    :aliases - coll of kw aliases of argmaps to apply to subprocesses
+
+  The libs are printed to the console."
+  [params]
+  (let [{license-mode :license, format :format
+         :or {license-mode :short, format :print}} params
+        basis (deps/create-basis params)
+        libs (:libs basis)
+        data (into (sorted-map)
+               (map (fn [lib]
+                      (let [coord (get libs lib)
+                            info (ext/license-info lib coord basis)]
+                        [lib (cond-> coord info (assoc :license info))]))
+                 (-> libs keys sort)))]
+    (if (= format :edn)
+      (binding [*print-namespace-maps* false]
+        (pprint/pprint data))
+      (doseq [[lib coord] data]
+        (let [summary (ext/coord-summary lib coord)
+              info (:license coord)
+              license-string (license-string info license-mode)]
+          (println summary (if license-string (str " (" license-string ")") "")))))))
 
 ;;;; git resolve-tags
 
@@ -269,10 +363,11 @@
         master-edn (deps/merge-edns [root-edn user-edn])]
     (cond
       tool
-      (let [{:keys [lib coord]} (tool/resolve-tool (name tool))
-            coord-type (ext/coord-type coord)
-            coords (ext/find-versions lib coord coord-type master-edn)]
-        (run! #(binding [*print-namespace-maps* false] (prn %)) coords))
+      (if-let [{:keys [lib coord]} (tool/resolve-tool (name tool))]
+        (let [coord-type (ext/coord-type coord)
+              coords (ext/find-versions lib coord coord-type master-edn)]
+          (run! #(binding [*print-namespace-maps* false] (prn %)) coords))
+        (throw (ex-info (str "Unknown tool: " tool) {:tool tool})))
 
       lib
       (let [coords (ext/find-all-versions lib {} master-edn)]

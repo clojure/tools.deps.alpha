@@ -944,6 +944,15 @@
      :mvn/repos mvn/standard-repos}
     nil)
 
+  ;; pom not in cp
+  (make-classpath-map
+    {:paths ["src"]}
+    (resolve-deps
+      {:deps {'org.apache.jena/apache-jena-libs {:mvn/version "4.2.0" :extension "pom"}}
+       :mvn/repos mvn/standard-repos}
+      nil)
+    nil)
+
   ;; err case
   (resolve-deps {:deps {'bogus/bogus {:mvn/version "1.2.3"}}
                  :mvn/repos mvn/standard-repos} nil)

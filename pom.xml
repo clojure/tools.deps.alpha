@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <artifactId>tools.deps.alpha</artifactId>
-  <version>0.12.1020-SNAPSHOT</version>
+  <version>0.12.1099-SNAPSHOT</version>
   <name>tools.deps.alpha</name>
 
   <parent>
@@ -20,9 +20,9 @@
   <properties>
     <!-- used for build -->
     <clojure.warnOnReflection>true</clojure.warnOnReflection>
-    <clojure.version>1.10.1</clojure.version>
-    <resolverVersion>1.7.0</resolverVersion>
-    <mavenVersion>3.8.1</mavenVersion>
+    <clojure.version>1.10.3</clojure.version>
+    <resolverVersion>1.6.3</resolverVersion>
+    <mavenVersion>3.8.4</mavenVersion>
 
     <!-- default published in install deps.edn -->
     <clojure.default>1.10.3</clojure.default>
@@ -83,7 +83,7 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-nop</artifactId>
-      <version>1.7.30</version>
+      <version>1.7.32</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -94,7 +94,7 @@
     <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>tools.gitlibs</artifactId>
-      <version>2.3.167</version>
+      <version>2.4.172</version>
     </dependency>
     <dependency>
       <groupId>org.clojure</groupId>
@@ -104,17 +104,17 @@
     <dependency>
       <groupId>com.cognitect.aws</groupId>
       <artifactId>api</artifactId>
-      <version>0.8.505</version>
+      <version>0.8.539</version>
     </dependency>
     <dependency>
       <groupId>com.cognitect.aws</groupId>
       <artifactId>endpoints</artifactId>
-      <version>1.1.11.969</version>
+      <version>1.1.12.129</version>
     </dependency>
     <dependency>
       <groupId>com.cognitect.aws</groupId>
       <artifactId>s3</artifactId>
-      <version>811.2.858.0</version>
+      <version>814.2.991.0</version>
     </dependency>
     <dependency>
       <groupId>javax.inject</groupId>

@@ -13,7 +13,6 @@
     [clojure.string :as str]
     [clojure.tools.deps.alpha.extensions :as ext]
     [clojure.tools.deps.alpha.util.maven :as maven]
-    [clojure.tools.deps.alpha.util.io :as io]
     [clojure.tools.deps.alpha.util.session :as session])
   (:import
     [java.io File]
@@ -28,7 +27,7 @@
     ;; maven-resolver-spi
     [org.eclipse.aether.spi.locator ServiceLocator]
     ;; maven-model
-    [org.apache.maven.model Resource]
+    [org.apache.maven.model Resource License]
     ;; maven-core
     [org.apache.maven.project ProjectModelResolver ProjectBuildingRequest$RepositoryMerging]
     ))
@@ -36,24 +35,23 @@
 (set! *warn-on-reflection* true)
 
 (defn- model-resolver
-  ^ModelResolver [{:keys [mvn/repos mvn/local-repo]}]
+  ^ModelResolver [{:keys [mvn/repos mvn/local-repo]} settings]
   (let [local-repo (or local-repo @maven/cached-local-repo)
         locator ^ServiceLocator @maven/the-locator
         system (maven/make-system)
-        settings ^Settings (session/retrieve :mvn/settings #(maven/get-settings))
         session (maven/make-session system settings local-repo)
         repo-mgr (doto (DefaultRemoteRepositoryManager.) (.initService locator))
         repos (maven/remote-repos repos settings)]
     (ProjectModelResolver. session nil system repo-mgr repos ProjectBuildingRequest$RepositoryMerging/REQUEST_DOMINANT nil)))
 
 (defn read-model
-  ^Model [^ModelSource source config]
+  ^Model [^ModelSource source config settings]
   (let [props (Properties.)
         _ (.putAll props (System/getProperties))
         _ (.setProperty props "project.basedir" ".")
         req (doto (DefaultModelBuildingRequest.)
               (.setModelSource source)
-              (.setModelResolver (model-resolver config))
+              (.setModelResolver (model-resolver config settings))
               (.setSystemProperties props))
         builder (.newInstance (DefaultModelBuilderFactory.))
         result (.build builder req)]
@@ -61,9 +59,10 @@
 
 (defn read-model-file
   ^Model [^File file config]
-  (session/retrieve
-    {:pom :model :file (.getAbsolutePath file)} ;; session key
-    #(read-model (FileModelSource. file) config)))
+  (let [settings (session/retrieve :mvn/settings #(maven/get-settings))]
+    (session/retrieve
+      {:pom :model :file (.getAbsolutePath file)} ;; session key
+      #(read-model (FileModelSource. file) config settings))))
 
 (defn- model-exclusions->data
   [exclusions]
@@ -106,15 +105,43 @@
   [lib {:keys [deps/root] :as _coord} _mf config]
   (let [pom (jio/file root "pom.xml")
         model (read-model-file pom config)
-        srcs (into [(.getCanonicalPath (jio/file root (.. model getBuild getSourceDirectory)))
+
+        ;; Maven core 3.8.2 returns an absolute directory here, which is a breaking regression
+        ;; from previous versions (see https://issues.apache.org/jira/browse/MNG-7218).
+        ;; Working around this with conditional code that deals with either absolute or relative.
+        ;; When MNG-7218 is fixed and deps bumped, might be able to revert the absolute path here.
+        src-dir (jio/file (.. model getBuild getSourceDirectory))
+        src-path (if (.isAbsolute src-dir)
+                   (.getCanonicalPath src-dir)
+                   (.getCanonicalPath (jio/file root src-dir)))
+
+        srcs (into [src-path
                     (.getCanonicalPath (jio/file root "src/main/clojure"))]
                    (for [^Resource resource (.. model getBuild getResources)]
                      (let [dir (jio/file (.getDirectory resource))]
                        (when dir
                          (if (.isAbsolute dir)
-                           (io/printerrln "Skipping absolute resource directory of" lib ":" dir)
+                           (.getCanonicalPath dir)
                            (.getCanonicalPath (jio/file root dir)))))))]
     (->> srcs (remove nil?) distinct)))
+
+(defmethod ext/manifest-file :pom
+  [_lib {:keys [deps/root] :as _coord} _mf _config]
+  (.getAbsolutePath (jio/file root "pom.xml")))
+
+(defmethod ext/license-info-mf :pom
+  [lib {:keys [deps/root] :as _coord} _mf config]
+  (let [pom (jio/file root "pom.xml")
+        model (read-model-file pom config)
+        licenses (.getLicenses model)
+        ^License license (when (and licenses (pos? (count licenses))) (first licenses))]
+    (when license
+      (let [name (.getName license)
+            url (.getUrl license)]
+        (when (or name url)
+          (cond-> {}
+            name (assoc :name name)
+            url (assoc :url url)))))))
 
 (defmethod ext/coord-usage :pom
   [lib {:keys [deps/root]} manifest-type config]

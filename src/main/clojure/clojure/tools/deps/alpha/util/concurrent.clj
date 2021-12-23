@@ -14,11 +14,12 @@
 (set! *warn-on-reflection* true)
 
 (defonce thread-factory
-  (reify ThreadFactory
-    (newThread [_ r]
-      (doto (Thread. r)
-        (.setName "tools.deps worker")
-        (.setDaemon true)))))
+  (let [counter (atom 0)]
+    (reify ThreadFactory
+      (newThread [_ r]
+        (doto (Thread. r)
+          (.setName (format "tools.deps worker %s" (swap! counter inc)))
+          (.setDaemon true))))))
 
 (defn new-executor
   ^ExecutorService [^long n]

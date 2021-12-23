@@ -40,15 +40,7 @@ public final class S3TransporterFactory implements TransporterFactory, Service {
 
     private S3TransporterFactory() {}
 
-    private Object triggerLoad() {
-        return DelayedInstance.NEW_TRANSPORTER;
-    }
-
     public void initService(ServiceLocator locator) {
-        // Load transporter (and core.async) lazily in background daemon thread
-        Thread t = new Thread(new Runnable() { public void run() { triggerLoad(); }});
-        t.setDaemon(true);
-        t.start();
     }
 
     public Transporter newInstance(RepositorySystemSession session, RemoteRepository repository) throws NoTransporterException {

@@ -34,6 +34,7 @@
    [nil "--cp-file PATH" "Classpatch cache file to write"]
    [nil "--jvm-file PATH" "JVM options file"]
    [nil "--main-file PATH" "Main options file"]
+   [nil "--manifest-file PATH" "Manifest list file"]
    [nil "--basis-file PATH" "Basis file"]
    [nil "--skip-cp" "Skip writing .cp and .libs files"]
    ;; aliases
@@ -63,14 +64,15 @@
   "Resolves the tool by name to the coord + usage data.
    Returns the proper alias args as if the tool was specified as an alias."
   [tool-name config]
-  (let [{:keys [lib coord]} (tool/resolve-tool tool-name)
-        manifest-type (ext/manifest-type lib coord config)
-        coord' (merge coord manifest-type)
-        {:keys [ns-default ns-aliases]} (ext/coord-usage lib coord' (:deps/manifest coord') config)]
-    {:replace-deps {lib coord'}
-     :replace-paths ["."]
-     :ns-default ns-default
-     :ns-aliases ns-aliases}))
+  (if-let [{:keys [lib coord]} (tool/resolve-tool tool-name)]
+    (let [manifest-type (ext/manifest-type lib coord config)
+          coord' (merge coord manifest-type)
+          {:keys [ns-default ns-aliases]} (ext/coord-usage lib coord' (:deps/manifest coord') config)]
+      {:replace-deps {lib coord'}
+       :replace-paths ["."]
+       :ns-default ns-default
+       :ns-aliases ns-aliases})
+    (throw (ex-info (str "Unknown tool: " tool-name) {:tool tool-name}))))
 
 (defn run-core
   "Run make-classpath script from/to data (no file stuff). Returns:
@@ -131,6 +133,14 @@
         ;; check for unprepped libs
         _ (deps/prep-libs! (:libs basis) {:action :error} basis)
 
+        ;; determine manifest files to add to cache check
+        manifests (->>
+                    (for [[lib coord] (:libs basis)]
+                      (let [mf (ext/manifest-type lib coord basis)]
+                        (ext/manifest-file lib coord (:deps/manifest mf) basis)))
+                    (remove nil?)
+                    seq)
+
         ;; handle jvm and main opts
         jvm (seq (get exec-argmap :jvm-opts))
         main (seq (get exec-argmap :main-opts))]
@@ -139,7 +149,8 @@
     (cond-> basis
       jvm (assoc :jvm jvm)
       ;; FUTURE: narrow this to (and main main-aliases)
-      main (assoc :main main))))
+      main (assoc :main main)
+      manifests (assoc :manifests manifests))))
 
 (defn read-deps
   [name]
@@ -148,14 +159,22 @@
       (when (.exists f)
         (deps/slurp-deps f)))))
 
+(defn write-lines
+  [lines file]
+  (if lines
+    (io/write-file file (apply str (interleave lines (repeat "\n"))))
+    (let [jf (jio/file file)]
+      (when (.exists jf)
+        (.delete jf)))))
+
 (defn run
   "Run make-classpath script. See -main for details."
-  [{:keys [config-user config-project libs-file cp-file jvm-file main-file basis-file skip-cp trace tree] :as opts}]
+  [{:keys [config-user config-project libs-file cp-file jvm-file main-file basis-file manifest-file skip-cp trace tree] :as opts}]
   (let [opts' (merge opts {:install-deps (deps/root-deps)
                            :user-deps (read-deps config-user)
                            :project-deps (read-deps config-project)
                            :tool-resolver resolve-tool-args})
-        {:keys [libs classpath-roots jvm main] :as basis} (run-core opts')
+        {:keys [libs classpath-roots jvm main manifests] :as basis} (run-core opts')
         trace-log (-> libs meta :trace)]
     (when trace
       (spit "trace.edn" (binding [*print-namespace-maps* false] (with-out-str (clojure.pprint/pprint trace-log)))))
@@ -165,16 +184,9 @@
       (io/write-file libs-file (binding [*print-namespace-maps* false] (pr-str libs)))
       (io/write-file cp-file (-> classpath-roots deps/join-classpath)))
     (io/write-file basis-file (binding [*print-namespace-maps* false] (pr-str basis)))
-    (if jvm
-      (io/write-file jvm-file (apply str (interleave jvm (repeat "\n"))))
-      (let [jf (jio/file jvm-file)]
-        (when (.exists jf)
-          (.delete jf))))
-    (if main
-      (io/write-file main-file (apply str (interleave main (repeat "\n"))))
-      (let [mf (jio/file main-file)]
-        (when (.exists mf)
-          (.delete mf))))))
+    (write-lines jvm jvm-file)
+    (write-lines main main-file)
+    (write-lines manifests manifest-file)))
 
 (defn -main
   "Main entry point for make-classpath script.
@@ -189,6 +201,7 @@
     --cp-file=path - cp cache file to write
     --jvm-file=path - jvm opts file to write
     --main-file=path - main opts file to write
+    --manifest-file=path - manifest list file to write
     --basis-file=path - basis file to write
     -Rresolve-aliases - concatenated resolve-deps alias names
     -Cmakecp-aliases - concatenated make-classpath alias names
@@ -201,7 +214,8 @@
   The libs file is at <cachedir>/<hash>.libs
   The cp file is at <cachedir>/<hash>.cp
   The main opts file is at <cachedir>/<hash>.main (if needed)
-  The jvm opts file is at <cachedir>/<hash>.jvm (if needed)"
+  The jvm opts file is at <cachedir>/<hash>.jvm (if needed)
+  The manifest file is at <cachedir>/<hash>.manifest (if needed)"
   [& args]
   (try
     (let [{:keys [options errors]} (parse-opts args)]

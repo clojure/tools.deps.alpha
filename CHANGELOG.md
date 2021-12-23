@@ -3,6 +3,41 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.3/CHANGELOG.md)*
 
+* 0.12.1098 on Dec 22, 2021
+  * TDEPS-215 Fix race condition during parallel loading of S3TransporterFactory
+  * Update maven-core to 3.8.4
+  * Update aws deps to latest
+* 0.12.1090 on Dec 8, 2021
+  * Don't track non-existent deps.edn manifest files of deps proejcts
+  * Update to aws-api 0.8.536
+* 0.12.1084 on Dec 1, 2021
+  * Add license :format :edn option to clj -X:deps list
+* 0.12.1080 on Nov 30, 2021
+  * Add license info to clj -X:deps list
+* 0.12.1076 on Nov 18, 2021
+  * Improve error handling on unknown tool
+* 0.12.1071 on Nov 8, 2021
+  * Update to tools.gitlibs 2.4.172
+* 0.12.1067 on Nov 4, 2021
+  * Update deps to latest
+  * Add -X:deps list
+* 0.12.1063 on Oct 29, 2021
+  * TDEPS-83 Add support for finding manifests of libs
+* 0.12.1058 on Oct 22, 2021
+  * TDEPS-210 Update specs
+* 0.12.1053 on Oct 12, 2021
+  * TDEPS-209 Include only jar files in classpath from Maven artifacts
+* 0.12.1048 on Sep 17, 2021
+  * Fix nested cache usage for local poms
+* 0.12.1041 on Sep 17, 2021
+  * Move back to older version of Maven resolver 1.6.3 to match Maven core 3.8.2
+  * Move to latest version of aws api libs
+* 0.12.1036 on Aug 30, 2021
+  * Fix bad type hint
+* 0.12.1030 on Aug 23, 2021
+  * Fix javadoc on clojure.tools.cli.api/basis
+* 0.12.1026 on Aug 17, 2021
+  * Update all deps
 * 0.12.1019 on Aug 10, 2021
   * Load and cache Maven settings once for perf
   * Cache version range resolution results for perf
