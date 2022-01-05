@@ -3,6 +3,8 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.3/CHANGELOG.md)*
 
+* next
+  * TDEPS-207 Stop saving S3 transporter in session cache to avoid deadlock
 * 0.12.1104 on Dec 23, 2021
   * TDEPS-215 More tweaks to lazy loading
   * TDEPS-207 Possible fix to deadlock in version range resolver session caching
