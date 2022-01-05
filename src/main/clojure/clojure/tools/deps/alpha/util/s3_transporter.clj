@@ -10,8 +10,7 @@
   clojure.tools.deps.alpha.util.s3-transporter
   (:refer-clojure :exclude [peek get])
   (:require
-    [clojure.string :as str]
-    [clojure.tools.deps.alpha.util.session :as session])
+    [clojure.string :as str])
   (:import
     [java.io InputStream OutputStream IOException]
     [java.net URI]
@@ -80,38 +79,36 @@
 
 (defn new-transporter
   [^RepositorySystemSession session ^RemoteRepository repository]
-  (session/retrieve {:type :mvn/repo-transporter, :id (.getId repository)}
-    (fn []
-      (let [auth-context (AuthenticationContext/forRepository session repository)
-            user (when auth-context (.get auth-context AuthenticationContext/USERNAME))
-            pw (when auth-context (.get auth-context AuthenticationContext/PASSWORD))
-            on-close #(when auth-context (.close auth-context))
-            {:keys [bucket region repo-path]} (parse-url repository)
-            s3-client-holder (atom nil)] ;; defer creation till needed
-        (reify Transporter
-          (^void peek [_ ^PeekTask peek-task]
-            (let [path (.. peek-task getLocation toString)
-                  full-path (str repo-path "/" path)
-                  s3-client (dynaload-s3-client s3-client-holder user pw region bucket)
-                  res (s3-peek s3-client bucket full-path)]
-              (when res
-                (throw (ex-info "Artifact not found" {:bucket bucket, :path path, :reason res})))))
-          (^void get [_ ^GetTask get-task]
-            (let [path (.. get-task getLocation toString)
-                  full-path (str repo-path "/" path)
-                  offset (.getResumeOffset get-task)
-                  os (.newOutputStream get-task (> offset 0))
-                  listener (.getListener get-task)
-                  s3-client (dynaload-s3-client s3-client-holder user pw region bucket)]
-              (.transportStarted listener offset -1)
-              (s3-get-object s3-client bucket full-path os offset #(.transportProgressed listener %))))
-          (classify [_ throwable]
-            (if (= (-> throwable ex-data :reason) :cognitect.anomalies/not-found)
-              Transporter/ERROR_NOT_FOUND
-              Transporter/ERROR_OTHER))
-          ;;(put [_ ^PutTask put-task])   ;; not supported
-          (close [_]
-            (when on-close (on-close))))))))
+  (let [auth-context (AuthenticationContext/forRepository session repository)
+        user (when auth-context (.get auth-context AuthenticationContext/USERNAME))
+        pw (when auth-context (.get auth-context AuthenticationContext/PASSWORD))
+        on-close #(when auth-context (.close auth-context))
+        {:keys [bucket region repo-path]} (parse-url repository)
+        s3-client-holder (atom nil)] ;; defer creation till needed
+    (reify Transporter
+      (^void peek [_ ^PeekTask peek-task]
+        (let [path (.. peek-task getLocation toString)
+              full-path (str repo-path "/" path)
+              s3-client (dynaload-s3-client s3-client-holder user pw region bucket)
+              res (s3-peek s3-client bucket full-path)]
+          (when res
+            (throw (ex-info "Artifact not found" {:bucket bucket, :path path, :reason res})))))
+      (^void get [_ ^GetTask get-task]
+        (let [path (.. get-task getLocation toString)
+              full-path (str repo-path "/" path)
+              offset (.getResumeOffset get-task)
+              os (.newOutputStream get-task (> offset 0))
+              listener (.getListener get-task)
+              s3-client (dynaload-s3-client s3-client-holder user pw region bucket)]
+          (.transportStarted listener offset -1)
+          (s3-get-object s3-client bucket full-path os offset #(.transportProgressed listener %))))
+      (classify [_ throwable]
+        (if (= (-> throwable ex-data :reason) :cognitect.anomalies/not-found)
+          Transporter/ERROR_NOT_FOUND
+          Transporter/ERROR_OTHER))
+      ;;(put [_ ^PutTask put-task])   ;; not supported
+      (close [_]
+        (when on-close (on-close))))))
 
 (comment
   (require '[cognitect.aws.client.api :as aws] '[cognitect.aws.credentials :as creds])
