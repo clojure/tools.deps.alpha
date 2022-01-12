@@ -10,7 +10,6 @@
   clojure.tools.deps.alpha.extensions.git
   (:require
     [clojure.java.io :as jio]
-    [clojure.string :as str]
     [clojure.tools.deps.alpha.extensions :as ext]
     [clojure.tools.gitlibs :as gitlibs]))
 

@@ -53,7 +53,7 @@
           coord-keys (-> coord keys set)
           matches (reduce (fn [ms type]
                             (cond-> ms
-                              (not (empty? (set/intersection (coord-type-keys type) coord-keys)))
+                              (seq (set/intersection (coord-type-keys type) coord-keys))
                               (conj type)))
                     [] exts)]
       (case (count matches)

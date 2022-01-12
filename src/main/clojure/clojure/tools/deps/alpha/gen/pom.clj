@@ -242,8 +242,6 @@
                             {:lib (symbol artifact-name artifact-name)}))}))))
 
 (comment
-  (require '[clojure.tools.deps.alpha :as deps])
-
   (let [{:keys [install-edn user-edn project-edn]} (deps/find-edn-maps)
         edn (deps/merge-edns [install-edn user-edn project-edn])
         basis (deps/calc-basis edn)]

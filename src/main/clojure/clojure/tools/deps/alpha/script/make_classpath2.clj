@@ -10,6 +10,7 @@
   clojure.tools.deps.alpha.script.make-classpath2
   (:require
     [clojure.java.io :as jio]
+    [clojure.pprint :as pprint]
     [clojure.string :as str]
     [clojure.tools.cli :as cli]
     [clojure.tools.deps.alpha :as deps]
@@ -177,7 +178,7 @@
         {:keys [libs classpath-roots jvm main manifests] :as basis} (run-core opts')
         trace-log (-> libs meta :trace)]
     (when trace
-      (spit "trace.edn" (binding [*print-namespace-maps* false] (with-out-str (clojure.pprint/pprint trace-log)))))
+      (spit "trace.edn" (binding [*print-namespace-maps* false] (with-out-str (pprint/pprint trace-log)))))
     (when tree
       (-> trace-log tree/trace->tree (tree/print-tree nil)))
     (when-not skip-cp

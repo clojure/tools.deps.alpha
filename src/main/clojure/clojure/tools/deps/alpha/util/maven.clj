@@ -19,7 +19,7 @@
     [org.eclipse.aether.artifact Artifact DefaultArtifact]
     [org.eclipse.aether.repository LocalRepository Proxy RemoteRepository RemoteRepository$Builder]
     [org.eclipse.aether.graph Dependency Exclusion]
-    [org.eclipse.aether.transfer TransferListener TransferEvent TransferResource]
+    [org.eclipse.aether.transfer TransferListener TransferEvent]
 
     ;; maven-resolver-spi
     [org.eclipse.aether.spi.connector RepositoryConnectorFactory]

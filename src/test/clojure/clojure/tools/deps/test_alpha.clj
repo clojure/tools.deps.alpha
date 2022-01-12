@@ -268,10 +268,10 @@
 
 ;; simple check that pom resolution is working - load tda itself as pom dep
 (deftest test-local-pom
-  (is (not (empty? (deps/resolve-deps
-                     {:deps {'c/tda {:local/root "." :deps/manifest :pom}}
-                      :mvn/repos mvn/standard-repos}
-                     nil)))))
+  (is (seq (deps/resolve-deps
+             {:deps {'c/tda {:local/root "." :deps/manifest :pom}}
+              :mvn/repos mvn/standard-repos}
+             nil))))
 
 (def install-data
   {:paths ["src"]
@@ -301,7 +301,7 @@
 
 (deftest calc-basis-extra-deps
   (let [ra {:extra-deps {'org.clojure/tools.deps.alpha {:mvn/version "0.8.677"}}}
-        {:keys [resolve-args libs] :as basis} (deps/calc-basis install-data {:resolve-args ra})]
+        {:keys [resolve-args libs]} (deps/calc-basis install-data {:resolve-args ra})]
     ;; basis contains resolve-args
     (is (= resolve-args ra))
 
@@ -312,7 +312,7 @@
 
 (deftest calc-basis-override-deps
   (let [ra {:extra-deps {'org.clojure/clojure {:mvn/version "1.6.0"}}}
-        {:keys [resolve-args libs] :as basis} (deps/calc-basis install-data {:resolve-args ra})]
+        {:keys [resolve-args libs]} (deps/calc-basis install-data {:resolve-args ra})]
     ;; basis contains resolve-args
     (is (= resolve-args ra))
 
@@ -321,7 +321,7 @@
 
 (deftest calc-basis-extra-paths
   (let [cpa {:extra-paths ["x" "y"]}
-        {:keys [classpath-args classpath] :as basis} (deps/calc-basis install-data {:classpath-args cpa})]
+        {:keys [classpath-args classpath]} (deps/calc-basis install-data {:classpath-args cpa})]
     ;; basis contains classpath-args
     (is (= classpath-args cpa))
 
@@ -331,23 +331,23 @@
 
 (deftest calc-basis-classpath-overrides
   (let [cpa {:classpath-overrides {'org.clojure/clojure "foo"}}
-        {:keys [classpath-args classpath] :as basis} (deps/calc-basis install-data {:classpath-args cpa})]
+        {:keys [classpath-args classpath]} (deps/calc-basis install-data {:classpath-args cpa})]
     ;; basis contains classpath-args
     (is (= classpath-args cpa))
 
     ;; classpath has replaced path
-    (= (get classpath "foo") {:lib-name 'org.clojure/clojure})))
+    (is (= (get classpath "foo") {:lib-name 'org.clojure/clojure}))))
 
 (deftest optional-deps-included
   (let [master-edn (merge install-data
                      '{:deps {org.clojure/clojure {:mvn/version "1.10.1"}
                               org.clojure/core.async {:mvn/version "1.1.587" :optional true}}})
-        {:keys [libs] :as basis} (deps/calc-basis master-edn)]
+        {:keys [libs]} (deps/calc-basis master-edn)]
 
     ;; libs contains optional dep
     (is (= (get-in libs ['org.clojure/core.async :mvn/version]) "1.1.587"))))
 
-;[lib use-coord coord-id use-path include reason exclusions cut]
+;(update-excl [lib use-coord coord-id use-path include reason exclusions cut])
 (deftest test-update-excl
   ;; new lib/version, no exclusions
   (let [ret (#'deps/update-excl 'a {:mvn/version "1"} {:mvn/version "1"} '[b a] true :new-version nil nil)]
@@ -367,7 +367,7 @@
   (let [excl '{[a] #{c}}
         ret (#'deps/update-excl 'a {:mvn/version "1"} {:mvn/version "1"} '[b a] false :same-version
               excl '{[a {:mvn/version "1"}] #{c}})]
-    (is (= {:exclusions' excl, :cut' nil})) ;; remove cut
+    (is (= {:exclusions' excl, :cut' '{[a #:mvn{:version "1"}] nil}} (select-keys ret [:exclusions' :cut']))) ;; remove cut
     (let [pred (:child-pred ret)]
       (is (true? (boolean (pred 'c))))))
 
@@ -376,8 +376,10 @@
   ;; b -> a (excl c)
   (let [excl '{[a] #{c d}}
         cut '{[a {:mvn/version "1"}] #{c d}}
-        ret (#'deps/update-excl 'a '{:mvn/version "1" :exclusions [c]} {:mvn/version "1"} '[b a] false :same-version excl cut)]
-    (is (= {:exclusions' '{[a] #{c d}, [b a] #{c d}}, :cut' '{[a {:mvn/version "1"}] #{c}}}))
+        ret (#'deps/update-excl 'a '{:mvn/version "1" :exclusions [c]} {:mvn/version "1"} '[b a] false
+              :same-version excl cut)]
+    (is (= {:exclusions' '{[a] #{c d}, [b a] #{c}}, :cut' '{[a {:mvn/version "1"}] #{c}}}
+          (select-keys ret [:exclusions' :cut'])))
     (let [pred (:child-pred ret)]
       (is (false? (boolean (pred 'c)))) ;; already enqueued
       (is (true? (boolean (pred 'd)))))) ;; newly enqueueable due to smaller exclusion set
@@ -388,7 +390,7 @@
   (let [excl '{[a] #{c}}
         cut '{[a {:mvn/version "1"}] #{c}}
         ret (#'deps/update-excl 'a {:mvn/version "1" :exclusions ['c]} {:mvn/version "1"} '[b a] false :same-version excl cut)]
-    (is (= {:exclusions' excl, :cut' cut})) ;; no change
+    (is (= {:exclusions' (assoc excl '[b a] '#{c}), :cut' cut} (select-keys ret [:exclusions' :cut']))) ;; no change in cut
     (let [pred (:child-pred ret)]
       (is (false? (boolean (pred 'c))))))
 
@@ -398,7 +400,7 @@
   (let [excl '{[a] #{c}}
         cut '{[a {:mvn/version "1"}] #{c}}
         ret (#'deps/update-excl 'a '{:mvn/version "1" :exclusions [c d]} {:mvn/version "1"} '[b a] false :same-version excl cut)]
-    (is (= {:exclusions' '{[a] #{c}, [b a] #{c d}}, :cut' cut})) ;; no change in cut
+    (is (= {:exclusions' '{[a] #{c}, [b a] #{c d}}, :cut' cut} (select-keys ret [:exclusions' :cut']))) ;; no change in cut
     (let [pred (:child-pred ret)] ;; everything already enqueued
       (is (false? (boolean (pred 'c))))
       (is (false? (boolean (pred 'd)))))))

@@ -5,3 +5,4 @@ target/
 .cpcache
 .lein*
 project.clj
+.clj-kondo/.cache

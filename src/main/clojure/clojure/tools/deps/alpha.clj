@@ -9,7 +9,6 @@
 (ns clojure.tools.deps.alpha
   (:require
     [clojure.java.io :as jio]
-    [clojure.pprint :refer [pprint]]
     [clojure.set :as set]
     [clojure.string :as str]
     [clojure.tools.deps.alpha.util.concurrent :as concurrent]
@@ -563,9 +562,9 @@
       paths)))
 
 (defn- sort-paths
-  [lib-paths]
   "Given a vector of lib paths, sort in canonical order -
   top of tree to bottom, alpha sort at same level"
+  [lib-paths]
   (->> lib-paths sort (sort-by count) vec))
 
 (defn- flatten-libs
@@ -872,6 +871,7 @@
                    :mvn/repos mvn/standard-repos} nil)
     {:extra-paths ["test"]})
 
+  (require 'clojure.pprint)
   (clojure.pprint/pprint
     (resolve-deps {:deps {'org.clojure/tools.analyzer.jvm {:mvn/version "0.6.9"}}
                    :mvn/repos mvn/standard-repos} nil))
@@ -969,7 +969,6 @@
                       :sha "ecea2539a724a415b15e50f12815b4ab115cfd35"}}}
     nil)
 
-  (require '[clojure.tools.deps.alpha.util.session :as session])
   (time
     (do
       (session/with-session

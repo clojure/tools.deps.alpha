@@ -8,7 +8,7 @@
 
 (ns clojure.tools.deps.alpha.extensions.test-git
   (:require
-    [clojure.test :refer :all]
+    [clojure.test :refer [deftest is are]]
     [clojure.tools.deps.alpha.extensions :as ext]
     [clojure.tools.deps.alpha.extensions.git :as git])
   (:import

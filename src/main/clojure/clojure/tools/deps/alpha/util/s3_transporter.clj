@@ -111,7 +111,7 @@
         (when on-close (on-close))))))
 
 (comment
-  (require '[cognitect.aws.client.api :as aws] '[cognitect.aws.credentials :as creds])
+  (require '[cognitect.aws.client.api :as aws] 'clojure.repl)
   (def s3-client (aws/client {:api :s3
                               :region :us-east-1})) ;; use ambient creds
 

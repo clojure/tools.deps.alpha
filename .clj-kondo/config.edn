@@ -1,0 +1,3 @@
+{:skip-args [clojure.core/comment]
+ :linters
+ {:unused-binding {:level :off}}}
