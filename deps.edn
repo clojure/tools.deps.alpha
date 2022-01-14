@@ -20,7 +20,7 @@
  }
  :aliases {
    ;; clj -M:lint
-   :lint {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2022.01.13"}}
+   :lint {:replace-deps {clj-kondo/clj-kondo {:mvn/version "2022.01.13"}}
           :main-opts ["-m" "clj-kondo.main" "--lint" "src/main/clojure" "--lint" "src/test/clojure"]}
  }
 }
