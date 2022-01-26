@@ -22,5 +22,9 @@
    ;; clj -M:lint
    :lint {:replace-deps {clj-kondo/clj-kondo {:mvn/version "2022.01.13"}}
           :main-opts ["-m" "clj-kondo.main" "--lint" "src/main/clojure" "--lint" "src/test/clojure"]}
+
+   ;; clj -M:nvd "" `clj -Spath`
+   :nvd {:replace-deps {nvd-clojure/nvd-clojure {:mvn/version "2.2.0"}}
+         :main-opts ["-m" "nvd.task.check" ""]}
  }
 }
