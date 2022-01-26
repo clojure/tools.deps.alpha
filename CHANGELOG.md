@@ -3,7 +3,7 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.3/CHANGELOG.md)*
 
-* next
+* 0.12.1120 on Jan 26, 2022
   * Bump transitive deps due to CVEs
 * 0.12.1109 on Jan 4, 2022
   * TDEPS-207 Stop saving S3 transporter in session cache to avoid deadlock
