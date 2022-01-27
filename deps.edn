@@ -28,6 +28,6 @@
 
    ;; clj -M:nvd "" `clj -Spath`
    :nvd {:replace-deps {nvd-clojure/nvd-clojure {:mvn/version "2.2.0"}}
-         :main-opts ["-m" "nvd.task.check" ""]}
+         :main-opts ["-m" "nvd.task.check"]}
  }
 }
