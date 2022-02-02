@@ -114,7 +114,7 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-nop</artifactId>
-      <version>1.7.32</version>
+      <version>1.7.35</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -140,12 +140,12 @@
     <dependency>
       <groupId>com.cognitect.aws</groupId>
       <artifactId>endpoints</artifactId>
-      <version>1.1.12.129</version>
+      <version>1.1.12.150</version>
     </dependency>
     <dependency>
       <groupId>com.cognitect.aws</groupId>
       <artifactId>s3</artifactId>
-      <version>814.2.991.0</version>
+      <version>814.2.1053.0</version>
     </dependency>
     <dependency>
       <groupId>javax.inject</groupId>
