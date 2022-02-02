@@ -6,6 +6,7 @@ Changelog
 * next
   * Improve error if git sha is not found in git repo
   * TDEPS-216 - Built-in :deps alias should remove project paths from classpath
+  * Fix prep error if transtive dep's prep function is unresolvable
 * 0.12.1120 on Jan 26, 2022
   * Bump transitive deps due to CVEs
 * 0.12.1109 on Jan 4, 2022
