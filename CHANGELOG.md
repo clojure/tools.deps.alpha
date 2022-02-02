@@ -3,7 +3,7 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.3/CHANGELOG.md)*
 
-* next
+* 0.12.1135 on Feb 2, 2022
   * TDEPS-216 - Built-in :deps alias should remove project paths from classpath
   * Improve error if git sha is not found in git repo
   * Improve prep error if transtive dep's prep function is unresolvable
