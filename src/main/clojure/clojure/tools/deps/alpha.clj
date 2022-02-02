@@ -656,8 +656,11 @@
   wait for the process to complete, and return the exit code.
   Exit code 1 indicates the prep function could not be resolved."
   [^File dir classpath f]
-  ;; java -cp <classpath> clojure.main -e '(do ((requiring-resolve f) nil) nil)'
-  (let [command-args ["java" "-cp" classpath "clojure.main" "-e" (str "(do (if-let [resolved-f (requiring-resolve '\" f \")] (resolved-f nil) (System/exit 1)) nil)")]
+  ;; java -cp <classpath> clojure.main -e '(do (if-let [resolved-f (requiring-resolve 'f)] (resolved-f nil) (System/exit 1)) nil)'
+  (let [command-args ["java" "-cp" classpath "clojure.main" "-e" (str
+                                                                   "(do (if-let [resolved-f (requiring-resolve '"
+                                                                   f
+                                                                   ")] (resolved-f nil) (System/exit 1)) nil)")]
         ;;_ (apply println (map #(if (str/includes? % " ") (str "\"" % "\"") %) command-args))
         proc-builder (doto (ProcessBuilder. ^List command-args)
                        (.directory dir)
