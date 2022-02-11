@@ -112,16 +112,13 @@
     nil)
   )
 
-(defn- make-trace
-  []
-  (let [{:keys [root-edn user-edn project-edn]} (deps/find-edn-maps)
-        merged (deps/merge-edns [root-edn user-edn project-edn])
-        basis (deps/calc-basis merged {:resolve-args {:trace true}})]
-    (-> basis :libs meta :trace)))
-
 (defn tree
   "Print deps tree for the current project's deps.edn built from either the
-  current directory deps.edn, or if provided, the trace file.
+  a basis, or if provided, the trace file.
+
+  This program accepts the same basis-modifying arguments from the `basis` program.
+  Each dep source value can be :standard, a string path, a deps edn map, or nil.
+  Sources are merged in the order - :root, :user, :project, :extra.
 
   By default, :format will :print to the console in a human friendly tree. Use
   :edn mode to print the tree to edn.
@@ -129,7 +126,14 @@
   In print mode, deps are printed with prefix of either . (included) or X (excluded).
   A reason code for inclusion/exclusion may be added at the end of the line.
 
-  Input options:
+  Basis options:
+    :root    - dep source, default = :standard
+    :user    - dep source, default = :standard
+    :project - dep source, default = :standard (\"./deps.edn\")
+    :extra   - dep source, default = nil
+    :aliases - coll of kw aliases of argmaps to apply to subprocesses
+
+  Input options (if provided, basis options ignored):
     :file      Path to trace.edn file (from clj -Strace) to use in computing the tree
 
   Output mode:
@@ -143,7 +147,11 @@
     (let [{:keys [file format] :or {format :print}} opts
           trace (if file
                   (io/slurp-edn file)
-                  (make-trace))
+                  (let [{:keys [extra aliases]} opts
+                        trace-opts (merge opts
+                                     {:extra (assoc-in extra [:aliases :__TRACE__ :trace] true)}
+                                     {:aliases (conj (or aliases []) :__TRACE__)})]
+                    (-> trace-opts deps/create-basis :libs meta :trace)))
           tree (tree/trace->tree trace)]
       (case format
         :print (tree/print-tree tree opts)
@@ -154,6 +162,12 @@
       (when-not (instance? IExceptionInfo t)
         (.printStackTrace t))
       (System/exit 1))))
+
+(comment
+  (tree nil)
+  (tree {:extra {:aliases {:foo {:extra-deps {'criterium/criterium {:mvn/version "0.4.0"}}}}}
+         :aliases [:foo]})
+  )
 
 ;; useful resource: https://github.com/spdx/license-list-data
 (def ^:private license-abbrev
@@ -346,7 +360,7 @@
 
   Execute ad-hoc:
     clj -X:deps mvn/install :jar '\"foo-1.2.3.jar\"'"
-  [{:keys [jar pom lib version classifier local-repo] :as opts}]
+  [{:keys [jar pom lib version classifier local-repo]}]
   (println "Installing" jar (if pom (str "and " pom) ""))
   (let [{:keys [pom-file group-id artifact-id version classifier]}
         (cond
