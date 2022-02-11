@@ -248,14 +248,23 @@
 (defn mvn-pom
   "Sync or create pom.xml from deps.edn.
 
-  Options:
+  This program accepts the same basis-modifying arguments from the `basis` program.
+  Each dep source value can be :standard, a string path, a deps edn map, or nil.
+  Sources are merged in the order - :root, :user, :project, :extra.
+
+  Basis options:
+    :root    - dep source, default = :standard
+    :user    - dep source, default = :standard
+    :project - dep source, default = :standard (\"./deps.edn\")
+    :extra   - dep source, default = nil
+    :aliases - coll of kw aliases of argmaps to apply to subprocesses
+
+  Deprecated options (use the basis :aliases above instead):
     :argmaps - vector of aliases to combine into argmaps to resolve-deps and make-classpath"
-  [{:keys [argmaps]}]
+  [{:keys [argmaps] :as opts}]
   (try
-    (let [{:keys [root-edn user-edn project-edn]} (deps/find-edn-maps)
-          merged (deps/merge-edns [root-edn user-edn project-edn])
-          args (deps/combine-aliases merged argmaps)
-          basis (deps/calc-basis merged {:resolve-args args, :classpath-args args})
+    (let [opts' (if argmaps (assoc opts :aliases (vec (concat argmaps (:aliases opts)))) opts)
+          basis (deps/create-basis opts')
           ;; treat all transitive deps as top-level deps
           updated-deps (reduce-kv (fn [m lib {:keys [dependents] :as coord}]
                                     (if (seq dependents) m (assoc m lib coord)))
