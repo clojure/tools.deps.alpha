@@ -41,15 +41,6 @@
       #(cond-> % (and (map? %) (:git/url %)) f)
       deps-map)))
 
-(defn- print-bindings []
-  ;; this is complicated because this conditionally includes
-  ;; *print-namespace-maps* if it exists (in Clojure 1.9)
-  (merge
-    {#'pp/*print-right-margin* 100
-     #'pp/*print-miser-width* 80}
-    (when-let [pnm (resolve 'clojure.core/*print-namespace-maps*)]
-      {pnm false})))
-
 (defn exec
   [{:keys [deps-file]}]
   (try
@@ -61,7 +52,9 @@
           (printerrln "No unresolved tags found.")
           (spit deps-file
             (with-out-str
-              (with-bindings (print-bindings)
+              (with-bindings {#'pp/*print-right-margin* 100
+                              #'pp/*print-miser-width* 80
+                              #'*print-namespace-maps* false}
                 (pp/pprint resolved-map)))))))
     (catch Throwable t
       (printerrln "Error resolving tags." (.getMessage t))
