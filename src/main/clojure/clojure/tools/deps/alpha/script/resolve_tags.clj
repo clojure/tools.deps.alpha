@@ -13,6 +13,7 @@
     [clojure.pprint :as pp]
     [clojure.walk :as walk]
     [clojure.tools.deps.alpha :as deps]
+    [clojure.tools.deps.alpha.extensions.git :as git]
     [clojure.tools.deps.alpha.util.io :refer [printerrln]]
     [clojure.tools.gitlibs :as gitlibs]
     [clojure.tools.cli :as cli])
@@ -23,22 +24,36 @@
   [[nil "--deps-file PATH" "deps.edn file to update"]])
 
 (defn- resolve-git-dep
-  [counter {:keys [git/url sha tag] :as git-coord}]
-  (if tag
-    (let [new-sha (gitlibs/resolve url tag)]
-      (if (= sha new-sha)
-        git-coord ;; no change
-        (do
-          (printerrln "Resolved" tag "=>" new-sha "in" url)
-          (swap! counter inc)
-          (assoc git-coord :sha new-sha))))
-    git-coord))
+  [counter lib {untag :tag, unsha :sha, :git/keys [url tag sha] :as git-coord}]
+  (let [the-url (or url (git/auto-git-url lib))
+        the-tag (or tag untag)
+        the-sha (or sha unsha)]
+    (if the-tag
+      (let [new-sha (gitlibs/resolve the-url the-tag)]
+        (if (= the-sha new-sha)
+          git-coord ;; no change
+          (do
+            (printerrln "Resolved" the-tag "=>" new-sha "in" the-url)
+            (swap! counter inc)
+            (cond-> {:git/tag the-tag
+                     :git/sha (subs new-sha 0 7)}
+              url (assoc :git/url url)))))
+      git-coord)))
 
 (defn- resolve-git-deps
   [counter deps-map]
   (let [f (partial resolve-git-dep counter)]
     (walk/postwalk
-      #(cond-> % (and (map? %) (:git/url %)) f)
+      (fn [node]
+        (if (map? node)
+          (reduce-kv
+            (fn [new-deps k v]
+              (if (and (symbol? k) (map? v)
+                    (contains? (->> v keys (map namespace) set) "git"))
+                (assoc new-deps k (resolve-git-dep counter k v))
+                new-deps))
+            node node)
+          node))
       deps-map)))
 
 (defn exec
