@@ -6,6 +6,7 @@ Changelog
 * next
   * TDEPS-203 - In -X:deps prep - add support for basis settings, including aliases
   * -X:deps tree - now takes basis settings
+  * -X:deps list - put license abbreviation list in a resource and load on demand
 * 0.12.1135 on Feb 2, 2022
   * TDEPS-216 - Built-in :deps alias should remove project paths from classpath
   * Improve error if git sha is not found in git repo

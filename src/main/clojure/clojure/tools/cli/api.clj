@@ -10,6 +10,7 @@
   "This api provides functions that can be executed from the Clojure tools using -X:deps."
   (:refer-clojure :exclude [list])
   (:require
+    [clojure.edn :as edn]
     [clojure.java.io :as jio]
     [clojure.pprint :as pprint]
     [clojure.string :as str]
@@ -169,41 +170,16 @@
          :aliases [:foo]})
   )
 
-;; useful resource: https://github.com/spdx/license-list-data
 (def ^:private license-abbrev
-  {"3-Clause BSD License" "BSD-3-Clause-Attribution"
-   "Apache 2.0" "Apache-2.0"
-   "Apache License 2.0" "Apache-2.0"
-   "Apache License Version 2.0" "Apache-2.0"
-   "Apache License, Version 2.0" "Apache-2.0"
-   "Apache Software License - Version 2.0" "Apache-2.0"
-   "Apache v2" "Apache-2.0"
-   "BSD 3-Clause License" "BSD-3-Clause-Attribution"
-   "Eclipse Public License" "EPL-1.0"
-   "Eclipse Public License (EPL)" "EPL-1.0"
-   "Eclipse Public License - v 1.0" "EPL-1.0"
-   "Eclipse Public License 1.0" "EPL-1.0"
-   "Eclipse Public License, Version 1.0" "EPL-1.0"
-   "Eclipse Public License 2.0" "EPL-2.0"
-   "Eclipse Public License version 2" "EPL-2.0"
-   "GNU Affero General Public License (AGPL) version 3.0" "AGPL-3.0"
-   "GNU General Public License, version 2 (GPL2), with the classpath exception" "GPL-2.0-with-classpath-exception"
-   "GNU General Public License, version 2 with the GNU Classpath Exception" "GPL-2.0-with-classpath-exception"
-   "GNU General Public License, version 2" "GPL-2.0"
-   "GNU Lesser General Public License (LGPL)" "LGPL"
-   "JSON License" "JSON"
-   "MIT License" "MIT"
-   "MIT license" "MIT"
-   "Mozilla Public License" "MPL"
-   "The Apache Software License, Version 2.0" "Apache-2.0"
-   "The BSD 3-Clause License (BSD3)" "BSD-3-Clause-Attribution"
-   "The MIT License" "MIT"})
+  (delay
+    (-> "clojure/tools/deps/license-abbrev.edn" jio/resource slurp edn/read-string)))
 
 (defn- license-string
   [info license-mode]
-  (let [license-name (when (#{:full :short} license-mode) (:name info))]
+  (let [abbrevs @license-abbrev
+        license-name (when (#{:full :short} license-mode) (:name info))]
     (if (and license-name (= license-mode :short))
-      (get license-abbrev license-name license-name)
+      (get abbrevs license-name license-name)
       license-name)))
 
 (defn list
@@ -254,6 +230,11 @@
               info (:license coord)
               license-string (license-string info license-mode)]
           (println summary (if license-string (str " (" license-string ")") "")))))))
+
+(comment
+  (list nil)
+  @license-abbrev
+  )
 
 ;;;; git resolve-tags
 
