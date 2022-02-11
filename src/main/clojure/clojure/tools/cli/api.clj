@@ -75,16 +75,26 @@
 
 (defn prep
   "Prep the unprepped libs found in the transitive lib set of basis.
-  If no basis is provided, create and use the default project basis.
+
+  This program accepts the same basis-modifying arguments from the `basis` program.
+  Each dep source value can be :standard, a string path, a deps edn map, or nil.
+  Sources are merged in the order - :root, :user, :project, :extra.
 
   Options:
     :basis - basis to prep. If not provided, use (create-basis nil).
     :force - flag on whether to force prepped libs to re-prep (default = false)
     :log - :none, :info (default), or :debug
 
-  Returns params modified."
-  [{:keys [basis force log] :or {log :info} :as params}]
-  (let [use-basis (or basis (deps/create-basis nil))
+  Basis options:
+    :root    - dep source, default = :standard
+    :user    - dep source, default = :standard
+    :project - dep source, default = :standard (\"./deps.edn\")
+    :extra   - dep source, default = nil
+    :aliases - coll of kw aliases of argmaps to apply to subprocesses
+
+  Returns params used."
+  [{:keys [force log] :or {log :info} :as params}]
+  (let [use-basis (deps/create-basis params)
         opts {:action (if force :force :prep)
               :log log}]
     (deps/prep-libs! (:libs use-basis) opts basis)
@@ -92,13 +102,13 @@
 
 (comment
   (do
-    (-> {:root {:mvn/repos mvn/standard-repos, :deps nil}
-         :project {:deps '{org.clojure/clojure {:mvn/version "1.10.3"}
-                           io.github.puredanger/cool-lib
-                           {:git/sha "657d5ce88be340ab2a6c0befeae998366105be84"}}}
-         :log :debug}
-      basis
-      prep)
+    (prep
+      {:root {:mvn/repos mvn/standard-repos, :deps nil}
+       :project {:deps '{org.clojure/clojure {:mvn/version "1.10.3"}
+                         io.github.puredanger/cool-lib
+                         {:git/sha "657d5ce88be340ab2a6c0befeae998366105be84"}}}
+       :log :debug
+       :force true})
     nil)
   )
 
