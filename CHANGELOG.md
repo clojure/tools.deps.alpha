@@ -3,7 +3,7 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.3/CHANGELOG.md)*
 
-* next
+* 0.12.1148 on Feb 11, 2022
   * TDEPS-203 - In `-X:deps prep` - now takes basis settings, including aliases
   * TDEPS-197 - `-X:deps git-resolve-tags` now resolves to :git/tag and :git/sha
   * `-X:deps tree` - now takes basis settings
