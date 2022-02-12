@@ -1,7 +1,7 @@
 <html>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>clojure.tools.cli.api - tools.deps.alpha 0.12.1085-SNAPSHOT API documentation</title>
+    <title>clojure.tools.cli.api - tools.deps.alpha 0.12.1149-SNAPSHOT API documentation</title>
     <link rel="icon" href="static/favicon.png" />
     <link rel="shortcut icon" href="static/favicon.png" />
     <link rel="stylesheet" href="static/clojure.css" type="text/css" media="all" />
@@ -25,7 +25,7 @@ namespace.
       <div id="leftcolumn"><div style="text-align: center;"></div>
 <div class="menu">
   <div class="WikiCustomNav WikiElement wiki">
-    <span class="toc-header"><span id="project-name">tools.deps.alpha</span> <span id="version">0.12.1085-SNAPSHOT</span> API</span><br />
+    <span class="toc-header"><span id="project-name">tools.deps.alpha</span> <span id="version">0.12.1149-SNAPSHOT</span> API</span><br />
     <ul>
       <li><a href="index.html" class="wiki_link">Overview</a></li>
       <li><a href="api-index.html" class="wiki_link">API Index</a></li>
@@ -90,7 +90,7 @@ namespace.
 </div>
 </div>
                 <div id="content-tag"><h1 id="overview">API for <span id="clojure.tools.cli.api">clojure.tools.cli.api</span>
-  - <span id="header-project">tools.deps.alpha</span> <span id="header-version">0.12.1085-SNAPSHOT</span><span id="header-status-block"> (<span id="header-status">in development</span>)</span>
+  - <span id="header-project">tools.deps.alpha</span> <span id="header-version">0.12.1149-SNAPSHOT</span><span id="header-status-block"> (<span id="header-status">in development</span>)</span>
   </h1>
 
 <br />Full namespace name: <span id="long-name">clojure.tools.cli.api</span>
@@ -150,7 +150,7 @@ Returns {:basis basis}, which basis is initial deps edn map plus these keys:
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/f7f86ea757585ab5b28ccef7c4d77b0201a60522/src/main/clojure/clojure/tools/cli/api.clj#L38">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/ef927e3bcf31de8ba782b6ce3fefe0434dcc861f/src/main/clojure/clojure/tools/cli/api.clj#L39">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
@@ -164,7 +164,7 @@ procurers and print one coordinate per line when found.</pre>
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/f7f86ea757585ab5b28ccef7c4d77b0201a60522/src/main/clojure/clojure/tools/cli/api.clj#L357">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/ef927e3bcf31de8ba782b6ce3fefe0434dcc861f/src/main/clojure/clojure/tools/cli/api.clj#L371">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
@@ -176,7 +176,7 @@ procurers and print one coordinate per line when found.</pre>
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/f7f86ea757585ab5b28ccef7c4d77b0201a60522/src/main/clojure/clojure/tools/cli/api.clj#L236">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/ef927e3bcf31de8ba782b6ce3fefe0434dcc861f/src/main/clojure/clojure/tools/cli/api.clj#L241">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
@@ -215,13 +215,13 @@ The libs are printed to the console.</pre>
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/f7f86ea757585ab5b28ccef7c4d77b0201a60522/src/main/clojure/clojure/tools/cli/api.clj#L185">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/ef927e3bcf31de8ba782b6ce3fefe0434dcc861f/src/main/clojure/clojure/tools/cli/api.clj#L185">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
     <h2 id="clojure.tools.cli.api/mvn-install">mvn-install</h2>
     <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (mvn-install {:keys [jar pom lib version classifier local-repo], :as opts})
+    <pre id="var-usage">Usage: (mvn-install {:keys [jar pom lib version classifier local-repo]})
 </pre>
     <pre id="var-docstr">Install a jar and pom to the Maven local cache.
 The pom file must either be supplied, or generated based
@@ -248,42 +248,63 @@ Execute ad-hoc:
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/f7f86ea757585ab5b28ccef7c4d77b0201a60522/src/main/clojure/clojure/tools/cli/api.clj#L316">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/ef927e3bcf31de8ba782b6ce3fefe0434dcc861f/src/main/clojure/clojure/tools/cli/api.clj#L330">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
     <h2 id="clojure.tools.cli.api/mvn-pom">mvn-pom</h2>
     <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (mvn-pom {:keys [argmaps]})
+    <pre id="var-usage">Usage: (mvn-pom {:keys [argmaps], :as opts})
 </pre>
     <pre id="var-docstr">Sync or create pom.xml from deps.edn.
 
-Options:
+This program accepts the same basis-modifying arguments from the `basis` program.
+Each dep source value can be :standard, a string path, a deps edn map, or nil.
+Sources are merged in the order - :root, :user, :project, :extra.
+
+Basis options:
+  :root    - dep source, default = :standard
+  :user    - dep source, default = :standard
+  :project - dep source, default = :standard ("./deps.edn")
+  :extra   - dep source, default = nil
+  :aliases - coll of kw aliases of argmaps to apply to subprocesses
+
+Deprecated options (use the basis :aliases above instead):
   :argmaps - vector of aliases to combine into argmaps to resolve-deps and make-classpath</pre>
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/f7f86ea757585ab5b28ccef7c4d77b0201a60522/src/main/clojure/clojure/tools/cli/api.clj#L243">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/ef927e3bcf31de8ba782b6ce3fefe0434dcc861f/src/main/clojure/clojure/tools/cli/api.clj#L248">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
     <h2 id="clojure.tools.cli.api/prep">prep</h2>
     <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (prep {:keys [basis force log], :or {log :info}, :as params})
+    <pre id="var-usage">Usage: (prep {:keys [force log], :or {log :info}, :as params})
 </pre>
     <pre id="var-docstr">Prep the unprepped libs found in the transitive lib set of basis.
-If no basis is provided, create and use the default project basis.
+
+This program accepts the same basis-modifying arguments from the `basis` program.
+Each dep source value can be :standard, a string path, a deps edn map, or nil.
+Sources are merged in the order - :root, :user, :project, :extra.
 
 Options:
   :basis - basis to prep. If not provided, use (create-basis nil).
   :force - flag on whether to force prepped libs to re-prep (default = false)
   :log - :none, :info (default), or :debug
 
-Returns params modified.</pre>
+Basis options:
+  :root    - dep source, default = :standard
+  :user    - dep source, default = :standard
+  :project - dep source, default = :standard ("./deps.edn")
+  :extra   - dep source, default = nil
+  :aliases - coll of kw aliases of argmaps to apply to subprocesses
+
+Returns params used.</pre>
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/f7f86ea757585ab5b28ccef7c4d77b0201a60522/src/main/clojure/clojure/tools/cli/api.clj#L76">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/ef927e3bcf31de8ba782b6ce3fefe0434dcc861f/src/main/clojure/clojure/tools/cli/api.clj#L77">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
@@ -292,7 +313,11 @@ Returns params modified.</pre>
     <pre id="var-usage">Usage: (tree opts)
 </pre>
     <pre id="var-docstr">Print deps tree for the current project's deps.edn built from either the
-current directory deps.edn, or if provided, the trace file.
+a basis, or if provided, the trace file.
+
+This program accepts the same basis-modifying arguments from the `basis` program.
+Each dep source value can be :standard, a string path, a deps edn map, or nil.
+Sources are merged in the order - :root, :user, :project, :extra.
 
 By default, :format will :print to the console in a human friendly tree. Use
 :edn mode to print the tree to edn.
@@ -300,7 +325,14 @@ By default, :format will :print to the console in a human friendly tree. Use
 In print mode, deps are printed with prefix of either . (included) or X (excluded).
 A reason code for inclusion/exclusion may be added at the end of the line.
 
-Input options:
+Basis options:
+  :root    - dep source, default = :standard
+  :user    - dep source, default = :standard
+  :project - dep source, default = :standard ("./deps.edn")
+  :extra   - dep source, default = nil
+  :aliases - coll of kw aliases of argmaps to apply to subprocesses
+
+Input options (if provided, basis options ignored):
   :file      Path to trace.edn file (from clj -Strace) to use in computing the tree
 
 Output mode:
@@ -312,7 +344,7 @@ Print output mode modifiers:
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/f7f86ea757585ab5b28ccef7c4d77b0201a60522/src/main/clojure/clojure/tools/cli/api.clj#L112">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/ef927e3bcf31de8ba782b6ce3fefe0434dcc861f/src/main/clojure/clojure/tools/cli/api.clj#L116">Source</a>
   </div>
 </div>
 
