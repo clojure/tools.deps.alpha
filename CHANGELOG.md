@@ -3,6 +3,8 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.3/CHANGELOG.md)*
 
+* next
+  * Fix error message when git url missing or not inferred
 * 0.12.1153 on Feb 21, 2022
   * TDEPS-222 Make Clojure dependency in pom a compile dependency, not provided
 * 0.12.1148 on Feb 11, 2022

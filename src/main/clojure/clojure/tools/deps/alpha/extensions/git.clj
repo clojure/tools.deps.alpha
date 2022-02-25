@@ -94,20 +94,22 @@
 
 (defmethod ext/manifest-type :git
   [lib coord config]
-  (let [[lib {:git/keys [url sha] :deps/keys [manifest root]}] (to-canonical lib coord config)
-        sha-dir (gitlibs/procure url lib sha)]
-    (if sha-dir
-      (let [root-dir (if root
-                       (let [root-file (jio/file root)]
-                         (if (.isAbsolute root-file) ;; should be only after coordinate resolution
-                           (.getCanonicalPath root-file)
-                           (.getCanonicalPath (jio/file sha-dir root-file))))
-                       sha-dir)]
-        (if manifest
-          {:deps/manifest manifest, :deps/root root-dir}
-          (ext/detect-manifest root-dir)))
-      (throw (ex-info (format "Commit not found for %s in repo %s at %s" lib url sha)
-               {:lib lib :coord coord})))))
+  (let [[lib {:git/keys [url sha] :deps/keys [manifest root]}] (to-canonical lib coord config)]
+    (when-not url
+      (throw (ex-info (format ":git/url not found or inferred for %s" lib) {:lib lib :coord coord})))
+    (let [sha-dir (gitlibs/procure url lib sha)]
+      (if sha-dir
+        (let [root-dir (if root
+                         (let [root-file (jio/file root)]
+                           (if (.isAbsolute root-file) ;; should be only after coordinate resolution
+                             (.getCanonicalPath root-file)
+                             (.getCanonicalPath (jio/file sha-dir root-file))))
+                         sha-dir)]
+          (if manifest
+            {:deps/manifest manifest, :deps/root root-dir}
+            (ext/detect-manifest root-dir)))
+        (throw (ex-info (format "Commit not found for %s in repo %s at %s" lib url sha)
+                 {:lib lib :coord coord}))))))
 
 (defmethod ext/coord-summary :git [lib coord]
   (let [[lib {:git/keys [url sha]}] (to-canonical lib coord nil)]
