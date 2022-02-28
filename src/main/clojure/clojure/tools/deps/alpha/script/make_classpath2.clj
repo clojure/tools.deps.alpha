@@ -125,11 +125,14 @@
                        (if (keyword? arg-kw)
                          (assoc execute-args :exec-args (get-in merge-edn [:aliases arg-kw]))
                          execute-args))
-        basis (when-not skip-cp (deps/calc-basis merge-edn
-                                  (cond-> {}
-                                    resolve-args (assoc :resolve-args resolve-args)
-                                    cp-args (assoc :classpath-args cp-args)
-                                    execute-args (assoc :execute-args execute-args))))
+        basis (if skip-cp
+                (when (pos? (count execute-args))
+                  {:execute-args execute-args})
+                (deps/calc-basis merge-edn
+                  (cond-> {}
+                    resolve-args (assoc :resolve-args resolve-args)
+                    cp-args (assoc :classpath-args cp-args)
+                    execute-args (assoc :execute-args execute-args))))
 
         ;; check for unprepped libs
         _ (deps/prep-libs! (:libs basis) {:action :error} basis)

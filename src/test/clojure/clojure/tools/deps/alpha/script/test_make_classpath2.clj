@@ -163,6 +163,15 @@
                              :skip-cp true})]
     (is (nil? basis))))
 
+;; skip-cp flag still passes exec-args for -X or -T
+(deftest skip-cp-exec
+  (let [basis (mc/run-core {:install-deps install-data
+                            :project-deps {:deps {'org.clojure/clojure {:mvn/version "1.10.0"}}
+                                           :aliases {:x {:exec-fn 'clojure.core/prn :exec-args {:a 1}}}}
+                            :exec-aliases [:x]
+                            :skip-cp true})]
+    (is (= {:execute-args {:exec-fn 'clojure.core/prn :exec-args {:a 1}}} basis))))
+
 (deftest removing-deps
   (let [basis (mc/run-core {:install-deps install-data
                             :user-deps {:aliases

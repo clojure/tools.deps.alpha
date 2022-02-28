@@ -5,6 +5,7 @@ Changelog
 
 * next
   * Fix error message when git url missing or not inferred
+  * Pass :exec-fn and :exec-args to -X/-T even when using -Scp
 * 0.12.1153 on Feb 21, 2022
   * TDEPS-222 Make Clojure dependency in pom a compile dependency, not provided
 * 0.12.1148 on Feb 11, 2022
