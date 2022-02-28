@@ -3,7 +3,7 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.3/CHANGELOG.md)*
 
-* next
+* 0.12.1158 on Feb 28, 2022
   * Fix error message when git url missing or not inferred
   * Pass :exec-fn and :exec-args to -X/-T even when using -Scp
 * 0.12.1153 on Feb 21, 2022
