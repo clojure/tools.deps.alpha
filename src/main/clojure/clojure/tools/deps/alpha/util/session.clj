@@ -27,6 +27,13 @@
        (apply [_f _k]
          (if-absent-fn))))))
 
+(defn retrieve-local
+  "Like retrieve, but scoped to a thread-specific key, so never shared across threads."
+  ([key]
+   (retrieve {:thread (.getId (Thread/currentThread)) :key key}))
+  ([key if-absent-fn]
+   (retrieve {:thread (.getId (Thread/currentThread)) :key key} if-absent-fn)))
+
 (defmacro with-session
   "Create a new empty session and execute the body"
   [& body]
