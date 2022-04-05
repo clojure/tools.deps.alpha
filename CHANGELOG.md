@@ -3,6 +3,8 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.3/CHANGELOG.md)*
 
+* next
+  * Change default Clojure version to 1.11.1 in root deps.edn
 * 0.13.1168 on Mar 25, 2022
   * Change default Clojure version to 1.11.0 in root deps.edn
 * 0.12.1162 on Mar 21, 2022
