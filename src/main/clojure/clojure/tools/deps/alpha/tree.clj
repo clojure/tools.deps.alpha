@@ -9,7 +9,7 @@
 (ns clojure.tools.deps.alpha.tree
   (:require
     [clojure.walk :as walk]
-    [clojure.tools.deps.alpha] ;; load extensions
+    [clojure.tools.deps.alpha :as deps]
     [clojure.tools.deps.alpha.extensions :as ext]))
 
 ;; Data manipulation
@@ -44,6 +44,35 @@
                       tree)]
           (recur steps (inc i) (assoc-in tree' tree-path nstep)))
         tree))))
+
+(defn calc-trace
+  "Like calc-basis, but create and return the dep expansion trace. The trace
+  can be passed to trace->tree to get tree data.
+
+  The opts map includes the same opts accepted by clojure.tools.deps.alpha/create-basis.
+  By default, uses the   root, user, and project deps and no argmaps (essentially the same
+  classpath you get by default from the Clojure CLI).
+
+  Each dep source value can be :standard, a string path, a deps edn map, or nil.
+  Sources are merged in the order - :root, :user, :project, :extra.
+
+  Aliases refer to argmaps in the merged deps that will be supplied to the basis
+  subprocesses (tool, resolve-deps, make-classpath-map).
+
+  Options:
+    :root    - dep source, default = :standard
+    :user    - dep source, default = :standard
+    :project - dep source, default = :standard (\"./deps.edn\")
+    :extra   - dep source, default = nil
+    :aliases - coll of aliases of argmaps to apply to subprocesses"
+  ([] (calc-trace nil))
+  ([opts]
+   (let [{:keys [extra aliases]} opts
+         trace-opts (merge opts
+                      {:extra (assoc-in extra [:aliases :__TRACE__ :trace] true)}
+                      {:aliases (conj (or aliases []) :__TRACE__)})]
+
+     (-> trace-opts deps/create-basis :libs meta :trace))))
 
 ;; Printing
 

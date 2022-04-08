@@ -148,11 +148,7 @@
     (let [{:keys [file format] :or {format :print}} opts
           trace (if file
                   (io/slurp-edn file)
-                  (let [{:keys [extra aliases]} opts
-                        trace-opts (merge opts
-                                     {:extra (assoc-in extra [:aliases :__TRACE__ :trace] true)}
-                                     {:aliases (conj (or aliases []) :__TRACE__)})]
-                    (-> trace-opts deps/create-basis :libs meta :trace)))
+                  (tree/calc-trace opts))
           tree (tree/trace->tree trace)]
       (case format
         :print (tree/print-tree tree opts)
