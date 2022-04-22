@@ -3,7 +3,7 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.3/CHANGELOG.md)*
 
-* next
+* 0.14.1178 on Apr 22, 2022
   * TDEPS-153 More fixes for concurrency issues in maven downloads
   * TDEPS-225 Add clojure.tools.deps.alpha.tree/calc-trace api
 * 0.14.1173 on Apr 5, 2022
