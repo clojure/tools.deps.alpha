@@ -37,8 +37,8 @@
 (defn- model-resolver
   ^ModelResolver [{:keys [mvn/repos mvn/local-repo]} settings]
   (let [local-repo (or local-repo @maven/cached-local-repo)
-        locator ^ServiceLocator @maven/the-locator
-        system (maven/make-system)
+        locator (maven/make-locator)
+        system (maven/make-system locator)
         session (maven/make-session system settings local-repo)
         repo-mgr (doto (DefaultRemoteRepositoryManager.) (.initService locator))
         repos (maven/remote-repos repos settings)]

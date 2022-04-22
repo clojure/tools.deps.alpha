@@ -159,24 +159,28 @@
 
 ;; Maven system and session
 
-;; Delay creation, but then cache Maven ServiceLocator instance
+(defn make-locator
+  ^ServiceLocator []
+  (let [^DefaultServiceLocator loc
+        (doto (MavenRepositorySystemUtils/newServiceLocator)
+          (.addService RepositoryConnectorFactory BasicRepositoryConnectorFactory)
+          (.addService TransporterFactory FileTransporterFactory)
+          (.addService TransporterFactory HttpTransporterFactory))]
+    (try
+      (let [c (Class/forName "clojure.tools.deps.alpha.util.S3TransporterFactory")]
+        (.addService loc TransporterFactory c))
+      (catch ClassNotFoundException _
+        (printerrln "Warning: failed to load the S3TransporterFactory class")
+        loc))))
+
 (def the-locator
-  (delay
-    (let [^DefaultServiceLocator loc
-          (doto (MavenRepositorySystemUtils/newServiceLocator)
-            (.addService RepositoryConnectorFactory BasicRepositoryConnectorFactory)
-            (.addService TransporterFactory FileTransporterFactory)
-            (.addService TransporterFactory HttpTransporterFactory))]
-      (try
-        (let [c (Class/forName "clojure.tools.deps.alpha.util.S3TransporterFactory")]
-          (.addService loc TransporterFactory c))
-        (catch ClassNotFoundException _
-          (printerrln "Warning: failed to load the S3TransporterFactory class")
-          loc)))))
+  (delay (make-locator)))
 
 (defn make-system
-  ^RepositorySystem []
-  (.getService ^ServiceLocator @the-locator RepositorySystem))
+  (^RepositorySystem []
+   (make-system (make-locator)))
+  (^RepositorySystem [^ServiceLocator locator]
+   (.getService locator RepositorySystem)))
 
 (def ^TransferListener console-listener
   (reify TransferListener

@@ -4,6 +4,7 @@ Changelog
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.3/CHANGELOG.md)*
 
 * next
+  * TDEPS-153 More fixes for concurrency issues in maven downloads
   * TDEPS-225 Add clojure.tools.deps.alpha.tree/calc-trace api
 * 0.14.1173 on Apr 5, 2022
   * Change default Clojure version to 1.11.1 in root deps.edn
