@@ -56,7 +56,11 @@
         is ^InputStream (:Body s3-response)]
     (if is
       (stream-copy output-stream is offset on-read)
-      (throw (ex-info "Artifact not found" {:bucket bucket, :path path, :reason :cognitect.anomalies/not-found})))))
+      (let [{:keys [cognitect.anomalies/category cognitect.http-client/throwable cognitect.anomalies/message]} s3-response]
+        (if (#{:cognitect.anomalies/forbidden :cognitect.anomalies/not-found} category)
+          (throw (ex-info "Artifact not found" {:bucket bucket, :path path, :reason category}))
+          (throw (ex-info (format "Unexpected error downloading artifact from %s" bucket)
+                   {:bucket bucket, :path path, :reason category} throwable)))))))
 
 ;; s3://BUCKET/PATH?region=us-east-1
 (defn parse-url
@@ -103,7 +107,7 @@
           (.transportStarted listener offset -1)
           (s3-get-object s3-client bucket full-path os offset #(.transportProgressed listener %))))
       (classify [_ throwable]
-        (if (= (-> throwable ex-data :reason) :cognitect.anomalies/not-found)
+        (if (#{:cognitect.anomalies/forbidden :cognitect.anomalies/not-found} (-> throwable ex-data :reason))
           Transporter/ERROR_NOT_FOUND
           Transporter/ERROR_OTHER))
       ;;(put [_ ^PutTask put-task])   ;; not supported
@@ -112,8 +116,9 @@
 
 (comment
   (require '[cognitect.aws.client.api :as aws] 'clojure.repl)
-  (def s3-client (aws/client {:api :s3
-                              :region :us-east-1})) ;; use ambient creds
+  ;; use ambient creds
+  (def s3-client (aws/client {:api :s3 :region :us-east-1}))
+
 
   (def resp (aws/invoke s3-client {:op :GetObject
                                    :request {:Bucket "datomic-releases-1fc2183a"
