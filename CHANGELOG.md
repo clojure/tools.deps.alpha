@@ -5,6 +5,7 @@ Changelog
 
 * next
   * TDEPS-226 More nunanced error handling for s3 downloads
+  * Better error message when git url can't be inferred
 * 0.14.1178 on Apr 22, 2022
   * TDEPS-153 More fixes for concurrency issues in maven downloads
   * TDEPS-225 Add clojure.tools.deps.alpha.tree/calc-trace api
