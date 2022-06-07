@@ -61,6 +61,8 @@
   (let [canon-sha (or sha unsha)
         canon-tag (or tag untag)
         canon-url (or url (auto-git-url lib))]
+    (when (nil? canon-url)
+      (throw (coord-err (format "Failed to infer git url for: %s" lib) lib coord)))
     (when (and canon-tag (not (some #{canon-tag} (gitlibs/tags canon-url))))
       (throw (coord-err (format "Library %s has invalid tag: %s" lib canon-tag) lib coord)))
     (if canon-sha
@@ -147,6 +149,8 @@
 (defmethod ext/find-versions :git
   [lib coord _coord-type config]
   (let [url (or (:git/url coord) (auto-git-url lib))]
+    (when (nil? url)
+      (throw (coord-err (format "Failed to determine git url for: %s" lib) lib coord)))
     (try
       (map (fn [tag] {:git/tag tag}) (gitlibs/tags url))
       (catch Throwable _ nil))))

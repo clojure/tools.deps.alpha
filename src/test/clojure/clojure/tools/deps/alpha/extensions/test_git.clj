@@ -50,6 +50,10 @@
   (is (thrown-with-msg? ExceptionInfo #"Coord of unknown type"
         (ext/canonicalize 'io.github.clojure/tools.deps.alpha {} {})))
 
+  ;; can't infer :git/url and none specified
+  (is (thrown-with-msg? ExceptionInfo #"Failed to infer git url for: org.clojure/tools.deps.alpha"
+        (ext/canonicalize 'org.clojure/tools.deps.alpha {:git/sha "9bf5778dc26dd5018dbf04fc8e7dbb32ddc4036c"} {})))
+
   ;; both :sha and :git/sha
   (is (thrown-with-msg? ExceptionInfo #"git coord has both :sha and :git/sha for io.github.clojure/tools.deps.alpha"
         (ext/canonicalize 'io.github.clojure/tools.deps.alpha {:sha "9bf5778dc26dd5018dbf04fc8e7dbb32ddc4036c"
