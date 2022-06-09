@@ -761,6 +761,21 @@
     :else (throw (ex-info (format "Unexpected dep source: %s" (pr-str requested))
                    {:requested requested}))))
 
+(defn create-edn-maps
+  "Create a set of edn maps from the standard dep sources and return
+   them in a map with keys :root :user :project :extra"
+  [{:keys [root user project extra] :as params
+    :or {root :standard, user :standard, project :standard}}]
+  (let [root-edn (choose-deps root #(root-deps))
+        user-edn (choose-deps user #(-> (user-deps-path) jio/file dir/canonicalize slurp-deps))
+        project-edn (choose-deps project #(-> "deps.edn" jio/file dir/canonicalize slurp-deps))
+        extra-edn (choose-deps extra (constantly nil))]
+    (cond-> {}
+      root-edn (assoc :root root-edn)
+      user-edn (assoc :user user-edn)
+      project-edn (assoc :project project-edn)
+      extra-edn (assoc :extra extra-edn))))
+
 (defn create-basis
   "Create a basis from a set of deps sources and a set of aliases. By default, use
    root, user, and project deps and no argmaps (essentially the same classpath you get by
@@ -795,12 +810,8 @@
     :libs - lib map, per resolve-deps
     :classpath - classpath map per make-classpath-map
     :classpath-roots - vector of paths in classpath order"
-  [{:keys [root user project extra aliases] :as params
-    :or {root :standard, user :standard, project :standard}}]
-  (let [root-edn (choose-deps root #(root-deps))
-        user-edn (choose-deps user #(-> (user-deps-path) jio/file dir/canonicalize slurp-deps))
-        project-edn (choose-deps project #(-> "deps.edn" jio/file dir/canonicalize slurp-deps))
-        extra-edn (choose-deps extra (constantly nil))
+  [{:keys [aliases] :as params}]
+  (let [{:keys [root-edn :root user-edn :user project-edn :project extra-edn :extra]} (create-edn-maps params)
         edn-maps [root-edn user-edn project-edn extra-edn]
 
         alias-data (->> edn-maps

@@ -23,7 +23,8 @@
     [clojure.tools.deps.alpha.extensions.local :as local]
     [clojure.tools.deps.alpha.gen.pom :as gen-pom]
     [clojure.tools.deps.alpha.util.maven :as mvn]
-    [clojure.tools.deps.alpha.util.io :as io :refer [printerrln]])
+    [clojure.tools.deps.alpha.util.io :as io :refer [printerrln]]
+    [clojure.set :as set])
   (:import
     [java.io File FileNotFoundException IOException]
     [java.nio.file Files]
@@ -165,6 +166,54 @@
   (tree {:extra {:aliases {:foo {:extra-deps {'criterium/criterium {:mvn/version "0.4.0"}}}}}
          :aliases [:foo]})
   )
+
+(def ^:private cli-alias-keys
+  #{:deps :replace-deps :extra-deps :override-deps :default-deps
+    :paths :replace-paths :extra-paths :classpath-overrides
+    :exec-fn :exec-args :ns-default :ns-aliases
+    :main-opts :jvm-opts})
+
+(defn aliases
+  "List all aliases available for use with the CLI using -M, -X or -T execution
+  (note that some aliases may be usable with more than one of these). Also, the
+  deps.edn sources of the alias are specified.
+
+  This program accepts the same basis-modifying arguments from the `basis` program.
+  Each dep source value can be :standard, a string path, a deps edn map, or nil.
+  Sources are merged in the order - :root, :user, :project, :extra.
+
+  For example, to print only aliases defined in this project:
+    clj -X:deps aliases :root nil :user nil
+
+  Basis options:
+    :root    - dep source, default = :standard
+    :user    - dep source, default = :standard
+    :project - dep source, default = :standard (\"./deps.edn\")
+    :extra   - dep source, default = nil
+
+  The aliases are printed to the console."
+  [params]
+  (let [edn-srcs (deps/create-edn-maps params)
+        src-aliases (reduce-kv #(assoc %1 %2 (:aliases %3)) {} edn-srcs)
+        cli-aliases (reduce-kv
+                      (fn [m src aliases]
+                        (assoc m
+                          src
+                          (reduce-kv
+                            (fn [a alias alias-defn]
+                              (cond-> a
+                                (pos? (count (set/intersection cli-alias-keys (set (keys alias-defn)))))
+                                (assoc alias alias-defn)))
+                            {} aliases)))
+                      {} src-aliases)
+        all-aliases (->> cli-aliases (map val) (mapcat #(-> % keys sort)) distinct)]
+    (doseq [alias all-aliases]
+      (let [srcs (reduce-kv (fn [srcs src deps-edn]
+                              (if (contains? (:aliases deps-edn) alias)
+                                (conj srcs src)
+                                srcs))
+                   [] edn-srcs)]
+        (println alias (str "(" (str/join ", " (map name srcs)) ")"))))))
 
 (def ^:private license-abbrev
   (delay
