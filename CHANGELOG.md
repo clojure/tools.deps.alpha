@@ -3,9 +3,9 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.3/CHANGELOG.md)*
 
-* next
+* 0.14.1189 on Jun 11, 2022
   * Fix bug in create-basis from TDEPS-213
-* 0.14.1185
+* 0.14.1185 on Jun 9, 2022
   * TDEPS-213 Add `-X:deps aliases` to list available aliases
   * TDEPS-226 More nunanced error handling for s3 downloads
   * Better error message when git url can't be inferred
