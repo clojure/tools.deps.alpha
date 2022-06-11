@@ -811,7 +811,7 @@
     :classpath - classpath map per make-classpath-map
     :classpath-roots - vector of paths in classpath order"
   [{:keys [aliases] :as params}]
-  (let [{:keys [root-edn :root user-edn :user project-edn :project extra-edn :extra]} (create-edn-maps params)
+  (let [{root-edn :root user-edn :user project-edn :project extra-edn :extra} (create-edn-maps params)
         edn-maps [root-edn user-edn project-edn extra-edn]
 
         alias-data (->> edn-maps
