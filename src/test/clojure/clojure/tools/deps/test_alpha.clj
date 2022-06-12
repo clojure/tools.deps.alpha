@@ -421,3 +421,22 @@
              (reduce-kv #(assoc %1 (-> %2 name keyword) (:fkn/version %3)) {} res))
            (let [res (deps/resolve-deps {:deps {'ex/z {:fkn/version "1"}, 'ex/x {:fkn/version "1"}}} nil)]
              (reduce-kv #(assoc %1 (-> %2 name keyword) (:fkn/version %3)) {} res))))))
+
+(deftest test-create-basis
+  (fkn/with-libs
+    {'ex/a {{:fkn/version "1"} nil}
+     'ex/b {{:fkn/version "1"} nil}
+     'ex/c {{:fkn/version "1"} nil}}
+    (are [libs params] (= (set libs) (set (keys (:libs (deps/create-basis params)))))
+      ;; check pulling project sources
+      [] {:root nil :user nil :project nil}
+      ['ex/a] {:root {:deps {'ex/a {:fkn/version "1"}}} :user nil :project nil}
+      ['ex/a] {:root nil :user {:deps {'ex/a {:fkn/version "1"}}} :project nil}
+      ['ex/a] {:root nil :user nil :project {:deps {'ex/a {:fkn/version "1"}}}}
+      ['ex/a] {:root nil :user nil :project nil :extra {:deps {'ex/a {:fkn/version "1"}}}}
+
+      ;; check aliases
+      ['ex/a 'ex/b] {:root nil
+                     :project {:deps {'ex/a {:fkn/version "1"}}
+                               :aliases {:b {:extra-deps {'ex/b {:fkn/version "1"}}}}}
+                     :aliases [:b]})))
