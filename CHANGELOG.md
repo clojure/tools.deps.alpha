@@ -3,6 +3,8 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.3/CHANGELOG.md)*
 
+* next
+  * Set root dir context when prepping libs
 * 0.14.1189 on Jun 11, 2022
   * Fix bug in create-basis from TDEPS-213
 * 0.14.1185 on Jun 9, 2022

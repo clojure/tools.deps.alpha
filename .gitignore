@@ -6,3 +6,4 @@ target/
 .lein*
 project.clj
 .clj-kondo/.cache
+test-out/

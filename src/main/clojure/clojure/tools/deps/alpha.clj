@@ -693,18 +693,19 @@
                 (if (or (= action :force) (and unprepped (= action :prep)))
                   (do
                     (when (#{:info :debug} log) (println "Prepping" lib "in" root))
-                    (let [root-dir (jio/file root)
-                          basis (create-basis
-                                  {:project (.getAbsolutePath (jio/file root "deps.edn"))
-                                   :extra {:aliases {:deps/TOOL {:replace-deps {} :replace-paths ["."]}}}
-                                   :aliases [:deps/TOOL alias]})
-                          cp (join-classpath (:classpath-roots basis))
-                          qual-f (qualify-fn f (get-in basis [:aliases alias]))
-                          exit (exec-prep! root-dir cp qual-f)]
-                      (cond
-                        (zero? exit) ret
-                        (= exit 1) (throw (ex-info (format "Prep function could not be resolved: %s" qual-f) {:lib lib}))
-                        :else-prep-failed (throw (ex-info (format "Error building %s" lib) {:lib lib :exit exit})))))
+                    (let [root-dir (jio/file root)]
+                      (dir/with-dir root-dir
+                        (let [basis (create-basis
+                                      {:project :standard ;; deps.edn at root
+                                       :extra {:aliases {:deps/TOOL {:replace-deps {} :replace-paths ["."]}}}
+                                       :aliases [:deps/TOOL alias]})
+                              cp (join-classpath (:classpath-roots basis))
+                              qual-f (qualify-fn f (get-in basis [:aliases alias]))
+                              exit (exec-prep! root-dir cp qual-f)]
+                          (cond
+                            (zero? exit) ret
+                            (= exit 1) (throw (ex-info (format "Prep function could not be resolved: %s" qual-f) {:lib lib}))
+                            :else-prep-failed (throw (ex-info (format "Error building %s" lib) {:lib lib :exit exit})))))))
                   (if unprepped (conj (or ret []) lib) ret)))
               (do
                 (when (#{:debug} log) (println lib "- no prep"))
