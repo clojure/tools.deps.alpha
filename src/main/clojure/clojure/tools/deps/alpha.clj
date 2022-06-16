@@ -539,7 +539,7 @@
 (defn- flatten-paths
   [{:keys [paths aliases] :as deps-edn-map} {:keys [extra-paths] :as classpath-args}]
   (let [aliases' (assoc aliases :paths paths :extra-paths extra-paths)]
-    (into [] (mapcat #(chase-key aliases' %)) (remove nil? [:extra-paths :paths]))))
+    (into [] (comp (mapcat #(chase-key aliases' %)) (remove nil?)) [:extra-paths :paths])))
 
 (defn- validate-paths
   [paths]
