@@ -3,7 +3,7 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.3/CHANGELOG.md)*
 
-* next
+* 0.14.1205 on Jun 16, 2022
   * In `find-versions`, include git sha
   * Update to tools.gitlibs 2.4.176
 * 0.14.1200 on Jun 16, 2022
