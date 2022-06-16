@@ -4,8 +4,8 @@
     [clojure.string :as str]
     [clojure.test :refer [deftest is are] :as test]
     [clojure.tools.cli.api :as api]
-    [clojure.tools.deps.alpha.util.maven :as mvn]
-    [clojure.tools.deps.alpha.util.dir :as dir])
+    [clojure.tools.deps.alpha] ;; ensure extensions loaded
+    [clojure.tools.deps.alpha.util.maven :as mvn])
   (:import
     [java.io File]))
 
@@ -54,6 +54,19 @@
       (let [cp-out (slurp cp-path)]
         (is (true? (str/includes? cp-out (.getCanonicalPath (jio/file *test-dir* "mod/a/src")))))))))
 
+(deftest test-find-maven-version
+  (let [s (with-out-str (api/find-versions {:lib 'org.clojure/clojure}))]
+    (is (str/includes? s "1.10.3")))
+
+  (is (= "" (with-out-str (api/find-versions {:lib 'bogus.taco/slurpee})))))
+
+(deftest test-find-git-version
+  (let [s (with-out-str (api/find-versions {:lib 'io.github.clojure/tools.build}))]
+    (is (str/includes? s "v0.8.2")))
+
+  (is (= "" (with-out-str (api/find-versions {:lib 'io.github.clojure/bogus-taco-slurpee})))))
+
 (comment
-  (test-prep-across-modules)
+  (test-find-maven-version)
+  (test-find-git-version)
   )

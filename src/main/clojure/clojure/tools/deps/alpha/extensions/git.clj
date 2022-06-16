@@ -149,11 +149,10 @@
 (defmethod ext/find-versions :git
   [lib coord _coord-type config]
   (let [url (or (:git/url coord) (auto-git-url lib))]
-    (when (nil? url)
-      (throw (coord-err (format "Failed to determine git url for: %s" lib) lib coord)))
-    (try
-      (map (fn [tag] {:git/tag tag}) (gitlibs/tags url))
-      (catch Throwable _ nil))))
+    (when url
+      (try
+        (map (fn [tag] {:git/tag tag}) (gitlibs/tags url))
+        (catch Throwable _ nil)))))
 
 (comment
   (ext/find-versions 'io.github.cognitect-labs/test-runner {} :git nil)
