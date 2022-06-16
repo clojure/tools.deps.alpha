@@ -151,7 +151,9 @@
   (let [url (or (:git/url coord) (auto-git-url lib))]
     (when url
       (try
-        (map (fn [tag] {:git/tag tag}) (gitlibs/tags url))
+        (map
+          (fn [tag] {:git/tag tag :git/sha (subs (gitlibs/commit-sha url tag) 0 7)})
+          (gitlibs/tags url))
         (catch Throwable _ nil)))))
 
 (comment

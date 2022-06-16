@@ -3,6 +3,9 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.3/CHANGELOG.md)*
 
+* next
+  * In `find-versions`, include git sha
+  * Update to tools.gitlibs 2.4.176
 * 0.14.1200 on Jun 16, 2022
   * Fix regression with `clj -X:deps find-versions` from 0.14.1185
 * 0.14.1194 on Jun 12, 2022
