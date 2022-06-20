@@ -114,8 +114,8 @@
                  {:lib lib :coord coord}))))))
 
 (defmethod ext/coord-summary :git [lib coord]
-  (let [[lib {:git/keys [url sha]}] (to-canonical lib coord nil)]
-    (str lib " " url " " (subs sha 0 7))))
+  (let [[lib {:git/keys [url tag sha]}] (to-canonical lib coord nil)]
+    (str lib " " url " " (if tag tag (subs sha 0 7)))))
 
 (defmethod ext/license-info :git
   [lib coord config]
