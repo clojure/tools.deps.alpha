@@ -24,8 +24,6 @@
     [org.apache.maven.model.resolution ModelResolver]
     ;; maven-resolver-impl
     [org.eclipse.aether.internal.impl DefaultRemoteRepositoryManager]
-    ;; maven-resolver-spi
-    [org.eclipse.aether.spi.locator ServiceLocator]
     ;; maven-model
     [org.apache.maven.model Resource License]
     ;; maven-core

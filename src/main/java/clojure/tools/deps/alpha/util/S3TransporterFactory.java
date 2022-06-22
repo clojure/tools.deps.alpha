@@ -9,7 +9,6 @@
  */
 package clojure.tools.deps.alpha.util;
 
-import java.lang.Thread;
 import javax.inject.Named;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.repository.RemoteRepository;
@@ -19,7 +18,6 @@ import org.eclipse.aether.spi.locator.Service;
 import org.eclipse.aether.spi.locator.ServiceLocator;
 import clojure.java.api.Clojure;
 import clojure.lang.IFn;
-import org.eclipse.aether.spi.locator.ServiceLocator;
 import org.eclipse.aether.transfer.NoTransporterException;
 
 /**
