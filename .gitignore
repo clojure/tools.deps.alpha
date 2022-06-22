@@ -1,5 +1,7 @@
 *.iml
 .idea/
+.calva/
+.lsp/
 target/
 .nrepl*
 .cpcache
