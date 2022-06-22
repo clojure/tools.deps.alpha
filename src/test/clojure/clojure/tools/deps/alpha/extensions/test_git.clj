@@ -21,7 +21,8 @@
     "https://gitlab.com/clojure/tools.deps.alpha.git" 'io.gitlab.clojure/tools.deps.alpha
     "https://gitlab.com/clojure/tools.deps.alpha.git" 'com.gitlab.clojure/tools.deps.alpha
     "https://bitbucket.org/clojure/tools.deps.alpha.git" 'io.bitbucket.clojure/tools.deps.alpha
-    "https://bitbucket.org/clojure/tools.deps.alpha.git" 'org.bitbucket.clojure/tools.deps.alpha))
+    "https://bitbucket.org/clojure/tools.deps.alpha.git" 'org.bitbucket.clojure/tools.deps.alpha
+    "https://git.sr.ht/~foo/bar" 'ht.sr.foo/bar))
 
 (deftest full-sha
   (is (true? (git/full-sha? "f7443aa3ad854d5ab351f7ea327d6b161c5f3850")))

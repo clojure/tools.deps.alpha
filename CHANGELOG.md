@@ -3,6 +3,8 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.3/CHANGELOG.md)*
 
+* next
+  * TDEPS-228 Add support for auto inferred Sourcehut git urls
 * 0.14.1212 on Jun 20, 2022
   * Tweak printing of git coord summary
   * Update to tools.gitlibs 2.4.181
