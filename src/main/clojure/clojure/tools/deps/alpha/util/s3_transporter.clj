@@ -10,8 +10,7 @@
   clojure.tools.deps.alpha.util.s3-transporter
   (:refer-clojure :exclude [peek get])
   (:require
-    [clojure.string :as str]
-    [clojure.tools.deps.alpha.util.session :as session])
+    [clojure.string :as str])
   (:import
     [java.io InputStream OutputStream IOException]
     [java.net URI]
@@ -57,7 +56,11 @@
         is ^InputStream (:Body s3-response)]
     (if is
       (stream-copy output-stream is offset on-read)
-      (throw (ex-info "Artifact not found" {:bucket bucket, :path path, :reason :cognitect.anomalies/not-found})))))
+      (let [{:keys [cognitect.anomalies/category cognitect.http-client/throwable cognitect.anomalies/message]} s3-response]
+        (if (#{:cognitect.anomalies/forbidden :cognitect.anomalies/not-found} category)
+          (throw (ex-info "Artifact not found" {:bucket bucket, :path path, :reason category}))
+          (throw (ex-info (format "Unexpected error downloading artifact from %s" bucket)
+                   {:bucket bucket, :path path, :reason category} throwable)))))))
 
 ;; s3://BUCKET/PATH?region=us-east-1
 (defn parse-url
@@ -70,52 +73,52 @@
         {:strs [region]} (reduce (fn [m kv] (let [[k v] (str/split kv #"=")] (assoc m k v))) {} kvs)]
     {:bucket host, :region region, :repo-path path}))
 
-(defn- dynaload-s3-client
-  [client-atom user pw region bucket]
-  (require 'clojure.tools.deps.alpha.util.s3-aws-client)
-  (let [f (ns-resolve (find-ns 'clojure.tools.deps.alpha.util.s3-aws-client) 'new-s3-client)]
-    (swap! client-atom #(if % % (f user pw region bucket)))
-    @client-atom))
+(let [lock (Object.)]
+  (defn- dynaload-s3-client
+    [client-atom user pw region bucket]
+    (locking lock (require 'clojure.tools.deps.alpha.util.s3-aws-client))
+    (let [f (requiring-resolve 'clojure.tools.deps.alpha.util.s3-aws-client/new-s3-client)]
+      (swap! client-atom #(if % % (f user pw region bucket)))
+      @client-atom)))
 
 (defn new-transporter
   [^RepositorySystemSession session ^RemoteRepository repository]
-  (session/retrieve {:type :mvn/repo-transporter, :id (.getId repository)}
-    (fn []
-      (let [auth-context (AuthenticationContext/forRepository session repository)
-            user (when auth-context (.get auth-context AuthenticationContext/USERNAME))
-            pw (when auth-context (.get auth-context AuthenticationContext/PASSWORD))
-            on-close #(when auth-context (.close auth-context))
-            {:keys [bucket region repo-path]} (parse-url repository)
-            s3-client-holder (atom nil)] ;; defer creation till needed
-        (reify Transporter
-          (^void peek [_ ^PeekTask peek-task]
-            (let [path (.. peek-task getLocation toString)
-                  full-path (str repo-path "/" path)
-                  s3-client (dynaload-s3-client s3-client-holder user pw region bucket)
-                  res (s3-peek s3-client bucket full-path)]
-              (when res
-                (throw (ex-info "Artifact not found" {:bucket bucket, :path path, :reason res})))))
-          (^void get [_ ^GetTask get-task]
-            (let [path (.. get-task getLocation toString)
-                  full-path (str repo-path "/" path)
-                  offset (.getResumeOffset get-task)
-                  os (.newOutputStream get-task (> offset 0))
-                  listener (.getListener get-task)
-                  s3-client (dynaload-s3-client s3-client-holder user pw region bucket)]
-              (.transportStarted listener offset -1)
-              (s3-get-object s3-client bucket full-path os offset #(.transportProgressed listener %))))
-          (classify [_ throwable]
-            (if (= (-> throwable ex-data :reason) :cognitect.anomalies/not-found)
-              Transporter/ERROR_NOT_FOUND
-              Transporter/ERROR_OTHER))
-          ;;(put [_ ^PutTask put-task])   ;; not supported
-          (close [_]
-            (when on-close (on-close))))))))
+  (let [auth-context (AuthenticationContext/forRepository session repository)
+        user (when auth-context (.get auth-context AuthenticationContext/USERNAME))
+        pw (when auth-context (.get auth-context AuthenticationContext/PASSWORD))
+        on-close #(when auth-context (.close auth-context))
+        {:keys [bucket region repo-path]} (parse-url repository)
+        s3-client-holder (atom nil)] ;; defer creation till needed
+    (reify Transporter
+      (^void peek [_ ^PeekTask peek-task]
+        (let [path (.. peek-task getLocation toString)
+              full-path (str repo-path "/" path)
+              s3-client (dynaload-s3-client s3-client-holder user pw region bucket)
+              res (s3-peek s3-client bucket full-path)]
+          (when res
+            (throw (ex-info "Artifact not found" {:bucket bucket, :path path, :reason res})))))
+      (^void get [_ ^GetTask get-task]
+        (let [path (.. get-task getLocation toString)
+              full-path (str repo-path "/" path)
+              offset (.getResumeOffset get-task)
+              os (.newOutputStream get-task (> offset 0))
+              listener (.getListener get-task)
+              s3-client (dynaload-s3-client s3-client-holder user pw region bucket)]
+          (.transportStarted listener offset -1)
+          (s3-get-object s3-client bucket full-path os offset #(.transportProgressed listener %))))
+      (classify [_ throwable]
+        (if (#{:cognitect.anomalies/forbidden :cognitect.anomalies/not-found} (-> throwable ex-data :reason))
+          Transporter/ERROR_NOT_FOUND
+          Transporter/ERROR_OTHER))
+      ;;(put [_ ^PutTask put-task])   ;; not supported
+      (close [_]
+        (when on-close (on-close))))))
 
 (comment
-  (require '[cognitect.aws.client.api :as aws] '[cognitect.aws.credentials :as creds])
-  (def s3-client (aws/client {:api :s3
-                              :region :us-east-1})) ;; use ambient creds
+  (require '[cognitect.aws.client.api :as aws] 'clojure.repl)
+  ;; use ambient creds
+  (def s3-client (aws/client {:api :s3 :region :us-east-1}))
+
 
   (def resp (aws/invoke s3-client {:op :GetObject
                                    :request {:Bucket "datomic-releases-1fc2183a"

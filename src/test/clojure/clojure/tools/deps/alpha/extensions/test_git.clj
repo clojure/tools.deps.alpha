@@ -8,7 +8,7 @@
 
 (ns clojure.tools.deps.alpha.extensions.test-git
   (:require
-    [clojure.test :refer :all]
+    [clojure.test :refer [deftest is are]]
     [clojure.tools.deps.alpha.extensions :as ext]
     [clojure.tools.deps.alpha.extensions.git :as git])
   (:import
@@ -21,7 +21,8 @@
     "https://gitlab.com/clojure/tools.deps.alpha.git" 'io.gitlab.clojure/tools.deps.alpha
     "https://gitlab.com/clojure/tools.deps.alpha.git" 'com.gitlab.clojure/tools.deps.alpha
     "https://bitbucket.org/clojure/tools.deps.alpha.git" 'io.bitbucket.clojure/tools.deps.alpha
-    "https://bitbucket.org/clojure/tools.deps.alpha.git" 'org.bitbucket.clojure/tools.deps.alpha))
+    "https://bitbucket.org/clojure/tools.deps.alpha.git" 'org.bitbucket.clojure/tools.deps.alpha
+    "https://git.sr.ht/~foo/bar" 'ht.sr.foo/bar))
 
 (deftest full-sha
   (is (true? (git/full-sha? "f7443aa3ad854d5ab351f7ea327d6b161c5f3850")))
@@ -49,6 +50,10 @@
   ;; unknown coord type
   (is (thrown-with-msg? ExceptionInfo #"Coord of unknown type"
         (ext/canonicalize 'io.github.clojure/tools.deps.alpha {} {})))
+
+  ;; can't infer :git/url and none specified
+  (is (thrown-with-msg? ExceptionInfo #"Failed to infer git url for: org.clojure/tools.deps.alpha"
+        (ext/canonicalize 'org.clojure/tools.deps.alpha {:git/sha "9bf5778dc26dd5018dbf04fc8e7dbb32ddc4036c"} {})))
 
   ;; both :sha and :git/sha
   (is (thrown-with-msg? ExceptionInfo #"git coord has both :sha and :git/sha for io.github.clojure/tools.deps.alpha"

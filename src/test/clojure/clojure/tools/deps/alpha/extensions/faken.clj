@@ -63,6 +63,10 @@
   [lib coord _manifest _config]
   [(make-path lib coord)])
 
+(defmethod ext/find-versions :fkn
+  [_lib _coord _type _config]
+  nil)
+
 (comment
   (with-libs
     {'a/a {{:fkn/version "0.1.2"} [['b/b {:fkn/version "1.2.3"}]]}

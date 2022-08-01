@@ -14,8 +14,7 @@
             [clojure.data.xml.event :as event]
             [clojure.zip :as zip]
             [clojure.tools.deps.alpha.util.maven :as maven]
-            [clojure.tools.deps.alpha.util.io :refer [printerrln]]
-            [clojure.tools.deps.alpha :as deps])
+            [clojure.tools.deps.alpha.util.io :refer [printerrln]])
   (:import [java.io File Reader]
            [clojure.data.xml.node Element]))
 
@@ -243,7 +242,6 @@
 
 (comment
   (require '[clojure.tools.deps.alpha :as deps])
-
   (let [{:keys [install-edn user-edn project-edn]} (deps/find-edn-maps)
         edn (deps/merge-edns [install-edn user-edn project-edn])
         basis (deps/calc-basis edn)]

@@ -1,7 +1,11 @@
 *.iml
 .idea/
+.calva/
+.lsp/
 target/
 .nrepl*
 .cpcache
 .lein*
 project.clj
+.clj-kondo/.cache
+test-out/

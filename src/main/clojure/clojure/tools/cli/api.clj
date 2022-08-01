@@ -10,6 +10,7 @@
   "This api provides functions that can be executed from the Clojure tools using -X:deps."
   (:refer-clojure :exclude [list])
   (:require
+    [clojure.edn :as edn]
     [clojure.java.io :as jio]
     [clojure.pprint :as pprint]
     [clojure.string :as str]
@@ -22,7 +23,8 @@
     [clojure.tools.deps.alpha.extensions.local :as local]
     [clojure.tools.deps.alpha.gen.pom :as gen-pom]
     [clojure.tools.deps.alpha.util.maven :as mvn]
-    [clojure.tools.deps.alpha.util.io :as io :refer [printerrln]])
+    [clojure.tools.deps.alpha.util.io :as io :refer [printerrln]]
+    [clojure.set :as set])
   (:import
     [java.io File FileNotFoundException IOException]
     [java.nio.file Files]
@@ -75,16 +77,26 @@
 
 (defn prep
   "Prep the unprepped libs found in the transitive lib set of basis.
-  If no basis is provided, create and use the default project basis.
+
+  This program accepts the same basis-modifying arguments from the `basis` program.
+  Each dep source value can be :standard, a string path, a deps edn map, or nil.
+  Sources are merged in the order - :root, :user, :project, :extra.
 
   Options:
     :basis - basis to prep. If not provided, use (create-basis nil).
     :force - flag on whether to force prepped libs to re-prep (default = false)
     :log - :none, :info (default), or :debug
 
-  Returns params modified."
-  [{:keys [basis force log] :or {log :info} :as params}]
-  (let [use-basis (or basis (deps/create-basis nil))
+  Basis options:
+    :root    - dep source, default = :standard
+    :user    - dep source, default = :standard
+    :project - dep source, default = :standard (\"./deps.edn\")
+    :extra   - dep source, default = nil
+    :aliases - coll of kw aliases of argmaps to apply to subprocesses
+
+  Returns params used."
+  [{:keys [force log] :or {log :info} :as params}]
+  (let [use-basis (deps/create-basis params)
         opts {:action (if force :force :prep)
               :log log}]
     (deps/prep-libs! (:libs use-basis) opts basis)
@@ -92,26 +104,23 @@
 
 (comment
   (do
-    (-> {:root {:mvn/repos mvn/standard-repos, :deps nil}
-         :project {:deps '{org.clojure/clojure {:mvn/version "1.10.3"}
-                           io.github.puredanger/cool-lib
-                           {:git/sha "657d5ce88be340ab2a6c0befeae998366105be84"}}}
-         :log :debug}
-      basis
-      prep)
+    (prep
+      {:root {:mvn/repos mvn/standard-repos, :deps nil}
+       :project {:deps '{org.clojure/clojure {:mvn/version "1.10.3"}
+                         io.github.puredanger/cool-lib
+                         {:git/sha "657d5ce88be340ab2a6c0befeae998366105be84"}}}
+       :log :debug
+       :force true})
     nil)
   )
 
-(defn- make-trace
-  []
-  (let [{:keys [root-edn user-edn project-edn]} (deps/find-edn-maps)
-        merged (deps/merge-edns [root-edn user-edn project-edn])
-        basis (deps/calc-basis merged {:resolve-args {:trace true}})]
-    (-> basis :libs meta :trace)))
-
 (defn tree
   "Print deps tree for the current project's deps.edn built from either the
-  current directory deps.edn, or if provided, the trace file.
+  a basis, or if provided, the trace file.
+
+  This program accepts the same basis-modifying arguments from the `basis` program.
+  Each dep source value can be :standard, a string path, a deps edn map, or nil.
+  Sources are merged in the order - :root, :user, :project, :extra.
 
   By default, :format will :print to the console in a human friendly tree. Use
   :edn mode to print the tree to edn.
@@ -119,7 +128,14 @@
   In print mode, deps are printed with prefix of either . (included) or X (excluded).
   A reason code for inclusion/exclusion may be added at the end of the line.
 
-  Input options:
+  Basis options:
+    :root    - dep source, default = :standard
+    :user    - dep source, default = :standard
+    :project - dep source, default = :standard (\"./deps.edn\")
+    :extra   - dep source, default = nil
+    :aliases - coll of kw aliases of argmaps to apply to subprocesses
+
+  Input options (if provided, basis options ignored):
     :file      Path to trace.edn file (from clj -Strace) to use in computing the tree
 
   Output mode:
@@ -133,7 +149,7 @@
     (let [{:keys [file format] :or {format :print}} opts
           trace (if file
                   (io/slurp-edn file)
-                  (make-trace))
+                  (tree/calc-trace opts))
           tree (tree/trace->tree trace)]
       (case format
         :print (tree/print-tree tree opts)
@@ -145,41 +161,70 @@
         (.printStackTrace t))
       (System/exit 1))))
 
-;; useful resource: https://github.com/spdx/license-list-data
+(comment
+  (tree nil)
+  (tree {:extra {:aliases {:foo {:extra-deps {'criterium/criterium {:mvn/version "0.4.0"}}}}}
+         :aliases [:foo]})
+  )
+
+(def ^:private cli-alias-keys
+  #{:deps :replace-deps :extra-deps :override-deps :default-deps
+    :paths :replace-paths :extra-paths :classpath-overrides
+    :exec-fn :exec-args :ns-default :ns-aliases
+    :main-opts :jvm-opts})
+
+(defn aliases
+  "List all aliases available for use with the CLI using -M, -X or -T execution
+  (note that some aliases may be usable with more than one of these). Also, the
+  deps.edn sources of the alias are specified.
+
+  This program accepts the same basis-modifying arguments from the `basis` program.
+  Each dep source value can be :standard, a string path, a deps edn map, or nil.
+  Sources are merged in the order - :root, :user, :project, :extra.
+
+  For example, to print only aliases defined in this project:
+    clj -X:deps aliases :root nil :user nil
+
+  Basis options:
+    :root    - dep source, default = :standard
+    :user    - dep source, default = :standard
+    :project - dep source, default = :standard (\"./deps.edn\")
+    :extra   - dep source, default = nil
+
+  The aliases are printed to the console."
+  [params]
+  (let [edn-srcs (deps/create-edn-maps params)
+        src-aliases (reduce-kv #(assoc %1 %2 (:aliases %3)) {} edn-srcs)
+        cli-aliases (reduce-kv
+                      (fn [m src aliases]
+                        (assoc m
+                          src
+                          (reduce-kv
+                            (fn [a alias alias-defn]
+                              (cond-> a
+                                (pos? (count (set/intersection cli-alias-keys (set (keys alias-defn)))))
+                                (assoc alias alias-defn)))
+                            {} aliases)))
+                      {} src-aliases)
+        all-aliases (->> cli-aliases (map val) (mapcat #(-> % keys sort)) distinct)]
+    (doseq [alias all-aliases]
+      (let [srcs (reduce-kv (fn [srcs src deps-edn]
+                              (if (contains? (:aliases deps-edn) alias)
+                                (conj srcs src)
+                                srcs))
+                   [] edn-srcs)]
+        (println alias (str "(" (str/join ", " (map name srcs)) ")"))))))
+
 (def ^:private license-abbrev
-  {"3-Clause BSD License" "BSD-3-Clause-Attribution"
-   "Apache 2.0" "Apache-2.0"
-   "Apache License 2.0" "Apache-2.0"
-   "Apache License Version 2.0" "Apache-2.0"
-   "Apache License, Version 2.0" "Apache-2.0"
-   "Apache Software License - Version 2.0" "Apache-2.0"
-   "Apache v2" "Apache-2.0"
-   "BSD 3-Clause License" "BSD-3-Clause-Attribution"
-   "Eclipse Public License" "EPL-1.0"
-   "Eclipse Public License (EPL)" "EPL-1.0"
-   "Eclipse Public License - v 1.0" "EPL-1.0"
-   "Eclipse Public License 1.0" "EPL-1.0"
-   "Eclipse Public License, Version 1.0" "EPL-1.0"
-   "Eclipse Public License 2.0" "EPL-2.0"
-   "Eclipse Public License version 2" "EPL-2.0"
-   "GNU Affero General Public License (AGPL) version 3.0" "AGPL-3.0"
-   "GNU General Public License, version 2 (GPL2), with the classpath exception" "GPL-2.0-with-classpath-exception"
-   "GNU General Public License, version 2 with the GNU Classpath Exception" "GPL-2.0-with-classpath-exception"
-   "GNU General Public License, version 2" "GPL-2.0"
-   "GNU Lesser General Public License (LGPL)" "LGPL"
-   "JSON License" "JSON"
-   "MIT License" "MIT"
-   "MIT license" "MIT"
-   "Mozilla Public License" "MPL"
-   "The Apache Software License, Version 2.0" "Apache-2.0"
-   "The BSD 3-Clause License (BSD3)" "BSD-3-Clause-Attribution"
-   "The MIT License" "MIT"})
+  (delay
+    (-> "clojure/tools/deps/license-abbrev.edn" jio/resource slurp edn/read-string)))
 
 (defn- license-string
   [info license-mode]
-  (let [license-name (when (#{:full :short} license-mode) (:name info))]
+  (let [abbrevs @license-abbrev
+        license-name (when (#{:full :short} license-mode) (:name info))]
     (if (and license-name (= license-mode :short))
-      (get license-abbrev license-name license-name)
+      (get abbrevs license-name license-name)
       license-name)))
 
 (defn list
@@ -231,6 +276,11 @@
               license-string (license-string info license-mode)]
           (println summary (if license-string (str " (" license-string ")") "")))))))
 
+(comment
+  (list nil)
+  @license-abbrev
+  )
+
 ;;;; git resolve-tags
 
 (defn git-resolve-tags
@@ -243,14 +293,23 @@
 (defn mvn-pom
   "Sync or create pom.xml from deps.edn.
 
-  Options:
+  This program accepts the same basis-modifying arguments from the `basis` program.
+  Each dep source value can be :standard, a string path, a deps edn map, or nil.
+  Sources are merged in the order - :root, :user, :project, :extra.
+
+  Basis options:
+    :root    - dep source, default = :standard
+    :user    - dep source, default = :standard
+    :project - dep source, default = :standard (\"./deps.edn\")
+    :extra   - dep source, default = nil
+    :aliases - coll of kw aliases of argmaps to apply to subprocesses
+
+  Deprecated options (use the basis :aliases above instead):
     :argmaps - vector of aliases to combine into argmaps to resolve-deps and make-classpath"
-  [{:keys [argmaps]}]
+  [{:keys [argmaps] :as opts}]
   (try
-    (let [{:keys [root-edn user-edn project-edn]} (deps/find-edn-maps)
-          merged (deps/merge-edns [root-edn user-edn project-edn])
-          args (deps/combine-aliases merged argmaps)
-          basis (deps/calc-basis merged {:resolve-args args, :classpath-args args})
+    (let [opts' (if argmaps (assoc opts :aliases (vec (concat argmaps (:aliases opts)))) opts)
+          basis (deps/create-basis opts')
           ;; treat all transitive deps as top-level deps
           updated-deps (reduce-kv (fn [m lib {:keys [dependents] :as coord}]
                                     (if (seq dependents) m (assoc m lib coord)))
@@ -336,7 +395,7 @@
 
   Execute ad-hoc:
     clj -X:deps mvn/install :jar '\"foo-1.2.3.jar\"'"
-  [{:keys [jar pom lib version classifier local-repo] :as opts}]
+  [{:keys [jar pom lib version classifier local-repo]}]
   (println "Installing" jar (if pom (str "and " pom) ""))
   (let [{:keys [pom-file group-id artifact-id version classifier]}
         (cond

@@ -17,7 +17,7 @@
     [clojure.tools.deps.alpha.util.maven :as maven]
     [clojure.tools.deps.alpha.util.session :as session])
   (:import
-    [java.io File IOException]
+    [java.io IOException]
     [java.net URL]
     [java.util.jar JarFile JarEntry]
     ;; maven-builder-support

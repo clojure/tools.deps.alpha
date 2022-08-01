@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <artifactId>tools.deps.alpha</artifactId>
-  <version>0.12.1099-SNAPSHOT</version>
+  <version>0.14.1213-SNAPSHOT</version>
   <name>tools.deps.alpha</name>
 
   <parent>
@@ -33,7 +33,6 @@
       <groupId>org.clojure</groupId>
       <artifactId>clojure</artifactId>
       <version>${clojure.version}</version>
-      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.maven.resolver</groupId>
@@ -69,6 +68,17 @@
       <groupId>org.apache.maven.resolver</groupId>
       <artifactId>maven-resolver-transport-http</artifactId>
       <version>${resolverVersion}</version>
+	  <exclusions>
+        <exclusion> <!-- CVE-2020-13956 -->
+          <groupId>org.apache.httpcomponents</groupId>
+          <artifactId>httpclient</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency> <!-- overridden transitive dep -->
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+      <version>4.5.13</version>
     </dependency>
     <dependency>
       <groupId>org.apache.maven</groupId>
@@ -79,11 +89,31 @@
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-core</artifactId>
       <version>${mavenVersion}</version>
+	  <exclusions>
+        <exclusion> <!-- CVE-2021-29425 -->
+          <groupId>commons-io</groupId>
+          <artifactId>commons-io</artifactId>
+        </exclusion>
+        <exclusion> <!-- CVE-2020-8908 -->
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency> <!-- overridden transitive dep -->
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>2.11.0</version>
+    </dependency>
+    <dependency> <!-- overridden transitive dep -->
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>31.0.1-android</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-nop</artifactId>
-      <version>1.7.32</version>
+      <version>1.7.35</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -94,7 +124,7 @@
     <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>tools.gitlibs</artifactId>
-      <version>2.4.172</version>
+      <version>2.4.181</version>
     </dependency>
     <dependency>
       <groupId>org.clojure</groupId>
@@ -109,12 +139,12 @@
     <dependency>
       <groupId>com.cognitect.aws</groupId>
       <artifactId>endpoints</artifactId>
-      <version>1.1.12.129</version>
+      <version>1.1.12.150</version>
     </dependency>
     <dependency>
       <groupId>com.cognitect.aws</groupId>
       <artifactId>s3</artifactId>
-      <version>814.2.991.0</version>
+      <version>814.2.1053.0</version>
     </dependency>
     <dependency>
       <groupId>javax.inject</groupId>

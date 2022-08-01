@@ -1,6 +1,6 @@
 (ns clojure.tools.deps.alpha.util.test-s3-transporter
   (:require
-    [clojure.test :refer :all]
+    [clojure.test :refer [are deftest]]
     [clojure.tools.deps.alpha.util.s3-transporter :as s3t]
     [clojure.tools.deps.alpha.util.maven :as mvn])
   (:import

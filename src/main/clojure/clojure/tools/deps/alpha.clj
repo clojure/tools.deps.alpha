@@ -9,7 +9,6 @@
 (ns clojure.tools.deps.alpha
   (:require
     [clojure.java.io :as jio]
-    [clojure.pprint :refer [pprint]]
     [clojure.set :as set]
     [clojure.string :as str]
     [clojure.tools.deps.alpha.util.concurrent :as concurrent]
@@ -540,7 +539,7 @@
 (defn- flatten-paths
   [{:keys [paths aliases] :as deps-edn-map} {:keys [extra-paths] :as classpath-args}]
   (let [aliases' (assoc aliases :paths paths :extra-paths extra-paths)]
-    (into [] (mapcat #(chase-key aliases' %)) (remove nil? [:extra-paths :paths]))))
+    (into [] (comp (mapcat #(chase-key aliases' %)) (remove nil?)) [:extra-paths :paths])))
 
 (defn- validate-paths
   [paths]
@@ -563,9 +562,9 @@
       paths)))
 
 (defn- sort-paths
-  [lib-paths]
   "Given a vector of lib paths, sort in canonical order -
   top of tree to bottom, alpha sort at same level"
+  [lib-paths]
   (->> lib-paths sort (sort-by count) vec))
 
 (defn- flatten-libs
@@ -654,10 +653,14 @@
 
 (defn- exec-prep!
   "Exec the prep command in the command-args coll. Redirect stdout/stderr to this process,
-  wait for the process to complete, and return the exit code"
+  wait for the process to complete, and return the exit code.
+  Exit code 1 indicates the prep function could not be resolved."
   [^File dir classpath f]
-  ;; java -cp <classpath> clojure.main -e '(do ((requiring-resolve f) nil) nil)'
-  (let [command-args ["java" "-cp" classpath "clojure.main" "-e" (str "(do ((requiring-resolve '" f ") nil) nil)")]
+  ;; java -cp <classpath> clojure.main -e '(do (if-let [resolved-f (requiring-resolve 'f)] (resolved-f nil) (System/exit 1)) nil)'
+  (let [command-args ["java" "-cp" classpath "clojure.main" "-e" (str
+                                                                   "(do (if-let [resolved-f (requiring-resolve '"
+                                                                   f
+                                                                   ")] (resolved-f nil) (System/exit 1)) nil)")]
         ;;_ (apply println (map #(if (str/includes? % " ") (str "\"" % "\"") %) command-args))
         proc-builder (doto (ProcessBuilder. ^List command-args)
                        (.directory dir)
@@ -690,17 +693,19 @@
                 (if (or (= action :force) (and unprepped (= action :prep)))
                   (do
                     (when (#{:info :debug} log) (println "Prepping" lib "in" root))
-                    (let [root-dir (jio/file root)
-                          basis (create-basis
-                                  {:project (.getAbsolutePath (jio/file root "deps.edn"))
-                                   :extra {:aliases {:deps/TOOL {:replace-deps {} :replace-paths ["."]}}}
-                                   :aliases [:deps/TOOL alias]})
-                          cp (join-classpath (:classpath-roots basis))
-                          qual-f (qualify-fn f (get-in basis [:aliases alias]))
-                          exit (exec-prep! root-dir cp qual-f)]
-                      (when (not (zero? exit))
-                        (throw (ex-info (format "Error building %s" lib) {:lib lib :exit exit})))
-                      ret))
+                    (let [root-dir (jio/file root)]
+                      (dir/with-dir root-dir
+                        (let [basis (create-basis
+                                      {:project :standard ;; deps.edn at root
+                                       :extra {:aliases {:deps/TOOL {:replace-deps {} :replace-paths ["."]}}}
+                                       :aliases [:deps/TOOL alias]})
+                              cp (join-classpath (:classpath-roots basis))
+                              qual-f (qualify-fn f (get-in basis [:aliases alias]))
+                              exit (exec-prep! root-dir cp qual-f)]
+                          (cond
+                            (zero? exit) ret
+                            (= exit 1) (throw (ex-info (format "Prep function could not be resolved: %s" qual-f) {:lib lib}))
+                            :else-prep-failed (throw (ex-info (format "Error building %s" lib) {:lib lib :exit exit})))))))
                   (if unprepped (conj (or ret []) lib) ret)))
               (do
                 (when (#{:debug} log) (println lib "- no prep"))
@@ -757,6 +762,21 @@
     :else (throw (ex-info (format "Unexpected dep source: %s" (pr-str requested))
                    {:requested requested}))))
 
+(defn create-edn-maps
+  "Create a set of edn maps from the standard dep sources and return
+   them in a map with keys :root :user :project :extra"
+  [{:keys [root user project extra] :as params
+    :or {root :standard, user :standard, project :standard}}]
+  (let [root-edn (choose-deps root #(root-deps))
+        user-edn (choose-deps user #(-> (user-deps-path) jio/file dir/canonicalize slurp-deps))
+        project-edn (choose-deps project #(-> "deps.edn" jio/file dir/canonicalize slurp-deps))
+        extra-edn (choose-deps extra (constantly nil))]
+    (cond-> {}
+      root-edn (assoc :root root-edn)
+      user-edn (assoc :user user-edn)
+      project-edn (assoc :project project-edn)
+      extra-edn (assoc :extra extra-edn))))
+
 (defn create-basis
   "Create a basis from a set of deps sources and a set of aliases. By default, use
    root, user, and project deps and no argmaps (essentially the same classpath you get by
@@ -791,12 +811,8 @@
     :libs - lib map, per resolve-deps
     :classpath - classpath map per make-classpath-map
     :classpath-roots - vector of paths in classpath order"
-  [{:keys [root user project extra aliases] :as params
-    :or {root :standard, user :standard, project :standard}}]
-  (let [root-edn (choose-deps root #(root-deps))
-        user-edn (choose-deps user #(-> (user-deps-path) jio/file dir/canonicalize slurp-deps))
-        project-edn (choose-deps project #(-> "deps.edn" jio/file dir/canonicalize slurp-deps))
-        extra-edn (choose-deps extra (constantly nil))
+  [{:keys [aliases] :as params}]
+  (let [{root-edn :root user-edn :user project-edn :project extra-edn :extra} (create-edn-maps params)
         edn-maps [root-edn user-edn project-edn extra-edn]
 
         alias-data (->> edn-maps
@@ -872,6 +888,7 @@
                    :mvn/repos mvn/standard-repos} nil)
     {:extra-paths ["test"]})
 
+  (require 'clojure.pprint)
   (clojure.pprint/pprint
     (resolve-deps {:deps {'org.clojure/tools.analyzer.jvm {:mvn/version "0.6.9"}}
                    :mvn/repos mvn/standard-repos} nil))
@@ -969,7 +986,6 @@
                       :sha "ecea2539a724a415b15e50f12815b4ab115cfd35"}}}
     nil)
 
-  (require '[clojure.tools.deps.alpha.util.session :as session])
   (time
     (do
       (session/with-session

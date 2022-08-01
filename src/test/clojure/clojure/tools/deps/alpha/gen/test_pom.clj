@@ -1,6 +1,6 @@
 (ns clojure.tools.deps.alpha.gen.test-pom
   (:require
-    [clojure.test :refer :all]
+    [clojure.test :refer [deftest is]]
     [clojure.java.io :as jio]
     [clojure.string :as str]
     [clojure.tools.deps.alpha.gen.pom :as gen-pom]

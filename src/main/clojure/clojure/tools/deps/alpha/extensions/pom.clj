@@ -24,8 +24,6 @@
     [org.apache.maven.model.resolution ModelResolver]
     ;; maven-resolver-impl
     [org.eclipse.aether.internal.impl DefaultRemoteRepositoryManager]
-    ;; maven-resolver-spi
-    [org.eclipse.aether.spi.locator ServiceLocator]
     ;; maven-model
     [org.apache.maven.model Resource License]
     ;; maven-core
@@ -37,8 +35,8 @@
 (defn- model-resolver
   ^ModelResolver [{:keys [mvn/repos mvn/local-repo]} settings]
   (let [local-repo (or local-repo @maven/cached-local-repo)
-        locator ^ServiceLocator @maven/the-locator
-        system (maven/make-system)
+        locator (maven/make-locator)
+        system (maven/make-system locator)
         session (maven/make-session system settings local-repo)
         repo-mgr (doto (DefaultRemoteRepositoryManager.) (.initService locator))
         repos (maven/remote-repos repos settings)]

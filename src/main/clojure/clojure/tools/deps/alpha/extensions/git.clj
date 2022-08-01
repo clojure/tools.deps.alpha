@@ -10,7 +10,6 @@
   clojure.tools.deps.alpha.extensions.git
   (:require
     [clojure.java.io :as jio]
-    [clojure.string :as str]
     [clojure.tools.deps.alpha.extensions :as ext]
     [clojure.tools.gitlibs :as gitlibs]))
 
@@ -18,7 +17,8 @@
   {:github {:service #"^(?:com|io).github.([^.]+)$" :url "https://github.com/%s/%s.git"}
    :gitlab {:service #"^(?:com|io).gitlab.([^.]+)$" :url "https://gitlab.com/%s/%s.git"}
    :bitbucket {:service #"^(?:org|io).bitbucket.([^.]+)$" :url "https://bitbucket.org/%s/%s.git"}
-   :beanstalk {:service #"^(?:com|io).beanstalkapp.([^.]+)$" :url "https://%s.git.beanstalkapp.com/%s.git"}})
+   :beanstalk {:service #"^(?:com|io).beanstalkapp.([^.]+)$" :url "https://%s.git.beanstalkapp.com/%s.git"}
+   :sourcehut {:service #"^ht.sr.([^.]+)$" :url "https://git.sr.ht/~%s/%s"}})
 
 (defn auto-git-url
   "Create url from lib name, ie:
@@ -62,6 +62,8 @@
   (let [canon-sha (or sha unsha)
         canon-tag (or tag untag)
         canon-url (or url (auto-git-url lib))]
+    (when (nil? canon-url)
+      (throw (coord-err (format "Failed to infer git url for: %s" lib) lib coord)))
     (when (and canon-tag (not (some #{canon-tag} (gitlibs/tags canon-url))))
       (throw (coord-err (format "Library %s has invalid tag: %s" lib canon-tag) lib coord)))
     (if canon-sha
@@ -95,21 +97,26 @@
 
 (defmethod ext/manifest-type :git
   [lib coord config]
-  (let [[lib {:git/keys [url sha] :deps/keys [manifest root]}] (to-canonical lib coord config)
-        sha-dir (gitlibs/procure url lib sha)
-        root-dir (if root
-                   (let [root-file (jio/file root)]
-                     (if (.isAbsolute root-file) ;; should be only after coordinate resolution
-                       (.getCanonicalPath root-file)
-                       (.getCanonicalPath (jio/file sha-dir root-file))))
-                   sha-dir)]
-    (if manifest
-      {:deps/manifest manifest, :deps/root root-dir}
-      (ext/detect-manifest root-dir))))
+  (let [[lib {:git/keys [url sha] :deps/keys [manifest root]}] (to-canonical lib coord config)]
+    (when-not url
+      (throw (ex-info (format ":git/url not found or inferred for %s" lib) {:lib lib :coord coord})))
+    (let [sha-dir (gitlibs/procure url lib sha)]
+      (if sha-dir
+        (let [root-dir (if root
+                         (let [root-file (jio/file root)]
+                           (if (.isAbsolute root-file) ;; should be only after coordinate resolution
+                             (.getCanonicalPath root-file)
+                             (.getCanonicalPath (jio/file sha-dir root-file))))
+                         sha-dir)]
+          (if manifest
+            {:deps/manifest manifest, :deps/root root-dir}
+            (ext/detect-manifest root-dir)))
+        (throw (ex-info (format "Commit not found for %s in repo %s at %s" lib url sha)
+                 {:lib lib :coord coord}))))))
 
 (defmethod ext/coord-summary :git [lib coord]
-  (let [[lib {:git/keys [url sha]}] (to-canonical lib coord nil)]
-    (str lib " " url " " (subs sha 0 7))))
+  (let [[lib {:git/keys [url tag sha]}] (to-canonical lib coord nil)]
+    (str lib " " (if tag tag (subs sha 0 7)))))
 
 (defmethod ext/license-info :git
   [lib coord config]
@@ -143,9 +150,12 @@
 (defmethod ext/find-versions :git
   [lib coord _coord-type config]
   (let [url (or (:git/url coord) (auto-git-url lib))]
-    (try
-      (map (fn [tag] {:git/tag tag}) (gitlibs/tags url))
-      (catch Throwable _ nil))))
+    (when url
+      (try
+        (map
+          (fn [tag] {:git/tag tag :git/sha (subs (gitlibs/commit-sha url tag) 0 7)})
+          (gitlibs/tags url))
+        (catch Throwable _ nil)))))
 
 (comment
   (ext/find-versions 'io.github.cognitect-labs/test-runner {} :git nil)

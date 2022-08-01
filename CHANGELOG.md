@@ -3,6 +3,56 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.3/CHANGELOG.md)*
 
+* next
+  * TDEPS-228 Add support for auto inferred Sourcehut git urls
+* 0.14.1212 on Jun 20, 2022
+  * Tweak printing of git coord summary
+  * Update to tools.gitlibs 2.4.181
+* 0.14.1205 on Jun 16, 2022
+  * In `find-versions`, include git sha
+  * Update to tools.gitlibs 2.4.176
+* 0.14.1200 on Jun 16, 2022
+  * Fix regression with `clj -X:deps find-versions` from 0.14.1185
+* 0.14.1194 on Jun 12, 2022
+  * Set root dir context when prepping libs
+* 0.14.1189 on Jun 11, 2022
+  * Fix bug in create-basis from TDEPS-213
+* 0.14.1185 on Jun 9, 2022
+  * TDEPS-213 Add `-X:deps aliases` to list available aliases
+  * TDEPS-226 More nunanced error handling for s3 downloads
+  * Better error message when git url can't be inferred
+* 0.14.1178 on Apr 22, 2022
+  * TDEPS-153 More fixes for concurrency issues in maven downloads
+  * TDEPS-225 Add clojure.tools.deps.alpha.tree/calc-trace api
+* 0.14.1173 on Apr 5, 2022
+  * Change default Clojure version to 1.11.1 in root deps.edn
+* 0.13.1168 on Mar 25, 2022
+  * Change default Clojure version to 1.11.0 in root deps.edn
+* 0.12.1162 on Mar 21, 2022
+  * TDEPS-153 Fix concurrency issues in maven downloads
+* 0.12.1158 on Feb 28, 2022
+  * Fix error message when git url missing or not inferred
+  * Pass :exec-fn and :exec-args to -X/-T even when using -Scp
+* 0.12.1153 on Feb 21, 2022
+  * TDEPS-222 Make Clojure dependency in pom a compile dependency, not provided
+* 0.12.1148 on Feb 11, 2022
+  * TDEPS-203 In `-X:deps prep` - now takes basis settings, including aliases
+  * TDEPS-197 `-X:deps git-resolve-tags` - now resolves to :git/tag and :git/sha
+  * `-X:deps tree` - now takes basis settings
+  * `-X:deps mvn-pom` - now takes basis settings
+  * `-X:deps list` - put license abbreviation list in a resource and load on demand
+* 0.12.1135 on Feb 2, 2022
+  * TDEPS-216 - Built-in :deps alias should remove project paths from classpath
+  * Improve error if git sha is not found in git repo
+  * Improve prep error if transtive dep's prep function is unresolvable
+  * Dep updates for aws deps
+* 0.12.1120 on Jan 26, 2022
+  * Bump transitive deps due to CVEs
+* 0.12.1109 on Jan 4, 2022
+  * TDEPS-207 Stop saving S3 transporter in session cache to avoid deadlock
+* 0.12.1104 on Dec 23, 2021
+  * TDEPS-215 More tweaks to lazy loading
+  * TDEPS-207 Possible fix to deadlock in version range resolver session caching
 * 0.12.1098 on Dec 22, 2021
   * TDEPS-215 Fix race condition during parallel loading of S3TransporterFactory
   * Update maven-core to 3.8.4

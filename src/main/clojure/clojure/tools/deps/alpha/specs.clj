@@ -113,7 +113,7 @@
 (s/def :tools/usage (s/keys :opt-un [::ns-default ::ns-aliases]))
 
 ;; Prep lib
-(s/def :deps/prep-lib (s/keys :require-un [:prep/ensure ::alias :prep/fn]))
+(s/def :deps/prep-lib (s/keys :req-un [:prep/ensure ::alias :prep/fn]))
 (s/def :prep/ensure ::path)
 (s/def :prep/fn symbol?)
 
@@ -136,8 +136,7 @@
   ;; a root directory whether it's valid against the specs
   (require
     '[clojure.spec.test.alpha :as stest]
-    '[clojure.tools.deps.alpha :as deps]
-    '[clojure.java.io :as jio])
+    '[clojure.tools.deps.alpha :as deps])
   (import '[java.nio.file Files Paths FileVisitor FileVisitResult])
   (stest/instrument (stest/enumerate-namespace 'clojure.tools.deps.alpha))
 
