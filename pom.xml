@@ -134,17 +134,17 @@
     <dependency>
       <groupId>com.cognitect.aws</groupId>
       <artifactId>api</artifactId>
-      <version>0.8.539</version>
+      <version>0.8.575</version>
     </dependency>
     <dependency>
       <groupId>com.cognitect.aws</groupId>
       <artifactId>endpoints</artifactId>
-      <version>1.1.12.150</version>
+      <version>1.1.12.267</version>
     </dependency>
     <dependency>
       <groupId>com.cognitect.aws</groupId>
       <artifactId>s3</artifactId>
-      <version>814.2.1053.0</version>
+      <version>822.2.1145.0</version>
     </dependency>
     <dependency>
       <groupId>javax.inject</groupId>
