@@ -5,6 +5,7 @@ Changelog
 
 * next
   * TDEPS-228 Add support for auto inferred Sourcehut git urls
+  * Update aws api versions
 * 0.14.1212 on Jun 20, 2022
   * Tweak printing of git coord summary
   * Update to tools.gitlibs 2.4.181
