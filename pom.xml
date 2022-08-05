@@ -21,8 +21,8 @@
     <!-- used for build -->
     <clojure.warnOnReflection>true</clojure.warnOnReflection>
     <clojure.version>1.10.3</clojure.version>
-    <resolverVersion>1.6.3</resolverVersion>
-    <mavenVersion>3.8.4</mavenVersion>
+    <resolverVersion>1.8.2</resolverVersion>
+    <mavenVersion>3.8.6</mavenVersion>
 
     <!-- default published in install deps.edn -->
     <clojure.default>1.10.3</clojure.default>
@@ -68,17 +68,6 @@
       <groupId>org.apache.maven.resolver</groupId>
       <artifactId>maven-resolver-transport-http</artifactId>
       <version>${resolverVersion}</version>
-	  <exclusions>
-        <exclusion> <!-- CVE-2020-13956 -->
-          <groupId>org.apache.httpcomponents</groupId>
-          <artifactId>httpclient</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency> <!-- overridden transitive dep -->
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpclient</artifactId>
-      <version>4.5.13</version>
     </dependency>
     <dependency>
       <groupId>org.apache.maven</groupId>
@@ -108,12 +97,12 @@
     <dependency> <!-- overridden transitive dep -->
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>31.0.1-android</version>
+      <version>31.1-android</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-nop</artifactId>
-      <version>1.7.35</version>
+      <version>1.7.36</version>
       <scope>test</scope>
     </dependency>
     <dependency>
