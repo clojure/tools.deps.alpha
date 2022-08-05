@@ -3,7 +3,7 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.3/CHANGELOG.md)*
 
-* next
+* 0.14.1222 on Aug 5, 2022
   * TDEPS-228 Add support for auto inferred Sourcehut git urls
   * Update aws-api, Maven, etc dep versions
 * 0.14.1212 on Jun 20, 2022
