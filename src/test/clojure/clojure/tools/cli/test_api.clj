@@ -5,7 +5,8 @@
     [clojure.test :refer [deftest is are] :as test]
     [clojure.tools.cli.api :as api]
     [clojure.tools.deps.alpha] ;; ensure extensions loaded
-    [clojure.tools.deps.alpha.util.maven :as mvn])
+    [clojure.tools.deps.alpha.util.maven :as mvn]
+    [clojure.tools.deps.alpha.util.dir :as dir])
   (:import
     [java.io File]))
 
@@ -19,6 +20,42 @@
      (.mkdirs dir#)
      (binding [*test-dir* dir#]
        ~@body)))
+
+(deftest test-prep-with-aliases
+  (with-test-dir
+    (let [p1deps (jio/file *test-dir* "p1/deps.edn")
+          p2deps (jio/file *test-dir* "p2/deps.edn")]
+
+      ;; set up p1 with an alias that, if used, pulls p2
+      (jio/make-parents p1deps)
+      (spit p1deps
+            (pr-str {:aliases {:x {:extra-deps {'foo/bar {:local/root "../p2"}}}}}))
+
+      ;; set up p2 to prep
+      (jio/make-parents p2deps)
+      (spit (jio/file *test-dir* "p2/build.clj")
+            "(ns build
+               (:require [clojure.java.io :as jio]))
+             (defn prep [_]
+               (jio/make-parents \"prepped/out\"))")
+      (spit p2deps
+            (pr-str {:deps/prep-lib {:ensure "prepped"
+                                     :alias :build
+                                     :fn 'prep}
+                     :aliases {:build {:ns-default 'build}}}))
+
+      ;; prep p1 with aliases
+      (dir/with-dir (jio/file *test-dir* "p1")
+        (api/prep
+         {:root {:mvn/repos mvn/standard-repos}
+          :user nil
+          :project :standard
+          :aliases [:x]
+          :force true}))
+
+      ;; check that it prepped p2
+      (is (true? (.exists (jio/file *test-dir* "p2/prepped")))))))
+
 
 (deftest test-prep-across-modules
   (with-test-dir

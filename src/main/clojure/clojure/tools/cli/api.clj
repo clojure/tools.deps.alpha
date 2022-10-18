@@ -83,7 +83,6 @@
   Sources are merged in the order - :root, :user, :project, :extra.
 
   Options:
-    :basis - basis to prep. If not provided, use (create-basis nil).
     :force - flag on whether to force prepped libs to re-prep (default = false)
     :log - :none, :info (default), or :debug
 
@@ -96,10 +95,10 @@
 
   Returns params used."
   [{:keys [force log] :or {log :info} :as params}]
-  (let [use-basis (deps/create-basis params)
+  (let [basis (deps/create-basis params)
         opts {:action (if force :force :prep)
               :log log}]
-    (deps/prep-libs! (:libs use-basis) opts basis)
+    (deps/prep-libs! (:libs basis) opts basis)
     params))
 
 (comment
