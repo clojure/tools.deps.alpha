@@ -108,7 +108,7 @@
     <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>data.xml</artifactId>
-      <version>0.2.0-alpha6</version>
+      <version>0.2.0-alpha8</version>
     </dependency>
     <dependency>
       <groupId>org.clojure</groupId>
@@ -118,17 +118,17 @@
     <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>tools.cli</artifactId>
-      <version>1.0.206</version>
+      <version>1.0.214</version>
     </dependency>
     <dependency>
       <groupId>com.cognitect.aws</groupId>
       <artifactId>api</artifactId>
-      <version>0.8.575</version>
+      <version>0.8.603</version>
     </dependency>
     <dependency>
       <groupId>com.cognitect.aws</groupId>
       <artifactId>endpoints</artifactId>
-      <version>1.1.12.267</version>
+      <version>1.1.12.321</version>
     </dependency>
     <dependency>
       <groupId>com.cognitect.aws</groupId>
