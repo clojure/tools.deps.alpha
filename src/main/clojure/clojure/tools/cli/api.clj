@@ -415,28 +415,32 @@
 (defn find-versions
   "Find available tool versions given either a lib (with :lib) or
   existing installed tool (with :tool). If lib, check all registered
-  procurers and print one coordinate per line when found."
-  [{:keys [lib tool] :as args}]
+  procurers and print one coordinate per line when found.
+
+  Options:
+    :lib  Qualified lib symbol
+    :tool Tool name for installed tool
+    :n    Number of coordinates to return, default = 8, :all for all"
+  [{:keys [lib tool n] :or {n 8} :as args}]
   (let [{:keys [root-edn user-edn]} (deps/find-edn-maps)
-        master-edn (deps/merge-edns [root-edn user-edn])]
-    (cond
-      tool
-      (if-let [{:keys [lib coord]} (tool/resolve-tool (name tool))]
-        (let [coord-type (ext/coord-type coord)
-              coords (ext/find-versions lib coord coord-type master-edn)]
-          (run! #(binding [*print-namespace-maps* false] (prn %)) coords))
-        (throw (ex-info (str "Unknown tool: " tool) {:tool tool})))
+        master-edn (deps/merge-edns [root-edn user-edn])
+        n (if (= n :all) Long/MAX_VALUE n)
+        coords (cond
+                 tool
+                 (if-let [{:keys [lib coord]} (tool/resolve-tool (name tool))]
+                   (ext/find-versions lib coord (ext/coord-type coord) master-edn)
+                   (throw (ex-info (str "Unknown tool: " tool) {:tool tool})))
 
-      lib
-      (let [coords (ext/find-all-versions lib {} master-edn)]
-        (run! #(binding [*print-namespace-maps* false] (prn %)) coords))
+                 lib
+                 (ext/find-all-versions lib {} master-edn)
 
-      :else
-      (throw (ex-info "Either :lib or :tool must be provided to find versions" (or args {}))))))
+                 :else
+                 (throw (ex-info "Either :lib or :tool must be provided to find versions" (or args {}))))]
+    (run! #(binding [*print-namespace-maps* false] (prn %)) (take-last n coords))))
 
 (comment
-  (find-versions '{:lib org.clojure/tools.gitlibs})
-  (find-versions '{:lib io.github.clojure/tools.gitlibs})
-  (find-versions '{:tool tools})
+  (find-versions '{:lib org.clojure/tools.gitlibs :n 4})
+  (find-versions '{:lib io.github.clojure/tools.gitlibs :n 10})
+  (find-versions '{:tool tools :n :all})
   (find-versions nil)
   )
