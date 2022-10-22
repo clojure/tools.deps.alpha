@@ -2,7 +2,7 @@
   (:require
     [clojure.java.io :as jio]
     [clojure.string :as str]
-    [clojure.test :refer [deftest is are] :as test]
+    [clojure.test :refer [deftest is] :as test]
     [clojure.tools.cli.api :as api]
     [clojure.tools.deps.alpha] ;; ensure extensions loaded
     [clojure.tools.deps.alpha.util.maven :as mvn]
