@@ -92,13 +92,13 @@
         (is (true? (str/includes? cp-out (.getCanonicalPath (jio/file *test-dir* "mod/a/src")))))))))
 
 (deftest test-find-maven-version
-  (let [s (with-out-str (api/find-versions {:lib 'org.clojure/clojure}))]
+  (let [s (with-out-str (api/find-versions {:lib 'org.clojure/clojure :n :all}))]
     (is (str/includes? s "1.10.3")))
 
   (is (= "" (with-out-str (api/find-versions {:lib 'bogus.taco/slurpee})))))
 
 (deftest test-find-git-version
-  (let [s (with-out-str (api/find-versions {:lib 'io.github.clojure/tools.build}))]
+  (let [s (with-out-str (api/find-versions {:lib 'io.github.clojure/tools.build :n :all}))]
     (is (str/includes? s "v0.8.2")))
 
   (is (= "" (with-out-str (api/find-versions {:lib 'io.github.clojure/bogus-taco-slurpee})))))
