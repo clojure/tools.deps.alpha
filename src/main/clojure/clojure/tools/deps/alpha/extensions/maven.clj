@@ -187,7 +187,7 @@
         system ^RepositorySystem (session/retrieve-local :mvn/system #(maven/make-system))
         settings ^Settings (session/retrieve :mvn/settings #(maven/get-settings))
         session ^RepositorySystemSession (session/retrieve-local :mvn/session #(maven/make-session system settings local-repo))
-        artifact (maven/coord->artifact lib {:mvn/version "(0,]"})
+        artifact (maven/coord->artifact lib {:mvn/version "(,]"})
         req (VersionRangeRequest. artifact (maven/remote-repos repos settings) nil)
         result (.resolveVersionRange system session req)
         versions (.getVersions result)]
