@@ -25,9 +25,10 @@
    :lint {:replace-deps {clj-kondo/clj-kondo {:mvn/version "2022.08.03"}}
           :main-opts ["-m" "clj-kondo.main" "--lint" "src/main/clojure" "--lint" "src/test/clojure"]}
 
-   ;; clj -M:nvd "" `clj -Spath`
-   :nvd {:replace-deps {nvd-clojure/nvd-clojure {:mvn/version "2.7.0"}}
-         :main-opts ["-m" "nvd.task.check"]}
+   ;; clj -M:cve
+   :cve {:extra-deps {io.github.clj-holmes/clj-watson {:git/tag "v4.1.0" :git/sha "e3da1b6"}}
+         :jvm-opts ["--illegal-access=deny"]
+         :main-opts ["-m" "clj-watson.cli" "scan" "-p" "deps.edn"]}
 
    ;; clj -M:outdated
    :outdated {:extra-deps {com.github.liquidz/antq {:mvn/version "RELEASE"}}
