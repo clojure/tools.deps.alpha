@@ -424,7 +424,7 @@
   [{:keys [lib tool n] :or {n 8} :as args}]
   (let [{:keys [root-edn user-edn]} (deps/find-edn-maps)
         master-edn (deps/merge-edns [root-edn user-edn])
-        n (if (= n :all) Long/MAX_VALUE n)
+        trunc-fn (if (= n :all) (fn [n x] x) #(take-last n %))
         coords (cond
                  tool
                  (if-let [{:keys [lib coord]} (tool/resolve-tool (name tool))]
@@ -436,7 +436,7 @@
 
                  :else
                  (throw (ex-info "Either :lib or :tool must be provided to find versions" (or args {}))))]
-    (run! #(binding [*print-namespace-maps* false] (prn %)) (take-last n coords))))
+    (run! #(binding [*print-namespace-maps* false] (prn %)) (trunc-fn n coords))))
 
 (comment
   (find-versions '{:lib org.clojure/tools.gitlibs :n 4})
