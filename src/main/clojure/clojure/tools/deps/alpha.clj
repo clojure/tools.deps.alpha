@@ -685,7 +685,8 @@
               :info  - print only when prepping
               :debug - :info + print for each lib considered"
   [lib-map {:keys [action log]} config]
-  (let [unprepped
+  (let [local-dir (.getAbsolutePath (dir/canonicalize (jio/file ".")))
+        unprepped
         (reduce-kv
           (fn [ret lib {:deps/keys [root manifest] :as coord}]
             (if-let [{f :fn, :keys [alias ensure exec-args]} (ext/prep-command lib coord manifest config)]
@@ -707,12 +708,16 @@
                           (cond
                             (zero? exit) ret
                             (= exit 1) (throw (ex-info (format "Prep function could not be resolved: %s" qual-f) {:lib lib}))
-                            :else-prep-failed (throw (ex-info (format "Error building %s" lib) {:lib lib :exit exit})))))))
+                            :else (throw (ex-info (format "Error building %s" lib) {:lib lib :exit exit})))))))
                   (if unprepped (conj (or ret []) lib) ret)))
               (do
                 (when (#{:debug} log) (println lib "- no prep"))
                 ret)))
-          nil lib-map)]
+          nil
+          (assoc lib-map
+                 (symbol "current project") {:local/root local-dir
+                                             :deps/manifest :deps
+                                             :deps/root local-dir}))]
     (when unprepped
       (throw (ex-info (format "The following libs must be prepared before use: %s" unprepped)
                {:unprepped unprepped})))))
