@@ -6,6 +6,7 @@ Changelog
 * next
   * TDEPS-219 Fixed `-X:deps find-versions` doesn't find Maven versions that start with a letter
   * Add :n option to `-X:deps find-versions` and default to 8
+  * During clojure.tools.cli.api/prep, use :exec-args of alias being prepped, if present
   * Fix bad invocation of deps/prep-libs! in clojure.tools.cli.api/prep
   * Update deps to latest
 * 0.14.1222 on Aug 5, 2022

@@ -655,12 +655,14 @@
   "Exec the prep command in the command-args coll. Redirect stdout/stderr to this process,
   wait for the process to complete, and return the exit code.
   Exit code 1 indicates the prep function could not be resolved."
-  [^File dir classpath f]
+  [^File dir classpath f args]
   ;; java -cp <classpath> clojure.main -e '(do (if-let [resolved-f (requiring-resolve 'f)] (resolved-f nil) (System/exit 1)) nil)'
   (let [command-args ["java" "-cp" classpath "clojure.main" "-e" (str
                                                                    "(do (if-let [resolved-f (requiring-resolve '"
                                                                    f
-                                                                   ")] (resolved-f nil) (System/exit 1)) nil)")]
+                                                                   ")] (resolved-f "
+                                                                   (pr-str args)
+                                                                   ") (System/exit 1)) nil)")]
         ;;_ (apply println (map #(if (str/includes? % " ") (str "\"" % "\"") %) command-args))
         proc-builder (doto (ProcessBuilder. ^List command-args)
                        (.directory dir)
@@ -686,7 +688,7 @@
   (let [unprepped
         (reduce-kv
           (fn [ret lib {:deps/keys [root manifest] :as coord}]
-            (if-let [{f :fn, :keys [alias ensure]} (ext/prep-command lib coord manifest config)]
+            (if-let [{f :fn, :keys [alias ensure exec-args]} (ext/prep-command lib coord manifest config)]
               (let [ensure-dir (when ensure (jio/file root ensure))
                     unprepped (and ensure (not (.exists ^File ensure-dir)))]
                 (when (#{:debug} log) (println lib "-" (if unprepped "unprepped" "prepped")))
@@ -701,7 +703,7 @@
                                        :aliases [:deps/TOOL alias]})
                               cp (join-classpath (:classpath-roots basis))
                               qual-f (qualify-fn f (get-in basis [:aliases alias]))
-                              exit (exec-prep! root-dir cp qual-f)]
+                              exit (exec-prep! root-dir cp qual-f exec-args)]
                           (cond
                             (zero? exit) ret
                             (= exit 1) (throw (ex-info (format "Prep function could not be resolved: %s" qual-f) {:lib lib}))

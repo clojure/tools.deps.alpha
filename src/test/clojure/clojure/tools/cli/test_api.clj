@@ -91,6 +91,42 @@
       (let [cp-out (slurp cp-path)]
         (is (true? (str/includes? cp-out (.getCanonicalPath (jio/file *test-dir* "mod/a/src")))))))))
 
+(deftest test-prep-exec-args
+  (with-test-dir
+    (let [p1deps (jio/file *test-dir* "p1/deps.edn")
+          p2deps (jio/file *test-dir* "p2/deps.edn")]
+
+      ;; set up p1 to depend on p2
+      (jio/make-parents p1deps)
+      (spit p1deps (pr-str {:deps {'foo/p2 {:local/root "../p2"}}}))
+
+      ;; set up p2 to prep
+      (jio/make-parents p2deps)
+      (spit (jio/file *test-dir* "p2/build.clj")
+            "(ns build
+               (:require [clojure.java.io :as jio]))
+             (defn prep [args]
+               (jio/make-parents \"prepped/out\")
+               (spit \"prepped/out\" args))")
+      (spit p2deps
+            (pr-str {:deps/prep-lib {:ensure "prepped"
+                                     :alias :build
+                                     :fn 'prep}
+                     :aliases {:build {:ns-default 'build
+                                       :exec-args {:hi :there}}}}))
+
+      ;; prep p1 with aliases
+      (dir/with-dir (jio/file *test-dir* "p1")
+        (api/prep
+         {:root {:mvn/repos mvn/standard-repos}
+          :user nil
+          :project :standard
+          :aliases [:x]
+          :force true}))
+
+      ;; check that it prepped p2 and received the args
+      (is (= "{:hi :there}" (slurp (jio/file *test-dir* "p2/prepped/out")))))))
+
 (deftest test-find-maven-version
   (let [s (with-out-str (api/find-versions {:lib 'org.clojure/clojure :n :all}))]
     (is (str/includes? s "1.10.3")))
