@@ -3,7 +3,7 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.3/CHANGELOG.md)*
 
-* next
+* 0.15.1237 on Oct 23, 2022
   * TDEPS-219 Fixed `-X:deps find-versions` doesn't find Maven versions that start with a letter
   * Add :n option to `-X:deps find-versions` and default to 8
   * During clojure.tools.cli.api/prep, use :exec-args of alias being prepped, if present
