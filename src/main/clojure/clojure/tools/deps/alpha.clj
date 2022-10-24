@@ -681,43 +681,45 @@
                 :prep - if unprepped, prep
                 :force - prep regardless of whether already prepped
                 :error (default) - don't prep, error
+    :current - boolean, default = false. Whether to prep current project
     :log -  print to console based on log level (default, no logging):
               :info  - print only when prepping
               :debug - :info + print for each lib considered"
-  [lib-map {:keys [action log]} config]
+  [lib-map {:keys [action current log] :or {current false}} config]
   (let [local-dir (.getAbsolutePath (dir/canonicalize (jio/file ".")))
         unprepped
         (reduce-kv
-          (fn [ret lib {:deps/keys [root manifest] :as coord}]
-            (if-let [{f :fn, :keys [alias ensure exec-args]} (ext/prep-command lib coord manifest config)]
-              (let [ensure-dir (when ensure (jio/file root ensure))
-                    unprepped (and ensure (not (.exists ^File ensure-dir)))]
-                (when (#{:debug} log) (println lib "-" (if unprepped "unprepped" "prepped")))
-                (if (or (= action :force) (and unprepped (= action :prep)))
-                  (do
-                    (when (#{:info :debug} log) (println "Prepping" lib "in" root))
-                    (let [root-dir (jio/file root)]
-                      (dir/with-dir root-dir
-                        (let [basis (create-basis
-                                      {:project :standard ;; deps.edn at root
-                                       :extra {:aliases {:deps/TOOL {:replace-deps {} :replace-paths ["."]}}}
-                                       :aliases [:deps/TOOL alias]})
-                              cp (join-classpath (:classpath-roots basis))
-                              qual-f (qualify-fn f (get-in basis [:aliases alias]))
-                              exit (exec-prep! root-dir cp qual-f exec-args)]
-                          (cond
-                            (zero? exit) ret
-                            (= exit 1) (throw (ex-info (format "Prep function could not be resolved: %s" qual-f) {:lib lib}))
-                            :else (throw (ex-info (format "Error building %s" lib) {:lib lib :exit exit})))))))
-                  (if unprepped (conj (or ret []) lib) ret)))
-              (do
-                (when (#{:debug} log) (println lib "- no prep"))
-                ret)))
-          nil
-          (assoc lib-map
-                 (symbol "current project") {:local/root local-dir
-                                             :deps/manifest :deps
-                                             :deps/root local-dir}))]
+         (fn [ret lib {:deps/keys [root manifest] :as coord}]
+           (if-let [{f :fn, :keys [alias ensure exec-args]} (ext/prep-command lib coord manifest config)]
+             (let [ensure-dir (when ensure (jio/file root ensure))
+                   unprepped (and ensure (not (.exists ^File ensure-dir)))]
+               (when (#{:debug} log) (println lib "-" (if unprepped "unprepped" "prepped")))
+               (if (or (= action :force) (and unprepped (= action :prep)))
+                 (do
+                   (when (#{:info :debug} log) (println "Prepping" lib "in" root))
+                   (let [root-dir (jio/file root)]
+                     (dir/with-dir root-dir
+                       (let [basis (create-basis
+                                    {:project :standard ;; deps.edn at root
+                                     :extra {:aliases {:deps/TOOL {:replace-deps {} :replace-paths ["."]}}}
+                                     :aliases [:deps/TOOL alias]})
+                             cp (join-classpath (:classpath-roots basis))
+                             qual-f (qualify-fn f (get-in basis [:aliases alias]))
+                             exit (exec-prep! root-dir cp qual-f exec-args)]
+                         (cond
+                           (zero? exit) ret
+                           (= exit 1) (throw (ex-info (format "Prep function could not be resolved: %s" qual-f) {:lib lib}))
+                           :else (throw (ex-info (format "Error building %s" lib) {:lib lib :exit exit})))))))
+                 (if unprepped (conj (or ret []) lib) ret)))
+             (do
+               (when (#{:debug} log) (println lib "- no prep"))
+               ret)))
+         nil
+         (cond-> lib-map
+           current (assoc (symbol "current project")
+                          {:local/root local-dir
+                           :deps/manifest :deps
+                           :deps/root local-dir})))]
     (when unprepped
       (throw (ex-info (format "The following libs must be prepared before use: %s" unprepped)
                {:unprepped unprepped})))))

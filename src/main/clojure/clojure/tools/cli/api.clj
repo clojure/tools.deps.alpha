@@ -84,6 +84,7 @@
 
   Options:
     :force - flag on whether to force prepped libs to re-prep (default = false)
+    :current - flag on whether to prep current project too (default = false)
     :log - :none, :info (default), or :debug
 
   Basis options:
@@ -94,10 +95,11 @@
     :aliases - coll of kw aliases of argmaps to apply to subprocesses
 
   Returns params used."
-  [{:keys [force log] :or {log :info} :as params}]
+  [{:keys [force log current] :or {log :info, current false} :as params}]
   (let [basis (deps/create-basis params)
         opts {:action (if force :force :prep)
-              :log log}]
+              :log log
+              :current current}]
     (deps/prep-libs! (:libs basis) opts basis)
     params))
 
