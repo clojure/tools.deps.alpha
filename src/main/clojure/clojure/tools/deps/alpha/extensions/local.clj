@@ -17,7 +17,7 @@
     [clojure.tools.deps.alpha.util.maven :as maven]
     [clojure.tools.deps.alpha.util.session :as session])
   (:import
-    [java.io IOException]
+    [java.io File IOException]
     [java.net URL]
     [java.util.jar JarFile JarEntry]
     ;; maven-builder-support
@@ -33,9 +33,18 @@
   {:lib lib
    :root root})
 
+(defn- ensure-file
+  ^File [lib root]
+  (let [f (jio/file root)]
+    (if (.exists f)
+      f
+      (throw (ex-info (format "Local lib %s not found: %s" lib root) {:lib lib :root root})))))
+
 (defmethod ext/canonicalize :local
   [lib {:keys [local/root] :as coord} _config]
-  [lib (assoc coord :local/root (.getCanonicalPath (dir/canonicalize (jio/file root))))])
+  (let [canonical-root (.getCanonicalPath (dir/canonicalize (jio/file root)))]
+    (ensure-file lib canonical-root) ;; throw if missing
+    [lib (assoc coord :local/root canonical-root)]))
 
 (defmethod ext/lib-location :local
   [_lib {:keys [local/root]} _config]
@@ -48,10 +57,10 @@
   nil)
 
 (defmethod ext/manifest-type :local
-  [_lib {:keys [local/root deps/manifest] :as _coord} _config]
+  [lib {:keys [local/root deps/manifest] :as _coord} _config]
   (cond
     manifest {:deps/manifest manifest :deps/root root}
-    (.isFile (jio/file root)) {:deps/manifest :jar, :deps/root root}
+    (.isFile (ensure-file lib root)) {:deps/manifest :jar, :deps/root root}
     :else (ext/detect-manifest root)))
 
 (defmethod ext/coord-summary :local [lib {:keys [local/root]}]
@@ -76,8 +85,8 @@
     (catch IOException _t nil)))
 
 (defmethod ext/coord-deps :jar
-  [_lib {:keys [local/root] :as _coord} _manifest config]
-  (let [jar (JarFile. (jio/file root))]
+  [lib {:keys [local/root] :as _coord} _manifest config]
+  (let [jar (JarFile. (ensure-file lib root))]
     (if-let [path (find-pom jar)]
       (let [url (URL. (str "jar:file:" root "!/" path))
             src (UrlModelSource. url)
@@ -96,7 +105,7 @@
 
 (defmethod ext/license-info-mf :jar
   [lib {:keys [local/root] :as _coord} _mf config]
-  (let [jar (JarFile. (jio/file root))]
+  (let [jar (JarFile. (ensure-file lib root))]
     (when-let [path (find-pom jar)]
       (let [url (URL. (str "jar:file:" root "!/" path))
             src (UrlModelSource. url)

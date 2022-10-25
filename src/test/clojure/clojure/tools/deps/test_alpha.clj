@@ -1,5 +1,6 @@
 (ns clojure.tools.deps.test-alpha
   (:require
+    [clojure.java.io :as jio]
     [clojure.test :refer [deftest is are testing]]
     [clojure.tools.deps.alpha :as deps]
     [clojure.tools.deps.alpha.extensions :as ext]
@@ -255,16 +256,29 @@
           (let [res (deps/resolve-deps {:deps {'ex/a {:fkn/version "1"}}} nil)]
             (libs->lib-ver res))))))
 
+(def ^:dynamic ^File *test-dir*)
+
+(defmacro with-test-dir
+  [& body]
+  `(let [name# (-> clojure.test/*testing-vars* last symbol str)
+         dir# (jio/file "test-out" name#)]
+     (.delete dir#)
+     (.mkdirs dir#)
+     (binding [*test-dir* dir#]
+       ~@body)))
+
 (deftest test-local-root
-  (let [base (.getCanonicalFile (File. "."))]
-    (testing "a relative local root canonicalizes relative to parent dep"
-      (binding [dir/*the-dir* base]
-        (is (= ['ex/b {:local/root (.getPath (.getCanonicalFile (File. base "b")))}]
-               (ext/canonicalize 'ex/b {:local/root "b"} {})))))
-    (testing "an absolute local root canonicalizes to itself"
-      (binding [dir/*the-dir* base]
-        (is (= ['ex/b {:local/root "/b"}]
-               (ext/canonicalize 'ex/b {:local/root "/b"} {})))))))
+  (with-test-dir
+    (let [base (.getCanonicalFile *test-dir*)]
+      (testing "a relative local root canonicalizes relative to parent dep"
+        (binding [dir/*the-dir* base]
+          (is (= ['ex/b {:local/root (.getPath (.getCanonicalFile (File. base "b")))}]
+                 (ext/canonicalize 'ex/b {:local/root "b"} {})))))
+      (testing "an absolute local root canonicalizes to itself"
+        (binding [dir/*the-dir* base]
+          (let [abs-b (.getAbsolutePath (jio/file *test-dir* "b"))]
+            (is (= ['ex/b {:local/root abs-b}]
+                   (ext/canonicalize 'ex/b {:local/root abs-b} {})))))))))
 
 ;; simple check that pom resolution is working - load tda itself as pom dep
 (deftest test-local-pom
