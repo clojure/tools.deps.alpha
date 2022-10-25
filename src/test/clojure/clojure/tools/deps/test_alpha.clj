@@ -270,6 +270,7 @@
 (deftest test-local-root
   (with-test-dir
     (let [base (.getCanonicalFile *test-dir*)]
+      (jio/make-parents *test-dir* "b/deps.edn")
       (testing "a relative local root canonicalizes relative to parent dep"
         (binding [dir/*the-dir* base]
           (is (= ['ex/b {:local/root (.getPath (.getCanonicalFile (File. base "b")))}]

@@ -165,7 +165,8 @@
           :user nil
           :project :standard
           ;; :log :debug
-          :force true}))
+          :force true
+          :current true}))
 
       ;; check that it prepped p1 and p2
       (is (true? (.exists (jio/file *test-dir* "p1/prepped"))))
