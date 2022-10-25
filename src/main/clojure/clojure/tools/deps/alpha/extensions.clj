@@ -153,9 +153,9 @@
 (defn- throw-bad-manifest
   [lib coord manifest-type]
   (if manifest-type
-    (throw (ex-info (str "Manifest type " manifest-type " not loaded when finding deps for " lib " in coordinate " (pr-str coord))
+    (throw (ex-info (str "Manifest type " manifest-type " not loaded for " lib " in coordinate " (pr-str coord))
              {:lib lib :coord coord}))
-    (throw (ex-info (str "Manifest type not detected when finding deps for " lib " in coordinate " (pr-str coord))
+    (throw (ex-info (str "Manifest file not found for " lib " in coordinate " (pr-str coord))
              {:lib lib :coord coord}))))
 
 (defmulti coord-deps
