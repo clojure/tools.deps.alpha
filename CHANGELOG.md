@@ -3,7 +3,7 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.3/CHANGELOG.md)*
 
-* next
+* 0.15.1244 on Oct 24, 2022
   * During prep, by default don't prep current project
   * Improve error when missing local dep directory is missing
 * 0.15.1237 on Oct 23, 2022
