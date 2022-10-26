@@ -1,7 +1,7 @@
 <html>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>clojure.tools.cli.api - tools.deps.alpha 0.14.1223-SNAPSHOT API documentation</title>
+    <title>clojure.tools.cli.api - tools.deps.alpha 0.15.1245-SNAPSHOT API documentation</title>
     <link rel="icon" href="static/favicon.png" />
     <link rel="shortcut icon" href="static/favicon.png" />
     <link rel="stylesheet" href="static/clojure.css" type="text/css" media="all" />
@@ -25,7 +25,7 @@ namespace.
       <div id="leftcolumn"><div style="text-align: center;"></div>
 <div class="menu">
   <div class="WikiCustomNav WikiElement wiki">
-    <span class="toc-header"><span id="project-name">tools.deps.alpha</span> <span id="version">0.14.1223-SNAPSHOT</span> API</span><br />
+    <span class="toc-header"><span id="project-name">tools.deps.alpha</span> <span id="version">0.15.1245-SNAPSHOT</span> API</span><br />
     <ul>
       <li><a href="index.html" class="wiki_link">Overview</a></li>
       <li><a href="api-index.html" class="wiki_link">API Index</a></li>
@@ -93,7 +93,7 @@ namespace.
 </div>
 </div>
                 <div id="content-tag"><h1 id="overview">API for <span id="clojure.tools.cli.api">clojure.tools.cli.api</span>
-  - <span id="header-project">tools.deps.alpha</span> <span id="header-version">0.14.1223-SNAPSHOT</span><span id="header-status-block"> (<span id="header-status">in development</span>)</span>
+  - <span id="header-project">tools.deps.alpha</span> <span id="header-version">0.15.1245-SNAPSHOT</span><span id="header-status-block"> (<span id="header-status">in development</span>)</span>
   </h1>
 
 <br />Full namespace name: <span id="long-name">clojure.tools.cli.api</span>
@@ -138,7 +138,7 @@ The aliases are printed to the console.</pre>
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/a035462cbe15a84faac29e17d0bc9fe8f080a4cc/src/main/clojure/clojure/tools/cli/api.clj#L176">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/3d1aefcba05c0f89fab9eb8c3545402eca692c53/src/main/clojure/clojure/tools/cli/api.clj#L177">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
@@ -182,21 +182,26 @@ Returns {:basis basis}, which basis is initial deps edn map plus these keys:
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/a035462cbe15a84faac29e17d0bc9fe8f080a4cc/src/main/clojure/clojure/tools/cli/api.clj#L40">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/3d1aefcba05c0f89fab9eb8c3545402eca692c53/src/main/clojure/clojure/tools/cli/api.clj#L40">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
     <h2 id="clojure.tools.cli.api/find-versions">find-versions</h2>
     <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (find-versions {:keys [lib tool], :as args})
+    <pre id="var-usage">Usage: (find-versions {:keys [lib tool n], :or {n 8}, :as args})
 </pre>
     <pre id="var-docstr">Find available tool versions given either a lib (with :lib) or
 existing installed tool (with :tool). If lib, check all registered
-procurers and print one coordinate per line when found.</pre>
+procurers and print one coordinate per line when found.
+
+Options:
+  :lib  Qualified lib symbol
+  :tool Tool name for installed tool
+  :n    Number of coordinates to return, default = 8, :all for all</pre>
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/a035462cbe15a84faac29e17d0bc9fe8f080a4cc/src/main/clojure/clojure/tools/cli/api.clj#L416">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/3d1aefcba05c0f89fab9eb8c3545402eca692c53/src/main/clojure/clojure/tools/cli/api.clj#L417">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
@@ -208,7 +213,7 @@ procurers and print one coordinate per line when found.</pre>
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/a035462cbe15a84faac29e17d0bc9fe8f080a4cc/src/main/clojure/clojure/tools/cli/api.clj#L286">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/3d1aefcba05c0f89fab9eb8c3545402eca692c53/src/main/clojure/clojure/tools/cli/api.clj#L287">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
@@ -247,7 +252,7 @@ The libs are printed to the console.</pre>
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/a035462cbe15a84faac29e17d0bc9fe8f080a4cc/src/main/clojure/clojure/tools/cli/api.clj#L230">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/3d1aefcba05c0f89fab9eb8c3545402eca692c53/src/main/clojure/clojure/tools/cli/api.clj#L231">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
@@ -280,7 +285,7 @@ Execute ad-hoc:
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/a035462cbe15a84faac29e17d0bc9fe8f080a4cc/src/main/clojure/clojure/tools/cli/api.clj#L375">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/3d1aefcba05c0f89fab9eb8c3545402eca692c53/src/main/clojure/clojure/tools/cli/api.clj#L376">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
@@ -306,13 +311,13 @@ Deprecated options (use the basis :aliases above instead):
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/a035462cbe15a84faac29e17d0bc9fe8f080a4cc/src/main/clojure/clojure/tools/cli/api.clj#L293">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/3d1aefcba05c0f89fab9eb8c3545402eca692c53/src/main/clojure/clojure/tools/cli/api.clj#L294">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
     <h2 id="clojure.tools.cli.api/prep">prep</h2>
     <span id="var-type">function</span><br />
-    <pre id="var-usage">Usage: (prep {:keys [force log], :or {log :info}, :as params})
+    <pre id="var-usage">Usage: (prep {:keys [force log current], :or {log :info, current false}, :as params})
 </pre>
     <pre id="var-docstr">Prep the unprepped libs found in the transitive lib set of basis.
 
@@ -321,8 +326,8 @@ Each dep source value can be :standard, a string path, a deps edn map, or nil.
 Sources are merged in the order - :root, :user, :project, :extra.
 
 Options:
-  :basis - basis to prep. If not provided, use (create-basis nil).
   :force - flag on whether to force prepped libs to re-prep (default = false)
+  :current - flag on whether to prep current project too (default = false)
   :log - :none, :info (default), or :debug
 
 Basis options:
@@ -336,7 +341,7 @@ Returns params used.</pre>
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/a035462cbe15a84faac29e17d0bc9fe8f080a4cc/src/main/clojure/clojure/tools/cli/api.clj#L78">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/3d1aefcba05c0f89fab9eb8c3545402eca692c53/src/main/clojure/clojure/tools/cli/api.clj#L78">Source</a>
   </div><div id="var-entry">
     <br />
     <hr />
@@ -376,7 +381,7 @@ Print output mode modifiers:
     <pre id="var-specs"></pre>
     
     
-    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/a035462cbe15a84faac29e17d0bc9fe8f080a4cc/src/main/clojure/clojure/tools/cli/api.clj#L117">Source</a>
+    <a id="var-source" href="https://github.com/clojure/tools.deps.alpha/blob/3d1aefcba05c0f89fab9eb8c3545402eca692c53/src/main/clojure/clojure/tools/cli/api.clj#L118">Source</a>
   </div>
 </div>
 
