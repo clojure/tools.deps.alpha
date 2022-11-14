@@ -56,11 +56,20 @@
   [path]
   [::pom/sourceDirectory path])
 
+(defn- to-repo-policy
+  [parent-tag {:keys [enabled update checksum]}]
+  [parent-tag
+   (when (some? enabled) [::pom/enabled (str enabled)])
+   (when update [::pom/updatePolicy (if (keyword? update) (name update) (str "interval:" update))])
+   (when checksum [::pom/checksumPolicy (name update)])])
+
 (defn- to-repo
-  [[name repo]]
+  [[name {:keys [url snapshots releases]}]]
   [::pom/repository
    [::pom/id name]
-   [::pom/url (:url repo)]])
+   [::pom/url url]
+   (when releases (to-repo-policy ::pom/releases releases))
+   (when snapshots (to-repo-policy ::pom/snapshots snapshots))])
 
 (defn- gen-repos
   [repos]

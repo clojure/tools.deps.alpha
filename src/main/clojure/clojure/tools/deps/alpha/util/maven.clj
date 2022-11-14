@@ -17,7 +17,7 @@
     ;; maven-resolver-api
     [org.eclipse.aether RepositorySystem RepositorySystemSession DefaultRepositoryCache DefaultRepositorySystemSession ConfigurationProperties]
     [org.eclipse.aether.artifact Artifact DefaultArtifact]
-    [org.eclipse.aether.repository LocalRepository Proxy RemoteRepository RemoteRepository$Builder]
+    [org.eclipse.aether.repository LocalRepository Proxy RemoteRepository RemoteRepository$Builder RepositoryPolicy]
     [org.eclipse.aether.graph Dependency Exclusion]
     [org.eclipse.aether.transfer TransferListener TransferEvent]
 
@@ -104,10 +104,33 @@
                 (getProxy repo)))))
     first))
 
+(defn- repo-policy
+  "Converts repo policy map to RepositoryPolicy.
+   :enabled - is enabled (default = true)
+   :update - one of :daily (default), :always, :never, or an interval in minutes
+   :checksum - one of :warn (default), :fail, :ignore"
+  [name {:keys [enabled update checksum]
+    :or {enabled true, update :daily, checksum :warn}}]
+  (RepositoryPolicy. enabled
+    (case update
+      :daily RepositoryPolicy/UPDATE_POLICY_DAILY
+      :always RepositoryPolicy/UPDATE_POLICY_ALWAYS
+      :never RepositoryPolicy/UPDATE_POLICY_NEVER
+      (str update))
+    (case checksum
+      :warn RepositoryPolicy/CHECKSUM_POLICY_WARN
+      :fail RepositoryPolicy/CHECKSUM_POLICY_FAIL
+      :ignore RepositoryPolicy/CHECKSUM_POLICY_IGNORE
+      (throw (ex-info (format "Invalid checksum policy: %s on repository: %s" checksum name)
+               {:name name
+                :enabled enabled
+                :update update
+                :checksum checksum})))))
+
 (defn remote-repo
   (^RemoteRepository [repo-entry]
    (remote-repo repo-entry (get-settings)))
-  (^RemoteRepository [[^String name {:keys [url]}] ^Settings settings]
+  (^RemoteRepository [[^String name {:keys [url snapshots releases] :as repo-config}] ^Settings settings]
    (let [builder (RemoteRepository$Builder. name "default" url)
          maybe-repo (.build builder)
          mirror (select-mirror settings maybe-repo)
@@ -117,6 +140,8 @@
          ^Server server-setting (->> (.getServers settings) (filter #(= server-id (.getId ^Server %))) first)]
      (->
        (cond-> builder
+         snapshots (.setSnapshotPolicy (repo-policy name snapshots))
+         releases (.setReleasePolicy (repo-policy name releases))
          mirror (.setUrl (.getUrl mirror))
          server-setting (.setAuthentication
                           (-> (AuthenticationBuilder.)

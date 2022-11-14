@@ -105,8 +105,14 @@
 ;; Maven
 (s/def :mvn/repos (s/map-of ::repo-id ::repo))
 (s/def ::repo-id string?)
-(s/def ::repo (s/nilable (s/keys :opt-un [::url])))
+(s/def ::repo (s/nilable (s/keys :opt-un [::url :mvn/releases :mvn/snapshots])))
 (s/def ::url string?)
+(s/def :mvn-repo/enabled boolean?)
+(s/def :mvn-repo/update (s/or :policy #{:daily :always :never} :interval int?))
+(s/def :mvn-repo/checksum #{:warn :fail :ignore})
+(s/def :mvn/repo-policy (s/keys :opt-un [:mvn-repo/enabled :mvn-repo/update :mvn-repo/checksum]))
+(s/def :mvn/releases :mvn/repo-policy)
+(s/def :mvn/snapshots :mvn/repo-policy)
 (s/def :mvn/local-repo string?)
 
 ;; Tool usage
