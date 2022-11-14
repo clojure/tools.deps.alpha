@@ -61,7 +61,7 @@
   [parent-tag
    (when (some? enabled) [::pom/enabled (str enabled)])
    (when update [::pom/updatePolicy (if (keyword? update) (name update) (str "interval:" update))])
-   (when checksum [::pom/checksumPolicy (name update)])])
+   (when checksum [::pom/checksumPolicy (name checksum)])])
 
 (defn- to-repo
   [[name {:keys [url snapshots releases]}]]
