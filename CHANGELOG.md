@@ -3,7 +3,7 @@ Changelog
 
 *Also see [Tools and installer changelog](https://github.com/clojure/brew-install/blob/1.10.3/CHANGELOG.md)*
 
-* next
+* 0.15.1254 on Nov 14, 2022
   * Fix typo in generated checksum policy pom
 * 0.15.1250 on Nov 14, 2022
   * TDEPS-101 Added support in :mvn/repos map to set release and snapshot policies
