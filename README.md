@@ -1,3 +1,5 @@
+# NOTE: This project has been superseded by [tools.deps](https://github.com/clojure/tools.deps)
+
 tools.deps.alpha
 ========================================
 
